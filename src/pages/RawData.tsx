@@ -4,7 +4,7 @@ import { useQuery, useQueryClient } from "@tanstack/react-query";
 import { Card } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
 import { useToast } from "@/components/ui/use-toast";
-import { getSalesWithProducts, deleteSale, updateSale, deleteMultipleSales } from "@/lib/supabase/database";
+import { getSalesWithProducts, deleteSale, updateSale, deleteMultipleSales } from "@/lib/supabase/database/sales";
 import { SalesTable } from "@/components/raw-data/SalesTable";
 import type { SaleWithProduct } from "@/types/sales";
 
