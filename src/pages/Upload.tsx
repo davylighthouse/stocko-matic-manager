@@ -1,13 +1,16 @@
+
 import { useState } from "react";
 import { Card } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
 import { useToast } from "@/components/ui/use-toast";
 import { Upload as UploadIcon, FileText, X } from "lucide-react";
 import { cn } from "@/lib/utils";
+import { processCSV } from "@/lib/supabase/database";
 
 const Upload = () => {
   const [isDragging, setIsDragging] = useState(false);
   const [file, setFile] = useState<File | null>(null);
+  const [isUploading, setIsUploading] = useState(false);
   const { toast } = useToast();
 
   const handleDragOver = (e: React.DragEvent) => {
@@ -56,11 +59,32 @@ const Upload = () => {
   const handleUpload = async () => {
     if (!file) return;
 
-    // TODO: Implement file upload logic
-    toast({
-      title: "Success",
-      description: "File uploaded successfully",
-    });
+    setIsUploading(true);
+    try {
+      const result = await processCSV(file);
+      
+      if (result.success) {
+        toast({
+          title: "Success",
+          description: "File processed successfully",
+        });
+        setFile(null);
+      } else {
+        toast({
+          title: "Error",
+          description: result.message,
+          variant: "destructive",
+        });
+      }
+    } catch (error) {
+      toast({
+        title: "Error",
+        description: "Failed to process the CSV file",
+        variant: "destructive",
+      });
+    } finally {
+      setIsUploading(false);
+    }
   };
 
   return (
@@ -134,10 +158,10 @@ const Upload = () => {
           <div className="mt-6">
             <Button
               onClick={handleUpload}
-              disabled={!file}
+              disabled={!file || isUploading}
               className="w-full"
             >
-              Upload File
+              {isUploading ? "Processing..." : "Upload File"}
             </Button>
           </div>
         </div>
