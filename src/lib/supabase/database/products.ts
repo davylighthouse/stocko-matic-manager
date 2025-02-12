@@ -3,7 +3,7 @@ import { supabase } from '@/integrations/supabase/client';
 import type { Product } from '@/types/database';
 
 export const getStockLevels = async () => {
-  const { data, error } = await supabase
+  const { data: products, error: productsError } = await supabase
     .from('products')
     .select(`
       *,
@@ -17,8 +17,25 @@ export const getStockLevels = async () => {
     `)
     .order('listing_title');
 
-  if (error) throw error;
-  return data;
+  if (productsError) throw productsError;
+
+  // Fetch current stock levels
+  const { data: stockLevels, error: stockError } = await supabase
+    .from('current_stock_levels')
+    .select('*');
+
+  if (stockError) throw stockError;
+
+  // Merge the current stock data with products
+  const mergedProducts = products.map(product => {
+    const stockLevel = stockLevels.find(sl => sl.sku === product.sku);
+    return {
+      ...product,
+      current_stock: stockLevel?.current_stock ?? 0
+    };
+  });
+
+  return mergedProducts;
 };
 
 export const updateProductDetails = async (sku: string, data: {
@@ -37,11 +54,16 @@ export const updateProductDetails = async (sku: string, data: {
 };
 
 export const updateStockLevel = async (sku: string, quantity: number) => {
-  const { error } = await supabase
-    .from('products')
-    .update({ stock_quantity: quantity })
-    .eq('sku', sku);
+  // First, record this as a stock adjustment
+  const { error: adjustmentError } = await supabase
+    .from('stock_adjustments')
+    .insert({
+      sku,
+      quantity,
+      notes: 'Manual stock update'
+    });
 
-  if (error) throw error;
+  if (adjustmentError) throw adjustmentError;
+
   return true;
 };
