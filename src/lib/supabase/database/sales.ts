@@ -2,6 +2,13 @@
 import { supabase } from '@/integrations/supabase/client';
 import type { SaleWithProduct, SalesTotals } from '@/types/sales';
 
+const parsePrice = (value: string | number | null | undefined): number => {
+  if (value === null || value === undefined || value === '') return 0;
+  const stringValue = value.toString().trim().replace(/[£$,\s]/g, '');
+  const number = parseFloat(stringValue);
+  return isNaN(number) ? 0 : number;
+};
+
 export const getSalesWithProducts = async () => {
   const { data, error } = await supabase
     .from('sales_with_products')
@@ -13,11 +20,24 @@ export const getSalesWithProducts = async () => {
   console.log('Raw data from database:', data);
   
   // Ensure numeric values are properly handled
-  const formattedData = data?.map(sale => ({
-    ...sale,
-    total_price: parseFloat(sale.total_price?.toString() || '0'),
-    gross_profit: parseFloat(sale.gross_profit?.toString() || '0')
-  }));
+  const formattedData = data?.map(sale => {
+    const formatted = {
+      ...sale,
+      total_price: parsePrice(sale.total_price),
+      gross_profit: parsePrice(sale.gross_profit)
+    };
+    console.log('Formatting sale:', {
+      original: {
+        total_price: sale.total_price,
+        gross_profit: sale.gross_profit
+      },
+      formatted: {
+        total_price: formatted.total_price,
+        gross_profit: formatted.gross_profit
+      }
+    });
+    return formatted;
+  });
 
   console.log('Formatted data:', formattedData);
 
@@ -59,8 +79,8 @@ export const updateSale = async (id: number, data: Partial<SaleWithProduct>) => 
   
   const numericData = {
     ...data,
-    total_price: data.total_price ? parseFloat(data.total_price.toString().replace('£', '')) : null,
-    gross_profit: data.gross_profit ? parseFloat(data.gross_profit.toString().replace('£', '')) : null
+    total_price: parsePrice(data.total_price),
+    gross_profit: parsePrice(data.gross_profit)
   };
 
   console.log('Processed data for update:', numericData);
