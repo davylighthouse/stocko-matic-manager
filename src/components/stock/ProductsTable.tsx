@@ -5,7 +5,7 @@ import { format } from "date-fns";
 import { cn } from "@/lib/utils";
 import { ProductEditDialog } from "./ProductEditDialog";
 import { Circle } from "lucide-react";
-import { Tooltip } from "@/components/ui/tooltip";
+import { Tooltip, TooltipContent, TooltipProvider, TooltipTrigger } from "@/components/ui/tooltip";
 
 interface ProductsTableProps {
   products: Product[];
@@ -83,18 +83,23 @@ export const ProductsTable = ({
                 className="cursor-pointer hover:bg-gray-50"
               >
                 <td className="px-6 py-4 whitespace-nowrap">
-                  <Tooltip content={
-                    completeness.missingFields.length > 0
-                      ? `Missing information: ${completeness.missingFields.join(', ')}`
-                      : 'All information complete'
-                  }>
-                    <div className="flex items-center">
-                      <Circle className={cn("h-4 w-4 fill-current", completenessColor)} />
-                      <span className="ml-2 text-sm text-gray-500">
-                        {completeness.percentage.toFixed(0)}%
-                      </span>
-                    </div>
-                  </Tooltip>
+                  <TooltipProvider>
+                    <Tooltip>
+                      <TooltipTrigger>
+                        <div className="flex items-center">
+                          <Circle className={cn("h-4 w-4 fill-current", completenessColor)} />
+                          <span className="ml-2 text-sm text-gray-500">
+                            {completeness.percentage.toFixed(0)}%
+                          </span>
+                        </div>
+                      </TooltipTrigger>
+                      <TooltipContent>
+                        {completeness.missingFields.length > 0
+                          ? `Missing information: ${completeness.missingFields.join(', ')}`
+                          : 'All information complete'}
+                      </TooltipContent>
+                    </Tooltip>
+                  </TooltipProvider>
                 </td>
                 <td className="px-6 py-4 whitespace-nowrap text-sm font-medium text-gray-900">
                   {product.sku}
