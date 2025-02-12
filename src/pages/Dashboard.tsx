@@ -7,12 +7,13 @@ import { useQuery } from "@tanstack/react-query";
 import { getTopProductsBySales } from "@/lib/supabase/database";
 
 const Dashboard = () => {
+  // Use a wider date range to ensure we capture all sales
+  const startDate = new Date('2020-01-01'); // From 2020
+  const endDate = new Date(); // Until today
+
   const { data: products = [] } = useQuery({
-    queryKey: ['topProducts', new Date(new Date().getFullYear(), new Date().getMonth(), 1), new Date()],
-    queryFn: () => getTopProductsBySales(
-      new Date(new Date().getFullYear(), new Date().getMonth(), 1),
-      new Date()
-    ),
+    queryKey: ['topProducts', startDate, endDate],
+    queryFn: () => getTopProductsBySales(startDate, endDate),
   });
 
   // Get the grand total and total quantity from the first row

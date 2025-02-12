@@ -13,9 +13,10 @@ import { getTopProductsBySales } from "@/lib/supabase/database";
 import { TopProduct } from "@/types/league-table";
 
 export const LeagueTable = () => {
+  // Use a wider date range by default
   const [date, setDate] = useState<DateRange | undefined>({
-    from: new Date(new Date().getFullYear(), new Date().getMonth(), 1), // First day of current month
-    to: new Date(), // Today
+    from: new Date('2020-01-01'), // From 2020
+    to: new Date(), // Until today
   });
 
   const { data: products = [], isLoading } = useQuery({
