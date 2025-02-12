@@ -1,6 +1,7 @@
+
 import { Link, Outlet, useLocation, useNavigate } from "react-router-dom";
 import { cn } from "@/lib/utils";
-import { BarChart2, Package, Upload, LogOut, ClipboardList } from "lucide-react";
+import { BarChart2, Package, Upload, LogOut, ClipboardList, Database } from "lucide-react";
 import { useAuth } from "@/contexts/AuthContext";
 import { supabase } from "@/integrations/supabase/client";
 import { useToast } from "@/components/ui/use-toast";
@@ -10,6 +11,7 @@ const navigation = [
   { name: "Dashboard", path: "/", icon: BarChart2 },
   { name: "Stock", path: "/stock", icon: Package },
   { name: "Stock Checks", path: "/stock-checks", icon: ClipboardList },
+  { name: "Raw Data", path: "/raw-data", icon: Database },
   { name: "Upload", path: "/upload", icon: Upload },
 ];
 

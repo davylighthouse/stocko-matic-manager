@@ -31,3 +31,21 @@ export const deleteSale = async (id: number) => {
   if (error) throw error;
   return true;
 };
+
+export const updateSale = async (id: number, data: Partial<SaleWithProduct>) => {
+  const { error } = await supabase
+    .from('sales')
+    .update({
+      sale_date: data.sale_date,
+      platform: data.platform,
+      sku: data.sku,
+      quantity: data.quantity,
+      total_price: data.total_price,
+      gross_profit: data.gross_profit,
+      promoted: data.promoted
+    })
+    .eq('id', id);
+
+  if (error) throw error;
+  return true;
+};
