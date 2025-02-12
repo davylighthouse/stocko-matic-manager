@@ -1,3 +1,4 @@
+
 import { supabase } from '@/integrations/supabase/client';
 import { Product, Sale } from '@/types/database';
 import type { SaleWithProduct, SalesTotals } from '@/types/sales';
@@ -402,6 +403,24 @@ export const deleteSale = async (id: number) => {
   const { error } = await supabase
     .from('sales')
     .delete()
+    .eq('id', id);
+
+  if (error) throw error;
+  return true;
+};
+
+export const updateSale = async (id: number, data: Partial<SaleWithProduct>) => {
+  const { error } = await supabase
+    .from('sales')
+    .update({
+      sale_date: data.sale_date,
+      platform: data.platform,
+      sku: data.sku,
+      quantity: data.quantity,
+      total_price: data.total_price,
+      gross_profit: data.gross_profit,
+      promoted: data.promoted
+    })
     .eq('id', id);
 
   if (error) throw error;
