@@ -125,38 +125,21 @@ export const updateProductDetails = async (sku: string, data: {
 };
 
 export const updateStockLevel = async (sku: string, quantity: number) => {
-  // Get current stock level first (using the same calculation as above)
-  const { data: initialStock } = await supabase
-    .from('initial_stock')
-    .select('quantity')
+  // First, get the existing product to preserve listing_title
+  const { data: product, error: productError } = await supabase
+    .from('products')
+    .select('listing_title')
     .eq('sku', sku)
     .single();
 
-  const { data: totalSales } = await supabase
-    .from('total_sales_quantities')
-    .select('total_sold')
-    .eq('sku', sku)
-    .single();
-
-  const { data: adjustments } = await supabase
-    .from('stock_adjustments')
-    .select('adjustment_sum:sum(quantity)')
-    .eq('sku', sku)
-    .single();
-
-  const currentStock = Number(initialStock?.quantity || 0) - 
-                      Number(totalSales?.total_sold || 0) + 
-                      Number(adjustments?.adjustment_sum || 0);
-
-  // Calculate the adjustment needed
-  const adjustment = quantity - currentStock;
+  if (productError) throw productError;
 
   // Record the adjustment
   const { error: adjustmentError } = await supabase
     .from('stock_adjustments')
     .insert({
       sku,
-      quantity: adjustment,
+      quantity: quantity - (product.current_stock || 0),
       notes: 'Manual stock update'
     });
 
