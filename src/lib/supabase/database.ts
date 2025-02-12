@@ -9,24 +9,73 @@ export const processCSV = async (file: File): Promise<{ success: boolean; messag
     const headers = rows[0];
     const data = rows.slice(1);
 
+    // Create maps to aggregate data by SKU
+    const salesBySku = new Map<string, {
+      quantity: number;
+      total_price: number;
+      gross_profit: number;
+      sales: Array<{
+        sale_date: string;
+        platform: string;
+        promoted: boolean;
+        quantity: number;
+        total_price: number;
+        gross_profit: number;
+      }>;
+    }>();
+
+    const productsBySku = new Map<string, {
+      sku: string;
+      listing_title: string;
+      product_cost: number;
+    }>();
+
+    // First pass: aggregate data by SKU
     for (const row of data) {
       if (row.length !== headers.length) continue;
 
-      const sale = {
+      const sku = row[headers.indexOf('SKU')];
+      const quantity = parseInt(row[headers.indexOf('Quantity')]);
+      const total_price = parseFloat(row[headers.indexOf('Total Price')]);
+      const gross_profit = parseFloat(row[headers.indexOf('Gross Profit')]);
+
+      // Aggregate sales data
+      if (!salesBySku.has(sku)) {
+        salesBySku.set(sku, {
+          quantity: 0,
+          total_price: 0,
+          gross_profit: 0,
+          sales: [],
+        });
+      }
+      const skuData = salesBySku.get(sku)!;
+      skuData.quantity += quantity;
+      skuData.total_price += total_price;
+      skuData.gross_profit += gross_profit;
+      skuData.sales.push({
         sale_date: row[headers.indexOf('Sale Date')],
         platform: row[headers.indexOf('Platform')],
-        sku: row[headers.indexOf('SKU')],
         promoted: row[headers.indexOf('Promoted Listing')].toLowerCase() === 'yes',
-        quantity: parseInt(row[headers.indexOf('Quantity')]),
-        total_price: parseFloat(row[headers.indexOf('Total Price')]),
-        gross_profit: parseFloat(row[headers.indexOf('Gross Profit')]),
-      };
+        quantity,
+        total_price,
+        gross_profit,
+      });
 
+      // Store product data (only for first occurrence of SKU)
+      if (!productsBySku.has(sku)) {
+        productsBySku.set(sku, {
+          sku,
+          listing_title: row[headers.indexOf('Listing Title')],
+          product_cost: parseFloat(row[headers.indexOf('Product Cost')]),
+        });
+      }
+    }
+
+    // Second pass: save aggregated data
+    for (const [sku, productData] of productsBySku) {
       const product = {
-        sku: sale.sku,
-        listing_title: row[headers.indexOf('Listing Title')],
+        ...productData,
         stock_quantity: 0,
-        product_cost: parseFloat(row[headers.indexOf('Product Cost')]),
       };
 
       // First, ensure the product exists by upserting it
@@ -36,20 +85,23 @@ export const processCSV = async (file: File): Promise<{ success: boolean; messag
 
       if (productError) throw productError;
 
-      // Then insert the sale
-      const { error: saleError } = await supabase
-        .from('sales')
-        .insert([sale]);
+      // Then insert individual sales
+      const salesData = salesBySku.get(sku)!;
+      for (const sale of salesData.sales) {
+        const { error: saleError } = await supabase
+          .from('sales')
+          .insert([{ ...sale, sku }]);
 
-      if (saleError) throw saleError;
+        if (saleError) throw saleError;
+      }
 
       // Finally update the stock quantity
       const { error: stockError } = await supabase
         .from('products')
         .update({ 
-          stock_quantity: supabase.sql`stock_quantity - ${sale.quantity}` 
+          stock_quantity: supabase.sql`stock_quantity - ${salesData.quantity}` 
         })
-        .eq('sku', sale.sku);
+        .eq('sku', sku);
 
       if (stockError) throw stockError;
     }
