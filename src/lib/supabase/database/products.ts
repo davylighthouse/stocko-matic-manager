@@ -141,9 +141,22 @@ export const createProduct = async (product: {
 
   console.log('Final product data:', productData);
 
+  // First, check if the product already exists
+  const { data: existingProduct } = await supabase
+    .from('products')
+    .select('sku')
+    .eq('sku', product.sku)
+    .maybeSingle();
+
+  if (existingProduct) {
+    console.log('Product already exists:', existingProduct);
+    return existingProduct;
+  }
+
+  // Insert the new product
   const { data, error } = await supabase
     .from('products')
-    .insert(productData)
+    .insert([productData]) // Wrap in array to ensure correct format
     .select()
     .single();
 
@@ -175,14 +188,18 @@ export const updateStockLevel = async (sku: string, quantity: number) => {
     // If product doesn't exist, create it first
     if (!existingProduct) {
       console.log('Product not found, creating new product');
-      await createProduct({
+      const newProduct = await createProduct({
         sku,
         listing_title: sku,
         stock_quantity: 0
       });
+
+      if (!newProduct) {
+        throw new Error('Failed to create new product');
+      }
     }
 
-    // Now get current stock level
+    // Get current stock level
     const stockLevels = await getStockLevels();
     const currentProduct = stockLevels.find(p => p.sku === sku);
     
