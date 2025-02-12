@@ -1,3 +1,4 @@
+
 import { useState } from "react";
 import { useQuery, useMutation, useQueryClient } from "@tanstack/react-query";
 import { Card } from "@/components/ui/card";
@@ -8,10 +9,9 @@ import {
   DialogContent,
   DialogHeader,
   DialogTitle,
-  DialogTrigger,
 } from "@/components/ui/dialog";
 import { Label } from "@/components/ui/label";
-import { Search, Plus, Edit } from "lucide-react";
+import { Search, Plus } from "lucide-react";
 import { cn } from "@/lib/utils";
 import { getStockLevels, updateStockLevel, updateProductDetails } from "@/lib/supabase/database";
 import { Product } from "@/types/database";
@@ -212,7 +212,22 @@ const StockManagement = () => {
                             <Input
                               id="listing_title"
                               name="listing_title"
-                              defaultValue={product.listing_title}
+                              defaultValue={selectedProduct?.listing_title}
+                            />
+                          </div>
+                          <div>
+                            <Label htmlFor="stock_quantity">Current Stock</Label>
+                            <Input
+                              id="stock_quantity"
+                              name="stock_quantity"
+                              type="number"
+                              defaultValue={selectedProduct?.stock_quantity}
+                              onChange={(e) => {
+                                const quantity = parseInt(e.target.value);
+                                if (!isNaN(quantity)) {
+                                  handleStockUpdate(product.sku, quantity);
+                                }
+                              }}
                             />
                           </div>
                           <div>
@@ -222,7 +237,7 @@ const StockManagement = () => {
                               name="product_cost"
                               type="number"
                               step="0.01"
-                              defaultValue={product.product_cost}
+                              defaultValue={selectedProduct?.product_cost}
                             />
                           </div>
                           <div>
@@ -230,7 +245,7 @@ const StockManagement = () => {
                             <Input
                               id="warehouse_location"
                               name="warehouse_location"
-                              defaultValue={product.warehouse_location}
+                              defaultValue={selectedProduct?.warehouse_location}
                             />
                           </div>
                           <div>
@@ -238,7 +253,7 @@ const StockManagement = () => {
                             <Input
                               id="supplier"
                               name="supplier"
-                              defaultValue={product.supplier}
+                              defaultValue={selectedProduct?.supplier}
                             />
                           </div>
                           <div className="flex justify-end space-x-2">
