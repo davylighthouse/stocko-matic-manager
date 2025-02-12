@@ -12,7 +12,8 @@ export const getStockLevels = async () => {
       *,
       latest_stock_check_quantities (
         last_check_quantity,
-        check_date
+        check_date,
+        stock_check_id
       ),
       total_sales_quantities (
         total_sold
@@ -25,76 +26,83 @@ export const getStockLevels = async () => {
     throw productsError;
   }
 
-  console.log('Products fetched:', products);
+  console.log('Products and their latest checks:', products);
 
-  // Get the latest stock check quantities
-  const { data: latestStockChecks, error: stockCheckError } = await supabase
-    .from('latest_stock_check_quantities')
-    .select('*');
+  // Get sales after the last stock check for each product
+  const latestChecks = products.map(p => ({
+    sku: p.sku,
+    checkDate: p.latest_stock_check_quantities?.[0]?.check_date,
+    lastQuantity: p.latest_stock_check_quantities?.[0]?.last_check_quantity || 0
+  })).filter(check => check.checkDate);
 
-  if (stockCheckError) {
-    console.error('Error fetching stock checks:', stockCheckError);
-    throw stockCheckError;
-  }
+  console.log('Latest check dates:', latestChecks);
 
-  console.log('Latest stock checks:', latestStockChecks);
+  // Get sales since last check for each product
+  const salesPromises = latestChecks.map(async (check) => {
+    const { data, error } = await supabase
+      .from('sales')
+      .select('sku, quantity')
+      .eq('sku', check.sku)
+      .gte('sale_date', check.checkDate)
+      .execute();
 
-  // Get total sold from total_sales_quantities view
-  const { data: totalSales, error: totalSalesError } = await supabase
-    .from('total_sales_quantities')
-    .select('*');
+    if (error) {
+      console.error('Error fetching sales for SKU:', check.sku, error);
+      return { sku: check.sku, totalSold: 0 };
+    }
 
-  if (totalSalesError) {
-    console.error('Error fetching total sales:', totalSalesError);
-    throw totalSalesError;
-  }
+    const totalSold = data?.reduce((sum, sale) => sum + (sale.quantity || 0), 0) || 0;
+    return { sku: check.sku, totalSold };
+  });
 
-  console.log('Total sales:', totalSales);
+  // Get adjustments since last check for each product
+  const adjustmentsPromises = latestChecks.map(async (check) => {
+    const { data, error } = await supabase
+      .from('stock_adjustments')
+      .select('sku, quantity')
+      .eq('sku', check.sku)
+      .gte('adjustment_date', check.checkDate)
+      .execute();
 
-  // Get stock adjustments
-  const { data: stockAdjustments, error: stockAdjustmentsError } = await supabase
-    .from('stock_adjustments')
-    .select('sku, adjustment_sum:sum(quantity)')
-    .order('sku');
+    if (error) {
+      console.error('Error fetching adjustments for SKU:', check.sku, error);
+      return { sku: check.sku, totalAdjusted: 0 };
+    }
 
-  if (stockAdjustmentsError) {
-    console.error('Error fetching stock adjustments:', stockAdjustmentsError);
-    throw stockAdjustmentsError;
-  }
+    const totalAdjusted = data?.reduce((sum, adj) => sum + (adj.quantity || 0), 0) || 0;
+    return { sku: check.sku, totalAdjusted };
+  });
 
-  console.log('Stock adjustments:', stockAdjustments);
+  // Wait for all promises to resolve
+  const [salesResults, adjustmentResults] = await Promise.all([
+    Promise.all(salesPromises),
+    Promise.all(adjustmentsPromises)
+  ]);
 
-  // Convert to lookup maps for efficient access
-  const stockCheckMap = new Map(
-    latestStockChecks?.map(check => [check.sku, check.last_check_quantity]) || []
-  );
-  const salesMap = new Map(
-    totalSales?.map(sale => [sale.sku, Number(sale.total_sold) || 0]) || []
-  );
-  const adjustmentsMap = new Map(
-    stockAdjustments?.map(adj => [adj.sku, Number(adj.adjustment_sum) || 0]) || []
-  );
+  console.log('Sales since last check:', salesResults);
+  console.log('Adjustments since last check:', adjustmentResults);
 
-  // Merge all data with products
+  // Create maps for efficient lookup
+  const salesMap = new Map(salesResults.map(r => [r.sku, r.totalSold]));
+  const adjustmentsMap = new Map(adjustmentResults.map(r => [r.sku, r.totalAdjusted]));
+  const lastCheckMap = new Map(latestChecks.map(c => [c.sku, c.lastQuantity]));
+
+  // Calculate current stock levels
   const mergedProducts = products.map(product => {
-    // Start with the last physical stock check quantity
-    const lastCheckQuantity = Number(stockCheckMap.get(product.sku) || 0);
-    
-    // Calculate sales since last check
-    const totalSold = Number(salesMap.get(product.sku) || 0);
-    
-    // Calculate adjustments since last check
-    const totalAdjusted = Number(adjustmentsMap.get(product.sku) || 0);
+    const lastCheckQuantity = Number(lastCheckMap.get(product.sku) || 0);
+    const salesSinceCheck = Number(salesMap.get(product.sku) || 0);
+    const adjustmentsSinceCheck = Number(adjustmentsMap.get(product.sku) || 0);
 
-    const currentStock = lastCheckQuantity - totalSold + totalAdjusted;
+    const currentStock = lastCheckQuantity - salesSinceCheck + adjustmentsSinceCheck;
 
     console.log('Stock calculation for SKU:', product.sku, {
       lastCheckQuantity,
-      totalSold,
-      totalAdjusted,
-      currentStock
+      salesSinceCheck,
+      adjustmentsSinceCheck,
+      currentStock,
+      checkDate: product.latest_stock_check_quantities?.[0]?.check_date
     });
-    
+
     return {
       ...product,
       current_stock: currentStock
