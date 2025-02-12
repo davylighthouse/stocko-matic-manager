@@ -44,10 +44,19 @@ export const deleteSale = async (id: number) => {
   return true;
 };
 
+export const deleteMultipleSales = async (ids: number[]) => {
+  const { error } = await supabase
+    .from('sales')
+    .delete()
+    .in('id', ids);
+
+  if (error) throw error;
+  return true;
+};
+
 export const updateSale = async (id: number, data: Partial<SaleWithProduct>) => {
   console.log('Received data for update:', data);
   
-  // Parse numeric values to ensure they're saved correctly
   const numericData = {
     ...data,
     total_price: data.total_price ? parseFloat(data.total_price.toString().replace('£', '')) : null,
@@ -71,8 +80,5 @@ export const updateSale = async (id: number, data: Partial<SaleWithProduct>) => 
     .select();
 
   if (error) throw error;
-
-  console.log('Update response:', updatedData);
-
   return true;
 };

@@ -7,6 +7,7 @@ import {
   TableHeader,
   TableRow,
 } from "@/components/ui/table";
+import { Checkbox } from "@/components/ui/checkbox";
 import { SaleEditRow } from "./SaleEditRow";
 import { SaleViewRow } from "./SaleViewRow";
 import type { SaleWithProduct } from "@/types/sales";
@@ -16,12 +17,14 @@ interface SalesTableProps {
   editingId: number | null;
   editedData: Partial<SaleWithProduct>;
   isDeleting: number | null;
+  selectedSales: number[];
   formatPrice: (price: number | null) => string;
   onInputChange: (field: keyof SaleWithProduct, value: string | number | boolean) => void;
   onEdit: (sale: SaleWithProduct) => void;
   onSave: () => void;
   onCancel: () => void;
   onDelete: (id: number) => void;
+  onSelectSale: (id: number) => void;
 }
 
 export const SalesTable = ({
@@ -29,17 +32,20 @@ export const SalesTable = ({
   editingId,
   editedData,
   isDeleting,
+  selectedSales,
   formatPrice,
   onInputChange,
   onEdit,
   onSave,
   onCancel,
   onDelete,
+  onSelectSale,
 }: SalesTableProps) => {
   return (
     <Table>
       <TableHeader>
         <TableRow>
+          <TableHead className="w-[50px]">Select</TableHead>
           <TableHead>Sale Date</TableHead>
           <TableHead>Platform</TableHead>
           <TableHead>SKU</TableHead>
@@ -54,6 +60,12 @@ export const SalesTable = ({
       <TableBody>
         {sales.map((sale) => (
           <TableRow key={sale.id}>
+            <TableCell>
+              <Checkbox
+                checked={selectedSales.includes(sale.id!)}
+                onCheckedChange={() => onSelectSale(sale.id!)}
+              />
+            </TableCell>
             {editingId === sale.id ? (
               <SaleEditRow
                 editedData={editedData}
@@ -67,7 +79,7 @@ export const SalesTable = ({
                 isDeleting={isDeleting === sale.id}
                 formatPrice={formatPrice}
                 onEdit={() => onEdit(sale)}
-                onDelete={() => onDelete(sale.id)}
+                onDelete={() => onDelete(sale.id!)}
               />
             )}
           </TableRow>

@@ -1,4 +1,3 @@
-
 import { supabase } from '@/integrations/supabase/client';
 
 export const processCSV = async (file: File): Promise<{ success: boolean; message: string }> => {
@@ -19,8 +18,8 @@ export const processCSV = async (file: File): Promise<{ success: boolean; messag
       return index;
     };
 
-    // Explicitly look for "Total price" with lowercase 'p'
-    const totalPriceIndex = findColumnIndex(['Total price']);
+    // Initialize column indices
+    let totalPriceIndex = findColumnIndex(['Total price']);
     const grossProfitIndex = findColumnIndex(['Gross Profit', 'Gross profit', 'GrossProfit', 'GROSS PROFIT']);
     const quantityIndex = findColumnIndex(['Quantity', 'quantity', 'QUANTITY']);
     const skuIndex = findColumnIndex(['SKU', 'sku']);
@@ -30,26 +29,12 @@ export const processCSV = async (file: File): Promise<{ success: boolean; messag
     const productCostIndex = findColumnIndex(['Product Cost', 'ProductCost', 'Cost']);
     const listingTitleIndex = findColumnIndex(['Listing Title', 'Title', 'Product Title']);
 
-    // Log all found indices
-    console.log('Found column indices:', {
-      totalPriceIndex,
-      grossProfitIndex,
-      quantityIndex,
-      skuIndex,
-      saleDateIndex,
-      platformIndex,
-      promotedIndex,
-      productCostIndex,
-      listingTitleIndex
-    });
-
     // Double check if we found the Total price column
     console.log('Total price column found at index:', totalPriceIndex);
     console.log('Column 7 header is:', headers[6]); // Zero-based index, so column 7 is index 6
 
-    // Verify we found the required columns
+    // Use column 7 (index 6) if Total price not found
     if (totalPriceIndex === -1) {
-      // If not found by name, use column 7 (index 6)
       console.log('Falling back to using column 7 for Total price');
       totalPriceIndex = 6;
     }
