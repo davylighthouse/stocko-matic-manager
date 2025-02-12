@@ -95,12 +95,21 @@ export const processCSV = async (file: File): Promise<{ success: boolean; messag
         if (saleError) throw saleError;
       }
 
-      // Finally update the stock quantity
+      // Get current stock quantity
+      const { data: currentProduct } = await supabase
+        .from('products')
+        .select('stock_quantity')
+        .eq('sku', sku)
+        .single();
+
+      // Calculate new stock quantity
+      const currentQuantity = currentProduct?.stock_quantity ?? 0;
+      const newQuantity = currentQuantity - salesData.quantity;
+
+      // Update the stock quantity
       const { error: stockError } = await supabase
         .from('products')
-        .update({ 
-          stock_quantity: supabase.sql`stock_quantity - ${salesData.quantity}` 
-        })
+        .update({ stock_quantity: newQuantity })
         .eq('sku', sku);
 
       if (stockError) throw stockError;
