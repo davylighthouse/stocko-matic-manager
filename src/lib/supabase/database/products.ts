@@ -3,14 +3,7 @@ import { supabase } from '@/integrations/supabase/client';
 import type { Product } from '@/types/database';
 
 export const getStockLevels = async () => {
-  // First get the current stock levels
-  const { data: stockLevels, error: stockError } = await supabase
-    .from('current_stock_levels')
-    .select('*');
-
-  if (stockError) throw stockError;
-
-  // Then get the products with their related data
+  // Get products with their related data first
   const { data: products, error: productsError } = await supabase
     .from('products')
     .select(`
@@ -27,12 +20,42 @@ export const getStockLevels = async () => {
 
   if (productsError) throw productsError;
 
-  // Merge the current stock data with products, ensuring we use the view's calculation
+  // Get initial stock
+  const { data: initialStock, error: initialStockError } = await supabase
+    .from('initial_stock')
+    .select('sku, quantity');
+
+  if (initialStockError) throw initialStockError;
+
+  // Get total sold directly from the total_sales_quantities view
+  const { data: totalSales, error: totalSalesError } = await supabase
+    .from('total_sales_quantities')
+    .select('sku, total_sold');
+
+  if (totalSalesError) throw totalSalesError;
+
+  // Get manual stock adjustments
+  const { data: stockAdjustments, error: stockAdjustmentsError } = await supabase
+    .from('stock_adjustments')
+    .select('sku, SUM(quantity) as total_adjusted')
+    .group('sku');
+
+  if (stockAdjustmentsError) throw stockAdjustmentsError;
+
+  // Convert to lookup maps for efficient access
+  const initialStockMap = new Map(initialStock.map(item => [item.sku, item.quantity]));
+  const salesMap = new Map(totalSales.map(item => [item.sku, item.total_sold]));
+  const adjustmentsMap = new Map(stockAdjustments.map(item => [item.sku, item.total_adjusted]));
+
+  // Merge all data with products
   const mergedProducts = products.map(product => {
-    const stockLevel = stockLevels.find(sl => sl.sku === product.sku);
+    const initialQuantity = initialStockMap.get(product.sku) || 0;
+    const totalSold = salesMap.get(product.sku) || 0;
+    const totalAdjusted = adjustmentsMap.get(product.sku) || 0;
+    
     return {
       ...product,
-      current_stock: stockLevel?.current_stock ?? 0
+      current_stock: initialQuantity - totalSold + totalAdjusted
     };
   });
 
@@ -55,17 +78,30 @@ export const updateProductDetails = async (sku: string, data: {
 };
 
 export const updateStockLevel = async (sku: string, quantity: number) => {
-  // Get current stock level first
-  const { data: currentLevel, error: getCurrentError } = await supabase
-    .from('current_stock_levels')
-    .select('current_stock')
+  // Get current stock level first (using the same calculation as above)
+  const { data: initialStock } = await supabase
+    .from('initial_stock')
+    .select('quantity')
     .eq('sku', sku)
     .single();
 
-  if (getCurrentError) throw getCurrentError;
+  const { data: totalSales } = await supabase
+    .from('total_sales_quantities')
+    .select('total_sold')
+    .eq('sku', sku)
+    .single();
+
+  const { data: adjustments } = await supabase
+    .from('stock_adjustments')
+    .select('SUM(quantity) as total_adjusted')
+    .eq('sku', sku)
+    .single();
+
+  const currentStock = (initialStock?.quantity || 0) - 
+                      (totalSales?.total_sold || 0) + 
+                      (adjustments?.total_adjusted || 0);
 
   // Calculate the adjustment needed
-  const currentStock = currentLevel?.current_stock ?? 0;
   const adjustment = quantity - currentStock;
 
   // Record the adjustment
