@@ -1,4 +1,3 @@
-
 import { useState } from "react";
 import { useQuery, useMutation, useQueryClient } from "@tanstack/react-query";
 import { Card } from "@/components/ui/card";
@@ -29,6 +28,8 @@ const StockManagement = () => {
     queryKey: ['products'],
     queryFn: getStockLevels
   });
+
+  console.log('Products data:', products);
 
   const updateStockMutation = useMutation({
     mutationFn: ({ sku, quantity }: { sku: string; quantity: number }) =>
