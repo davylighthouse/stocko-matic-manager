@@ -3,6 +3,7 @@ export interface Product {
   sku: string;
   listing_title: string;
   stock_quantity: number;
+  current_stock?: number | null;
   product_cost: number;
   supplier?: string;
   warehouse_location?: string;
@@ -25,3 +26,4 @@ export interface Sale {
   total_price: number;
   gross_profit: number;
 }
+
