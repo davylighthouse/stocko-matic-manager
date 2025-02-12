@@ -37,6 +37,14 @@ export const processCSV = async (file: File): Promise<{ success: boolean; messag
       // Remove £ symbol and any whitespace, then convert to float
       const cleanValue = value.trim().replace('£', '');
       const number = parseFloat(cleanValue);
+      
+      // Add logging to debug price parsing
+      console.log('Parsing price:', {
+        originalValue: value,
+        cleanValue,
+        parsedNumber: number
+      });
+      
       return isNaN(number) ? 0 : number;
     };
 
@@ -46,9 +54,29 @@ export const processCSV = async (file: File): Promise<{ success: boolean; messag
 
       const sku = row[headers.indexOf('SKU')];
       const quantity = parseInt(row[headers.indexOf('Quantity')] || '0');
+      
+      // Add logging for the column indices
+      console.log('Column indices:', {
+        totalPriceIndex: headers.indexOf('Total Price'),
+        grossProfitIndex: headers.indexOf('Gross Profit')
+      });
+      
+      // Log raw values from CSV
+      console.log('Raw CSV values:', {
+        totalPriceRaw: row[headers.indexOf('Total Price')],
+        grossProfitRaw: row[headers.indexOf('Gross Profit')]
+      });
+
       const total_price = parsePrice(row[headers.indexOf('Total Price')]);
       const gross_profit = parsePrice(row[headers.indexOf('Gross Profit')]);
       const product_cost = parsePrice(row[headers.indexOf('Product Cost')]);
+
+      // Log parsed values
+      console.log('Parsed values:', {
+        total_price,
+        gross_profit,
+        product_cost
+      });
 
       // Skip rows without a valid SKU
       if (!sku) continue;
@@ -66,14 +94,19 @@ export const processCSV = async (file: File): Promise<{ success: boolean; messag
       skuData.quantity += quantity;
       skuData.total_price += total_price;
       skuData.gross_profit += gross_profit;
-      skuData.sales.push({
+      
+      // Log the sale being added
+      const sale = {
         sale_date: row[headers.indexOf('Sale Date')],
         platform: row[headers.indexOf('Platform')],
         promoted: row[headers.indexOf('Promoted Listing')]?.toLowerCase() === 'yes',
         quantity,
         total_price,
         gross_profit,
-      });
+      };
+      console.log('Adding sale:', sale);
+      
+      skuData.sales.push(sale);
 
       // Store product data (only for first occurrence of SKU)
       if (!productsBySku.has(sku)) {
@@ -101,12 +134,20 @@ export const processCSV = async (file: File): Promise<{ success: boolean; messag
 
       // Then insert individual sales
       const salesData = salesBySku.get(sku)!;
+      
+      // Log sales data before insert
+      console.log('Inserting sales for SKU:', sku, salesData);
+      
       for (const sale of salesData.sales) {
-        const { error: saleError } = await supabase
+        const { data: insertedSale, error: saleError } = await supabase
           .from('sales')
-          .insert([{ ...sale, sku }]);
+          .insert([{ ...sale, sku }])
+          .select();
 
         if (saleError) throw saleError;
+        
+        // Log inserted sale
+        console.log('Inserted sale:', insertedSale);
       }
 
       // Get current stock quantity
