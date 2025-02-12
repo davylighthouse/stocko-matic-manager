@@ -49,14 +49,14 @@ export const ProductsTable = ({
                 <span
                   className={cn(
                     "inline-flex items-center px-2.5 py-0.5 rounded-full text-xs font-medium",
-                    (product.stock_quantity ?? 0) > 50
+                    (product.current_stock ?? 0) > 50
                       ? "bg-green-100 text-green-800"
-                      : (product.stock_quantity ?? 0) > 20
+                      : (product.current_stock ?? 0) > 20
                       ? "bg-yellow-100 text-yellow-800"
                       : "bg-red-100 text-red-800"
                   )}
                 >
-                  {product.stock_quantity ?? 0}
+                  {product.current_stock ?? 0}
                 </span>
               </td>
               <td className="px-6 py-4 whitespace-nowrap text-sm text-gray-500">
@@ -87,7 +87,7 @@ export const ProductsTable = ({
                   size="sm"
                   onClick={(e) => {
                     e.stopPropagation();
-                    const newQuantity = prompt("Enter new stock quantity:", String(product.stock_quantity ?? 0));
+                    const newQuantity = prompt("Enter new stock quantity:", String(product.current_stock ?? 0));
                     if (newQuantity !== null) {
                       const quantity = parseInt(newQuantity);
                       if (!isNaN(quantity)) {
