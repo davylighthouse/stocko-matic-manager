@@ -3,6 +3,8 @@ import { supabase } from '@/integrations/supabase/client';
 import type { Product } from '@/types/database';
 
 export const getStockLevels = async () => {
+  console.log('Fetching stock levels...');
+  
   // Get products with their related data first
   const { data: products, error: productsError } = await supabase
     .from('products')
@@ -18,46 +20,84 @@ export const getStockLevels = async () => {
     `)
     .order('listing_title');
 
-  if (productsError) throw productsError;
+  if (productsError) {
+    console.error('Error fetching products:', productsError);
+    throw productsError;
+  }
 
-  // Get initial stock
-  const { data: initialStock, error: initialStockError } = await supabase
-    .from('initial_stock')
-    .select('sku, quantity');
+  console.log('Products fetched:', products);
 
-  if (initialStockError) throw initialStockError;
+  // Get the latest stock check quantities
+  const { data: latestStockChecks, error: stockCheckError } = await supabase
+    .from('latest_stock_check_quantities')
+    .select('*');
 
-  // Get total sold directly from the total_sales_quantities view
+  if (stockCheckError) {
+    console.error('Error fetching stock checks:', stockCheckError);
+    throw stockCheckError;
+  }
+
+  console.log('Latest stock checks:', latestStockChecks);
+
+  // Get total sold from total_sales_quantities view
   const { data: totalSales, error: totalSalesError } = await supabase
     .from('total_sales_quantities')
-    .select('sku, total_sold');
+    .select('*');
 
-  if (totalSalesError) throw totalSalesError;
+  if (totalSalesError) {
+    console.error('Error fetching total sales:', totalSalesError);
+    throw totalSalesError;
+  }
 
-  // Get manual stock adjustments using aggregate function
+  console.log('Total sales:', totalSales);
+
+  // Get stock adjustments
   const { data: stockAdjustments, error: stockAdjustmentsError } = await supabase
     .from('stock_adjustments')
     .select('sku, adjustment_sum:sum(quantity)')
     .order('sku');
 
-  if (stockAdjustmentsError) throw stockAdjustmentsError;
+  if (stockAdjustmentsError) {
+    console.error('Error fetching stock adjustments:', stockAdjustmentsError);
+    throw stockAdjustmentsError;
+  }
+
+  console.log('Stock adjustments:', stockAdjustments);
 
   // Convert to lookup maps for efficient access
-  const initialStockMap = new Map(initialStock.map(item => [item.sku, item.quantity]));
-  const salesMap = new Map(totalSales.map(item => [item.sku, Number(item.total_sold) || 0]));
+  const stockCheckMap = new Map(
+    latestStockChecks?.map(check => [check.sku, check.last_check_quantity]) || []
+  );
+  const salesMap = new Map(
+    totalSales?.map(sale => [sale.sku, Number(sale.total_sold) || 0]) || []
+  );
   const adjustmentsMap = new Map(
-    stockAdjustments.map(item => [item.sku, Number(item.adjustment_sum) || 0])
+    stockAdjustments?.map(adj => [adj.sku, Number(adj.adjustment_sum) || 0]) || []
   );
 
   // Merge all data with products
   const mergedProducts = products.map(product => {
-    const initialQuantity = Number(initialStockMap.get(product.sku) || 0);
+    // Start with the last physical stock check quantity
+    const lastCheckQuantity = Number(stockCheckMap.get(product.sku) || 0);
+    
+    // Calculate sales since last check
     const totalSold = Number(salesMap.get(product.sku) || 0);
+    
+    // Calculate adjustments since last check
     const totalAdjusted = Number(adjustmentsMap.get(product.sku) || 0);
+
+    const currentStock = lastCheckQuantity - totalSold + totalAdjusted;
+
+    console.log('Stock calculation for SKU:', product.sku, {
+      lastCheckQuantity,
+      totalSold,
+      totalAdjusted,
+      currentStock
+    });
     
     return {
       ...product,
-      current_stock: initialQuantity - totalSold + totalAdjusted
+      current_stock: currentStock
     };
   });
 
