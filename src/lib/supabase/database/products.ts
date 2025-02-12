@@ -19,7 +19,7 @@ export const getStockLevels = async () => {
 
   if (productsError) throw productsError;
 
-  // Fetch current stock levels
+  // Fetch current stock levels using the updated view
   const { data: stockLevels, error: stockError } = await supabase
     .from('current_stock_levels')
     .select('*');
@@ -54,12 +54,25 @@ export const updateProductDetails = async (sku: string, data: {
 };
 
 export const updateStockLevel = async (sku: string, quantity: number) => {
-  // First, record this as a stock adjustment
+  // Get current stock level first
+  const { data: currentLevel, error: getCurrentError } = await supabase
+    .from('current_stock_levels')
+    .select('current_stock')
+    .eq('sku', sku)
+    .single();
+
+  if (getCurrentError) throw getCurrentError;
+
+  // Calculate the adjustment needed
+  const currentStock = currentLevel?.current_stock ?? 0;
+  const adjustment = quantity - currentStock;
+
+  // Record the adjustment
   const { error: adjustmentError } = await supabase
     .from('stock_adjustments')
     .insert({
       sku,
-      quantity,
+      quantity: adjustment,
       notes: 'Manual stock update'
     });
 

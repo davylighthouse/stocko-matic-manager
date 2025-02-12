@@ -303,7 +303,6 @@ export type Database = {
           listing_title: string | null
           quantity_sold: number | null
           sku: string | null
-          stock_count_date: string | null
         }
         Relationships: []
       }
