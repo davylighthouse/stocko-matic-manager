@@ -50,28 +50,58 @@ export type Database = {
       }
       products: {
         Row: {
+          additional_costs: number | null
+          default_shipping_service: string | null
+          dimensions_height: number | null
+          dimensions_length: number | null
+          dimensions_width: number | null
           listing_title: string
+          making_up_cost: number | null
+          packaging_cost: number | null
           product_cost: number | null
+          product_status: string | null
           sku: string
           stock_quantity: number | null
           supplier: string | null
+          vat_status: string | null
           warehouse_location: string | null
+          weight: number | null
         }
         Insert: {
+          additional_costs?: number | null
+          default_shipping_service?: string | null
+          dimensions_height?: number | null
+          dimensions_length?: number | null
+          dimensions_width?: number | null
           listing_title: string
+          making_up_cost?: number | null
+          packaging_cost?: number | null
           product_cost?: number | null
+          product_status?: string | null
           sku: string
           stock_quantity?: number | null
           supplier?: string | null
+          vat_status?: string | null
           warehouse_location?: string | null
+          weight?: number | null
         }
         Update: {
+          additional_costs?: number | null
+          default_shipping_service?: string | null
+          dimensions_height?: number | null
+          dimensions_length?: number | null
+          dimensions_width?: number | null
           listing_title?: string
+          making_up_cost?: number | null
+          packaging_cost?: number | null
           product_cost?: number | null
+          product_status?: string | null
           sku?: string
           stock_quantity?: number | null
           supplier?: string | null
+          vat_status?: string | null
           warehouse_location?: string | null
+          weight?: number | null
         }
         Relationships: []
       }
