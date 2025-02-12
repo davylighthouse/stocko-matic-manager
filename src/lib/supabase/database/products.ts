@@ -125,7 +125,39 @@ export const updateProductDetails = async (sku: string, data: {
   return true;
 };
 
+export const createProduct = async (product: {
+  sku: string;
+  listing_title: string;
+  stock_quantity?: number;
+}) => {
+  const { error } = await supabase
+    .from('products')
+    .insert({
+      sku: product.sku,
+      listing_title: product.listing_title,
+      stock_quantity: product.stock_quantity || 0
+    });
+
+  if (error) throw error;
+  return true;
+};
+
 export const updateStockLevel = async (sku: string, quantity: number) => {
+  // First check if the product exists
+  const { data: existingProduct, error: checkError } = await supabase
+    .from('products')
+    .select('listing_title')
+    .eq('sku', sku)
+    .single();
+
+  if (checkError) {
+    if (checkError.code === 'PGRST116') {
+      // Product doesn't exist
+      throw new Error(`Product with SKU ${sku} does not exist. Please create the product first with a listing title.`);
+    }
+    throw checkError;
+  }
+
   // Get current stock level using our existing function
   const stockLevels = await getStockLevels();
   const currentProduct = stockLevels.find(p => p.sku === sku);
