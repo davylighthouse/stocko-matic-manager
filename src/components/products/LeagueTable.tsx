@@ -78,17 +78,16 @@ export const LeagueTable = () => {
                 <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">Product</th>
                 <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">Total Sales</th>
                 <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">Quantity Sold</th>
-                <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">Avg Price</th>
               </tr>
             </thead>
             <tbody className="bg-white divide-y divide-gray-200">
               {isLoading ? (
                 <tr>
-                  <td colSpan={6} className="px-6 py-4 text-center">Loading...</td>
+                  <td colSpan={5} className="px-6 py-4 text-center">Loading...</td>
                 </tr>
               ) : products.length === 0 ? (
                 <tr>
-                  <td colSpan={6} className="px-6 py-4 text-center">No data available for selected date range</td>
+                  <td colSpan={5} className="px-6 py-4 text-center">No data available for selected date range</td>
                 </tr>
               ) : (
                 products.map((product: TopProduct) => (
@@ -107,9 +106,6 @@ export const LeagueTable = () => {
                     </td>
                     <td className="px-6 py-4 whitespace-nowrap text-sm">
                       {product.total_quantity || 0}
-                    </td>
-                    <td className="px-6 py-4 whitespace-nowrap text-sm">
-                      £{(product.avg_price || 0).toFixed(2)}
                     </td>
                   </tr>
                 ))
