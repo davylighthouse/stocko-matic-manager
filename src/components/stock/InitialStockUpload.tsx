@@ -1,6 +1,9 @@
 
+import { Button } from "@/components/ui/button";
 import { Card } from "@/components/ui/card";
 import { Input } from "@/components/ui/input";
+import { Download } from "lucide-react";
+import { generateStockCheckTemplate } from "@/lib/supabase/database/csv";
 
 interface InitialStockUploadProps {
   onFileUpload: (event: React.ChangeEvent<HTMLInputElement>) => void;
@@ -14,12 +17,22 @@ export const InitialStockUpload = ({ onFileUpload }: InitialStockUploadProps) =>
         <p className="text-sm text-gray-600">
           Upload initial stock levels with effective dates. This will be used as the baseline for stock calculations.
         </p>
-        <Input
-          type="file"
-          accept=".csv"
-          onChange={onFileUpload}
-          className="mb-4"
-        />
+        <div className="flex items-center gap-4">
+          <Input
+            type="file"
+            accept=".csv"
+            onChange={onFileUpload}
+            className="flex-1"
+          />
+          <Button
+            variant="outline"
+            onClick={generateStockCheckTemplate}
+            className="flex items-center gap-2"
+          >
+            <Download className="h-4 w-4" />
+            Download Template
+          </Button>
+        </div>
       </div>
     </Card>
   );
