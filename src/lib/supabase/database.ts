@@ -29,25 +29,27 @@ export const processCSV = async (file: File): Promise<{ success: boolean; messag
         product_cost: parseFloat(row[headers.indexOf('Product Cost')]),
       };
 
-      // Upsert product
+      // First, ensure the product exists by upserting it
       const { error: productError } = await supabase
         .from('products')
         .upsert([product], { onConflict: 'sku' });
 
       if (productError) throw productError;
 
-      // Insert sale
+      // Then insert the sale
       const { error: saleError } = await supabase
         .from('sales')
         .insert([sale]);
 
       if (saleError) throw saleError;
 
-      // Update stock quantity
-      const { error: stockError } = await supabase.rpc('update_stock_quantity', {
-        p_sku: sale.sku,
-        p_quantity: sale.quantity
-      });
+      // Finally update the stock quantity
+      const { error: stockError } = await supabase
+        .from('products')
+        .update({ 
+          stock_quantity: supabase.sql`stock_quantity - ${sale.quantity}` 
+        })
+        .eq('sku', sale.sku);
 
       if (stockError) throw stockError;
     }
