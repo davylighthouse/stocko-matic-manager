@@ -130,51 +130,70 @@ export const createProduct = async (product: {
   listing_title?: string;
   stock_quantity?: number;
 }) => {
-  // Ensure listing_title is never null by using SKU as fallback
+  console.log('Creating product with data:', product);
+  
+  // Create the product data object with defaults
   const productData = {
     sku: product.sku,
-    listing_title: product.listing_title || product.sku,
+    listing_title: product.listing_title || product.sku, // Fallback to SKU
     stock_quantity: product.stock_quantity || 0
   };
 
-  const { error } = await supabase
-    .from('products')
-    .insert(productData);
+  console.log('Final product data:', productData);
 
-  if (error) throw error;
-  return true;
+  const { data, error } = await supabase
+    .from('products')
+    .insert(productData)
+    .select()
+    .single();
+
+  if (error) {
+    console.error('Error creating product:', error);
+    throw error;
+  }
+
+  console.log('Product created successfully:', data);
+  return data;
 };
 
 export const updateStockLevel = async (sku: string, quantity: number) => {
   try {
-    // First check if the product exists
+    console.log('Updating stock level for SKU:', sku, 'to quantity:', quantity);
+
+    // First try to get the product
     const { data: existingProduct, error: checkError } = await supabase
       .from('products')
-      .select('listing_title')
+      .select('*')
       .eq('sku', sku)
       .maybeSingle();
 
-    if (checkError) throw checkError;
+    if (checkError) {
+      console.error('Error checking product existence:', checkError);
+      throw checkError;
+    }
 
+    // If product doesn't exist, create it first
     if (!existingProduct) {
-      // Product doesn't exist - create it automatically
-      console.log('Creating new product with SKU:', sku);
-      await createProduct({ 
+      console.log('Product not found, creating new product');
+      await createProduct({
         sku,
-        listing_title: sku // Explicitly set listing_title to SKU
+        listing_title: sku,
+        stock_quantity: 0
       });
     }
 
-    // Get current stock level using our existing function
+    // Now get current stock level
     const stockLevels = await getStockLevels();
     const currentProduct = stockLevels.find(p => p.sku === sku);
     
     if (!currentProduct) {
+      console.error('Product not found after creation');
       throw new Error(`Product with SKU ${sku} not found`);
     }
 
     // Calculate the adjustment needed
     const adjustment = quantity - (currentProduct.current_stock || 0);
+    console.log('Calculated adjustment:', adjustment);
 
     // Record the adjustment
     const { error: adjustmentError } = await supabase
@@ -185,8 +204,12 @@ export const updateStockLevel = async (sku: string, quantity: number) => {
         notes: 'Manual stock update'
       });
 
-    if (adjustmentError) throw adjustmentError;
+    if (adjustmentError) {
+      console.error('Error recording adjustment:', adjustmentError);
+      throw adjustmentError;
+    }
 
+    console.log('Stock level updated successfully');
     return true;
   } catch (error) {
     console.error('Error in updateStockLevel:', error);
