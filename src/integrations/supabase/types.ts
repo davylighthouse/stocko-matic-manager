@@ -9,6 +9,45 @@ export type Json =
 export type Database = {
   public: {
     Tables: {
+      initial_stock: {
+        Row: {
+          created_at: string | null
+          effective_date: string
+          id: number
+          quantity: number
+          sku: string | null
+        }
+        Insert: {
+          created_at?: string | null
+          effective_date: string
+          id?: number
+          quantity: number
+          sku?: string | null
+        }
+        Update: {
+          created_at?: string | null
+          effective_date?: string
+          id?: number
+          quantity?: number
+          sku?: string | null
+        }
+        Relationships: [
+          {
+            foreignKeyName: "initial_stock_sku_fkey"
+            columns: ["sku"]
+            isOneToOne: true
+            referencedRelation: "current_stock_levels"
+            referencedColumns: ["sku"]
+          },
+          {
+            foreignKeyName: "initial_stock_sku_fkey"
+            columns: ["sku"]
+            isOneToOne: true
+            referencedRelation: "products"
+            referencedColumns: ["sku"]
+          },
+        ]
+      }
       products: {
         Row: {
           listing_title: string
@@ -93,6 +132,52 @@ export type Database = {
             foreignKeyName: "sales_sku_fkey"
             columns: ["sku"]
             isOneToOne: false
+            referencedRelation: "current_stock_levels"
+            referencedColumns: ["sku"]
+          },
+          {
+            foreignKeyName: "sales_sku_fkey"
+            columns: ["sku"]
+            isOneToOne: false
+            referencedRelation: "products"
+            referencedColumns: ["sku"]
+          },
+        ]
+      }
+      stock_adjustments: {
+        Row: {
+          adjustment_date: string | null
+          id: number
+          notes: string | null
+          quantity: number
+          sku: string | null
+        }
+        Insert: {
+          adjustment_date?: string | null
+          id?: number
+          notes?: string | null
+          quantity: number
+          sku?: string | null
+        }
+        Update: {
+          adjustment_date?: string | null
+          id?: number
+          notes?: string | null
+          quantity?: number
+          sku?: string | null
+        }
+        Relationships: [
+          {
+            foreignKeyName: "stock_adjustments_sku_fkey"
+            columns: ["sku"]
+            isOneToOne: false
+            referencedRelation: "current_stock_levels"
+            referencedColumns: ["sku"]
+          },
+          {
+            foreignKeyName: "stock_adjustments_sku_fkey"
+            columns: ["sku"]
+            isOneToOne: false
             referencedRelation: "products"
             referencedColumns: ["sku"]
           },
@@ -127,6 +212,13 @@ export type Database = {
           warehouse_location?: string | null
         }
         Relationships: [
+          {
+            foreignKeyName: "stock_check_items_sku_fkey"
+            columns: ["sku"]
+            isOneToOne: false
+            referencedRelation: "current_stock_levels"
+            referencedColumns: ["sku"]
+          },
           {
             foreignKeyName: "stock_check_items_sku_fkey"
             columns: ["sku"]
@@ -173,6 +265,18 @@ export type Database = {
       }
     }
     Views: {
+      current_stock_levels: {
+        Row: {
+          adjustments: number | null
+          current_stock: number | null
+          initial_stock: number | null
+          listing_title: string | null
+          quantity_sold: number | null
+          sku: string | null
+          stock_count_date: string | null
+        }
+        Relationships: []
+      }
       latest_stock_check_quantities: {
         Row: {
           check_date: string | null
@@ -181,6 +285,13 @@ export type Database = {
           stock_check_id: number | null
         }
         Relationships: [
+          {
+            foreignKeyName: "stock_check_items_sku_fkey"
+            columns: ["sku"]
+            isOneToOne: false
+            referencedRelation: "current_stock_levels"
+            referencedColumns: ["sku"]
+          },
           {
             foreignKeyName: "stock_check_items_sku_fkey"
             columns: ["sku"]
@@ -218,6 +329,13 @@ export type Database = {
             foreignKeyName: "sales_sku_fkey"
             columns: ["sku"]
             isOneToOne: false
+            referencedRelation: "current_stock_levels"
+            referencedColumns: ["sku"]
+          },
+          {
+            foreignKeyName: "sales_sku_fkey"
+            columns: ["sku"]
+            isOneToOne: false
             referencedRelation: "products"
             referencedColumns: ["sku"]
           },
@@ -229,6 +347,13 @@ export type Database = {
           total_sold: number | null
         }
         Relationships: [
+          {
+            foreignKeyName: "sales_sku_fkey"
+            columns: ["sku"]
+            isOneToOne: false
+            referencedRelation: "current_stock_levels"
+            referencedColumns: ["sku"]
+          },
           {
             foreignKeyName: "sales_sku_fkey"
             columns: ["sku"]

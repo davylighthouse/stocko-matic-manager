@@ -1,6 +1,5 @@
-
 import { supabase } from '@/integrations/supabase/client';
-import type { StockCheck, StockCheckItem } from '@/lib/supabase/database';
+import type { StockCheck, StockCheckItem, InitialStock, StockAdjustment, CurrentStockLevel } from '@/types/stock-checks';
 
 export const createStockCheck = async (notes?: string) => {
   const { data, error } = await supabase
@@ -69,4 +68,79 @@ export const completeStockCheck = async (stockCheckId: number) => {
 
   if (error) throw error;
   return true;
+};
+
+export const getCurrentStockLevels = async () => {
+  const { data, error } = await supabase
+    .from('current_stock_levels')
+    .select('*')
+    .order('sku');
+
+  if (error) throw error;
+  return data as CurrentStockLevel[];
+};
+
+export const setInitialStock = async (stockData: InitialStock) => {
+  const { error } = await supabase
+    .from('initial_stock')
+    .upsert({
+      sku: stockData.sku,
+      quantity: stockData.quantity,
+      effective_date: stockData.effective_date,
+    }, {
+      onConflict: 'sku'
+    });
+
+  if (error) throw error;
+  return true;
+};
+
+export const addStockAdjustment = async (adjustment: StockAdjustment) => {
+  const { error } = await supabase
+    .from('stock_adjustments')
+    .insert({
+      sku: adjustment.sku,
+      quantity: adjustment.quantity,
+      notes: adjustment.notes,
+    });
+
+  if (error) throw error;
+  return true;
+};
+
+export const processInitialStockCSV = async (file: File): Promise<{ success: boolean; message?: string }> => {
+  const text = await file.text();
+  const rows = text.split('\n').map(row => row.split(','));
+  const headers = rows[0].map(h => h.trim().toLowerCase());
+
+  const skuIndex = headers.indexOf('sku');
+  const quantityIndex = headers.indexOf('quantity');
+  const effectiveDateIndex = headers.indexOf('effective_date');
+
+  if (skuIndex === -1 || quantityIndex === -1 || effectiveDateIndex === -1) {
+    return {
+      success: false,
+      message: 'CSV must contain sku, quantity, and effective_date columns'
+    };
+  }
+
+  try {
+    for (let i = 1; i < rows.length; i++) {
+      const row = rows[i];
+      if (row.length < headers.length) continue;
+
+      await setInitialStock({
+        sku: row[skuIndex].trim(),
+        quantity: parseInt(row[quantityIndex].trim()),
+        effective_date: row[effectiveDateIndex].trim(),
+      });
+    }
+
+    return { success: true };
+  } catch (error) {
+    return {
+      success: false,
+      message: error.message
+    };
+  }
 };

@@ -12,3 +12,25 @@ export interface StockCheck {
   notes?: string;
   completed: boolean;
 }
+
+export interface InitialStock {
+  sku: string;
+  quantity: number;
+  effective_date: string;
+}
+
+export interface StockAdjustment {
+  sku: string;
+  quantity: number;
+  notes?: string;
+}
+
+export interface CurrentStockLevel {
+  sku: string;
+  listing_title: string;
+  initial_stock: number;
+  stock_count_date: string | null;
+  quantity_sold: number;
+  adjustments: number;
+  current_stock: number;
+}
