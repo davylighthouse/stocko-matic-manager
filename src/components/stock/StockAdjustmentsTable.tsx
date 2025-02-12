@@ -1,8 +1,9 @@
 
+import { useState } from "react";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Card } from "@/components/ui/card";
-import { Search } from "lucide-react";
+import { Search, Check, Edit2 } from "lucide-react";
 import { CurrentStockLevel } from "@/types/stock-checks";
 
 interface StockAdjustmentsTableProps {
@@ -18,10 +19,29 @@ export const StockAdjustmentsTable = ({
   onSearchChange,
   onAdjustStock,
 }: StockAdjustmentsTableProps) => {
+  const [editingSku, setEditingSku] = useState<string | null>(null);
+  const [editedQuantity, setEditedQuantity] = useState<number | null>(null);
+
   const filteredStock = currentStock?.filter(item =>
     item.sku.toLowerCase().includes(searchTerm.toLowerCase()) ||
     item.listing_title.toLowerCase().includes(searchTerm.toLowerCase())
   ) ?? [];
+
+  const handleAdjustClick = (item: CurrentStockLevel) => {
+    if (editingSku === item.sku) {
+      // Confirm the edit
+      if (editedQuantity !== null) {
+        const adjustment = editedQuantity - item.current_stock;
+        onAdjustStock(item.sku);
+      }
+      setEditingSku(null);
+      setEditedQuantity(null);
+    } else {
+      // Start editing
+      setEditingSku(item.sku);
+      setEditedQuantity(item.current_stock);
+    }
+  };
 
   return (
     <Card className="p-6">
@@ -60,14 +80,35 @@ export const StockAdjustmentsTable = ({
                   <td className="px-4 py-2 text-right">{item.initial_stock}</td>
                   <td className="px-4 py-2 text-right">{item.quantity_sold}</td>
                   <td className="px-4 py-2 text-right">{item.adjustments}</td>
-                  <td className="px-4 py-2 text-right">{item.current_stock}</td>
+                  <td className="px-4 py-2 text-right">
+                    {editingSku === item.sku ? (
+                      <Input
+                        type="number"
+                        value={editedQuantity ?? ""}
+                        onChange={(e) => setEditedQuantity(parseInt(e.target.value))}
+                        className="w-24 text-right inline-block"
+                      />
+                    ) : (
+                      item.current_stock
+                    )}
+                  </td>
                   <td className="px-4 py-2">
                     <Button
-                      variant="ghost"
+                      variant={editingSku === item.sku ? "default" : "ghost"}
                       size="sm"
-                      onClick={() => onAdjustStock(item.sku)}
+                      onClick={() => handleAdjustClick(item)}
                     >
-                      Adjust
+                      {editingSku === item.sku ? (
+                        <>
+                          <Check className="h-4 w-4 mr-1" />
+                          Confirm
+                        </>
+                      ) : (
+                        <>
+                          <Edit2 className="h-4 w-4 mr-1" />
+                          Adjust
+                        </>
+                      )}
                     </Button>
                   </td>
                 </tr>
