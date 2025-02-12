@@ -210,10 +210,10 @@ export const getStockCheckItems = async (stockCheckId: number) => {
   const { data, error } = await supabase
     .from('stock_check_items')
     .select(`
-      *,
-      products (
-        listing_title
-      )
+      sku,
+      quantity,
+      product_cost,
+      warehouse_location
     `)
     .eq('stock_check_id', stockCheckId);
 

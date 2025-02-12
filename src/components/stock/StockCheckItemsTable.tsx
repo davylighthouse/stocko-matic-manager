@@ -50,6 +50,7 @@ export const StockCheckItemsTable = ({
                     const checkItem = selectedCheckItems.find(
                       (item) => item.sku === product.sku
                     );
+                    console.log('CheckItem for SKU:', product.sku, checkItem); // Debug log
                     return (
                       <TableRow key={product.sku}>
                         <TableCell>{product.sku}</TableCell>
