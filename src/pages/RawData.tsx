@@ -36,8 +36,14 @@ const RawData = () => {
   );
 
   const handleEdit = (sale: SaleWithProduct) => {
+    // When starting to edit, strip the '£' symbol and convert to number
+    const editData = {
+      ...sale,
+      total_price: sale.total_price ? parseFloat(sale.total_price.toString().replace('£', '')) : 0,
+      gross_profit: sale.gross_profit ? parseFloat(sale.gross_profit.toString().replace('£', '')) : 0
+    };
     setEditingId(sale.id);
-    setEditedData(sale);
+    setEditedData(editData);
   };
 
   const handleSave = async () => {
@@ -91,6 +97,12 @@ const RawData = () => {
       ...prev,
       [field]: value
     }));
+  };
+
+  // Format price with £ symbol and 2 decimal places
+  const formatPrice = (price: number | null) => {
+    if (price === null || isNaN(price)) return '£0.00';
+    return `£${price.toFixed(2)}`;
   };
 
   return (
@@ -205,8 +217,8 @@ const RawData = () => {
                       <TableCell>{sale.sku}</TableCell>
                       <TableCell>{sale.listing_title}</TableCell>
                       <TableCell className="text-right">{sale.quantity}</TableCell>
-                      <TableCell className="text-right">£{sale.total_price?.toFixed(2) || '0.00'}</TableCell>
-                      <TableCell className="text-right">£{sale.gross_profit?.toFixed(2) || '0.00'}</TableCell>
+                      <TableCell className="text-right">{formatPrice(sale.total_price)}</TableCell>
+                      <TableCell className="text-right">{formatPrice(sale.gross_profit)}</TableCell>
                       <TableCell>{sale.promoted ? 'Yes' : 'No'}</TableCell>
                       <TableCell className="space-x-2 text-right">
                         <Button
