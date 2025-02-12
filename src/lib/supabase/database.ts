@@ -358,3 +358,14 @@ export const processStockCheckCSV = async (file: File, stockCheckId: number): Pr
     };
   }
 };
+
+export const getTopProductsBySales = async (startDate: Date, endDate: Date) => {
+  const { data, error } = await supabase
+    .rpc('get_top_products_by_sales', {
+      start_date: startDate.toISOString().split('T')[0],
+      end_date: endDate.toISOString().split('T')[0]
+    });
+
+  if (error) throw error;
+  return data;
+};

@@ -207,6 +207,20 @@ export type Database = {
       }
     }
     Functions: {
+      get_top_products_by_sales: {
+        Args: {
+          start_date: string
+          end_date: string
+        }
+        Returns: {
+          rank: number
+          sku: string
+          listing_title: string
+          total_sales: number
+          total_quantity: number
+          avg_price: number
+        }[]
+      }
       update_stock_quantity: {
         Args: {
           p_sku: string

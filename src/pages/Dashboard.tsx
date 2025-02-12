@@ -1,6 +1,8 @@
+
 import { Card } from "@/components/ui/card";
 import { Activity, DollarSign, Package, TrendingUp } from "lucide-react";
 import { cn } from "@/lib/utils";
+import { LeagueTable } from "@/components/products/LeagueTable";
 
 const stats = [
   {
@@ -73,21 +75,7 @@ const Dashboard = () => {
         })}
       </div>
 
-      {/* Placeholder for charts */}
-      <div className="grid grid-cols-1 gap-6 lg:grid-cols-2">
-        <Card className="p-6 bg-white">
-          <h3 className="text-lg font-medium text-gray-900">Sales Overview</h3>
-          <div className="h-80 flex items-center justify-center text-gray-400">
-            Chart placeholder
-          </div>
-        </Card>
-        <Card className="p-6 bg-white">
-          <h3 className="text-lg font-medium text-gray-900">Top SKUs</h3>
-          <div className="h-80 flex items-center justify-center text-gray-400">
-            Chart placeholder
-          </div>
-        </Card>
-      </div>
+      <LeagueTable />
     </div>
   );
 };
