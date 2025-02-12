@@ -19,7 +19,8 @@ export const processCSV = async (file: File): Promise<{ success: boolean; messag
       return index;
     };
 
-    const totalPriceIndex = findColumnIndex(['Total Price', 'Total price', 'TotalPrice', 'TOTAL PRICE']);
+    // Explicitly look for "Total price" with lowercase 'p'
+    const totalPriceIndex = findColumnIndex(['Total price']);
     const grossProfitIndex = findColumnIndex(['Gross Profit', 'Gross profit', 'GrossProfit', 'GROSS PROFIT']);
     const quantityIndex = findColumnIndex(['Quantity', 'quantity', 'QUANTITY']);
     const skuIndex = findColumnIndex(['SKU', 'sku']);
@@ -42,9 +43,15 @@ export const processCSV = async (file: File): Promise<{ success: boolean; messag
       listingTitleIndex
     });
 
+    // Double check if we found the Total price column
+    console.log('Total price column found at index:', totalPriceIndex);
+    console.log('Column 7 header is:', headers[6]); // Zero-based index, so column 7 is index 6
+
     // Verify we found the required columns
     if (totalPriceIndex === -1) {
-      throw new Error('Total Price column not found in CSV');
+      // If not found by name, use column 7 (index 6)
+      console.log('Falling back to using column 7 for Total price');
+      totalPriceIndex = 6;
     }
 
     const data = rows.slice(1);
