@@ -1,3 +1,4 @@
+
 import { supabase } from '@/integrations/supabase/client';
 import type { StockCheck, StockCheckItem, InitialStock, StockAdjustment, CurrentStockLevel } from '@/types/stock-checks';
 
@@ -115,7 +116,7 @@ export const processInitialStockCSV = async (file: File): Promise<{ success: boo
 
   const skuIndex = headers.indexOf('sku');
   const quantityIndex = headers.indexOf('quantity');
-  const effectiveDateIndex = headers.indexOf('effective_date');
+  const effectiveDateIndex = headers.indexOf('effective date');
 
   if (skuIndex === -1 || quantityIndex === -1 || effectiveDateIndex === -1) {
     return {

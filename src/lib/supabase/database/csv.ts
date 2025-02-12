@@ -1,3 +1,4 @@
+
 import { supabase } from '@/integrations/supabase/client';
 
 export const processCSV = async (file: File): Promise<{ success: boolean; message: string }> => {
@@ -176,4 +177,63 @@ export const generateStockCheckTemplate = async () => {
   document.body.appendChild(link);
   link.click();
   document.body.removeChild(link);
+};
+
+export const processInitialStockCSV = async (file: File): Promise<{ success: boolean; message: string }> => {
+  try {
+    const text = await file.text();
+    const rows = text.split('\n').map(row => row.split(',').map(cell => cell.trim()));
+    const headers = rows[0].map(header => header.toLowerCase().trim());
+
+    // Find required column indices
+    const skuIndex = headers.indexOf('sku');
+    const quantityIndex = headers.indexOf('quantity');
+    const effectiveDateIndex = headers.indexOf('effective date');
+
+    // Validate required columns
+    if (skuIndex === -1 || quantityIndex === -1 || effectiveDateIndex === -1) {
+      return {
+        success: false,
+        message: 'CSV must contain SKU, Quantity, and Effective Date columns'
+      };
+    }
+
+    // Process each row
+    for (const row of rows.slice(1)) {
+      if (row.length < headers.length) continue;
+
+      const sku = row[skuIndex];
+      const quantity = parseInt(row[quantityIndex]);
+      const effectiveDate = row[effectiveDateIndex];
+
+      if (!sku || isNaN(quantity)) {
+        console.log('Skipping invalid row:', row);
+        continue;
+      }
+
+      // Insert or update initial stock record
+      const { error } = await supabase
+        .from('initial_stock')
+        .upsert({
+          sku,
+          quantity,
+          effective_date: effectiveDate,
+        }, {
+          onConflict: 'sku'
+        });
+
+      if (error) {
+        console.error('Error upserting initial stock:', error);
+        throw error;
+      }
+    }
+
+    return { success: true, message: 'Initial stock data processed successfully' };
+  } catch (error) {
+    console.error('Error processing initial stock CSV:', error);
+    return { 
+      success: false, 
+      message: error instanceof Error ? error.message : 'Failed to process initial stock CSV' 
+    };
+  }
 };
