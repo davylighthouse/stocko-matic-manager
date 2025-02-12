@@ -21,13 +21,10 @@ const Dashboard = () => {
     queryFn: getSalesTotals,
   });
 
-  // Get the grand total from the first row
-  const grandTotal = products[0]?.grand_total || 0;
-
   const stats = [
     {
       name: "Total Sales",
-      value: `£${grandTotal.toFixed(2)}`,
+      value: totals ? `£${totals.total_sales?.toFixed(2) || '0.00'}` : '£0.00',
       change: "+12%",
       icon: DollarSign,
     },
@@ -39,13 +36,13 @@ const Dashboard = () => {
     },
     {
       name: "Gross Profit",
-      value: "£4,567",
+      value: totals ? `£${totals.total_profit?.toFixed(2) || '0.00'}` : '£0.00',
       change: "+8%",
       icon: TrendingUp,
     },
     {
       name: "Active SKUs",
-      value: "89",
+      value: totals?.unique_products?.toString() || "0",
       change: "-2%",
       icon: Activity,
     },
