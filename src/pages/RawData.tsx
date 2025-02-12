@@ -1,21 +1,10 @@
 
 import { useState } from "react";
 import { useQuery, useQueryClient } from "@tanstack/react-query";
-import { format } from "date-fns";
-import {
-  Table,
-  TableBody,
-  TableCell,
-  TableHead,
-  TableHeader,
-  TableRow,
-} from "@/components/ui/table";
-import { Input } from "@/components/ui/input";
 import { Card } from "@/components/ui/card";
-import { Button } from "@/components/ui/button";
-import { Pencil, Trash2, Save, X } from "lucide-react";
 import { useToast } from "@/components/ui/use-toast";
 import { getSalesWithProducts, deleteSale, updateSale } from "@/lib/supabase/database";
+import { SalesTable } from "@/components/raw-data/SalesTable";
 import type { SaleWithProduct } from "@/types/sales";
 
 const RawData = () => {
@@ -116,133 +105,18 @@ const RawData = () => {
 
       <Card>
         <div className="overflow-x-auto">
-          <Table>
-            <TableHeader>
-              <TableRow>
-                <TableHead>Sale Date</TableHead>
-                <TableHead>Platform</TableHead>
-                <TableHead>SKU</TableHead>
-                <TableHead>Product Title</TableHead>
-                <TableHead className="text-right">Quantity</TableHead>
-                <TableHead className="text-right">Total Price</TableHead>
-                <TableHead className="text-right">Gross Profit</TableHead>
-                <TableHead>Promoted</TableHead>
-                <TableHead className="text-right">Actions</TableHead>
-              </TableRow>
-            </TableHeader>
-            <TableBody>
-              {sortedSales.map((sale) => (
-                <TableRow key={sale.id}>
-                  {editingId === sale.id ? (
-                    <>
-                      <TableCell>
-                        <Input
-                          type="date"
-                          value={editedData.sale_date?.split('T')[0]}
-                          onChange={(e) => handleInputChange('sale_date', e.target.value)}
-                        />
-                      </TableCell>
-                      <TableCell>
-                        <Input
-                          value={editedData.platform}
-                          onChange={(e) => handleInputChange('platform', e.target.value)}
-                        />
-                      </TableCell>
-                      <TableCell>
-                        <Input
-                          value={editedData.sku}
-                          onChange={(e) => handleInputChange('sku', e.target.value)}
-                        />
-                      </TableCell>
-                      <TableCell>
-                        <Input
-                          value={editedData.listing_title}
-                          onChange={(e) => handleInputChange('listing_title', e.target.value)}
-                        />
-                      </TableCell>
-                      <TableCell>
-                        <Input
-                          type="number"
-                          value={editedData.quantity}
-                          onChange={(e) => handleInputChange('quantity', parseInt(e.target.value))}
-                          className="text-right"
-                        />
-                      </TableCell>
-                      <TableCell>
-                        <Input
-                          type="number"
-                          step="0.01"
-                          value={editedData.total_price}
-                          onChange={(e) => handleInputChange('total_price', parseFloat(e.target.value))}
-                          className="text-right"
-                        />
-                      </TableCell>
-                      <TableCell>
-                        <Input
-                          type="number"
-                          step="0.01"
-                          value={editedData.gross_profit}
-                          onChange={(e) => handleInputChange('gross_profit', parseFloat(e.target.value))}
-                          className="text-right"
-                        />
-                      </TableCell>
-                      <TableCell>
-                        <Input
-                          type="checkbox"
-                          checked={editedData.promoted}
-                          onChange={(e) => handleInputChange('promoted', e.target.checked)}
-                        />
-                      </TableCell>
-                      <TableCell className="space-x-2 text-right">
-                        <Button
-                          variant="ghost"
-                          size="icon"
-                          onClick={handleSave}
-                        >
-                          <Save className="h-4 w-4" />
-                        </Button>
-                        <Button
-                          variant="ghost"
-                          size="icon"
-                          onClick={handleCancel}
-                        >
-                          <X className="h-4 w-4" />
-                        </Button>
-                      </TableCell>
-                    </>
-                  ) : (
-                    <>
-                      <TableCell>{format(new Date(sale.sale_date), 'dd MMM yyyy')}</TableCell>
-                      <TableCell>{sale.platform}</TableCell>
-                      <TableCell>{sale.sku}</TableCell>
-                      <TableCell>{sale.listing_title}</TableCell>
-                      <TableCell className="text-right">{sale.quantity}</TableCell>
-                      <TableCell className="text-right">{formatPrice(sale.total_price)}</TableCell>
-                      <TableCell className="text-right">{formatPrice(sale.gross_profit)}</TableCell>
-                      <TableCell>{sale.promoted ? 'Yes' : 'No'}</TableCell>
-                      <TableCell className="space-x-2 text-right">
-                        <Button
-                          variant="ghost"
-                          size="icon"
-                          onClick={() => handleEdit(sale)}
-                        >
-                          <Pencil className="h-4 w-4" />
-                        </Button>
-                        <Button
-                          variant="ghost"
-                          size="icon"
-                          disabled={isDeleting === sale.id}
-                          onClick={() => handleDelete(sale.id)}
-                        >
-                          <Trash2 className="h-4 w-4" />
-                        </Button>
-                      </TableCell>
-                    </>
-                  )}
-                </TableRow>
-              ))}
-            </TableBody>
-          </Table>
+          <SalesTable
+            sales={sortedSales}
+            editingId={editingId}
+            editedData={editedData}
+            isDeleting={isDeleting}
+            formatPrice={formatPrice}
+            onInputChange={handleInputChange}
+            onEdit={handleEdit}
+            onSave={handleSave}
+            onCancel={handleCancel}
+            onDelete={handleDelete}
+          />
         </div>
       </Card>
     </div>
