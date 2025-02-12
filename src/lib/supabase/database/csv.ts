@@ -3,24 +3,30 @@ import { supabase } from '@/integrations/supabase/client';
 export const processCSV = async (file: File): Promise<{ success: boolean; message: string }> => {
   try {
     const text = await file.text();
-    const rows = text.split('\n').map(row => row.split(','));
-    const headers = rows[0];
+    const rows = text.split('\n').map(row => row.split(',').map(cell => cell.trim()));
+    const headers = rows[0].map(header => header.trim());
 
-    // Log all headers to verify column names
+    // Log all headers for debugging
     console.log('CSV Headers:', headers);
+    console.log('Number of columns:', headers.length);
 
-    // Find the correct column indices, accounting for case variations
-    const findColumnIndex = (possibleNames: string[]): number => {
+    // Find the correct column indices, with detailed logging
+    const findColumnIndex = (possibleNames: string[], fallbackIndex?: number): number => {
       const index = headers.findIndex(header => 
-        possibleNames.includes(header.trim())
+        possibleNames.some(name => header.toLowerCase() === name.toLowerCase())
       );
-      console.log(`Looking for columns ${possibleNames.join(' or ')}, found at index:`, index);
-      return index;
+      
+      console.log(`Looking for column "${possibleNames.join('" or "')}":`);
+      console.log('- Found at index:', index);
+      console.log('- Fallback index:', fallbackIndex);
+      console.log('- Actual header at found index:', index !== -1 ? headers[index] : 'not found');
+      
+      return index !== -1 ? index : (fallbackIndex ?? -1);
     };
 
-    // Initialize column indices
-    let totalPriceIndex = findColumnIndex(['Total price']);
-    const grossProfitIndex = findColumnIndex(['Gross Profit', 'Gross profit', 'GrossProfit', 'GROSS PROFIT']);
+    // Initialize column indices with detailed logging
+    const totalPriceIndex = findColumnIndex(['Total price', 'Total Price', 'TotalPrice'], 6); // Fallback to column 7 (index 6)
+    const grossProfitIndex = findColumnIndex(['Gross Profit', 'Gross profit', 'GrossProfit']);
     const quantityIndex = findColumnIndex(['Quantity', 'quantity', 'QUANTITY']);
     const skuIndex = findColumnIndex(['SKU', 'sku']);
     const saleDateIndex = findColumnIndex(['Sale Date', 'SaleDate', 'Date']);
@@ -29,45 +35,40 @@ export const processCSV = async (file: File): Promise<{ success: boolean; messag
     const productCostIndex = findColumnIndex(['Product Cost', 'ProductCost', 'Cost']);
     const listingTitleIndex = findColumnIndex(['Listing Title', 'Title', 'Product Title']);
 
-    // Double check if we found the Total price column
-    console.log('Total price column found at index:', totalPriceIndex);
-    console.log('Column 7 header is:', headers[6]); // Zero-based index, so column 7 is index 6
+    // Log found indices for debugging
+    console.log('Found column indices:', {
+      totalPriceIndex,
+      grossProfitIndex,
+      quantityIndex,
+      skuIndex,
+      saleDateIndex,
+      platformIndex,
+      promotedIndex,
+      productCostIndex,
+      listingTitleIndex
+    });
 
-    // Use column 7 (index 6) if Total price not found
-    if (totalPriceIndex === -1) {
-      console.log('Falling back to using column 7 for Total price');
-      totalPriceIndex = 6;
+    // Validate required columns
+    if (totalPriceIndex === -1 || skuIndex === -1 || quantityIndex === -1) {
+      console.error('Missing required columns:', {
+        totalPrice: totalPriceIndex === -1,
+        sku: skuIndex === -1,
+        quantity: quantityIndex === -1
+      });
+      return {
+        success: false,
+        message: 'CSV file is missing required columns (Total Price, SKU, or Quantity)'
+      };
     }
 
     const data = rows.slice(1);
 
-    // Create maps to aggregate data by SKU
-    const salesBySku = new Map<string, {
-      quantity: number;
-      total_price: number;
-      gross_profit: number;
-      sales: Array<{
-        sale_date: string;
-        platform: string;
-        promoted: boolean;
-        quantity: number;
-        total_price: number;
-        gross_profit: number;
-      }>;
-    }>();
-
-    const productsBySku = new Map<string, {
-      sku: string;
-      listing_title: string;
-      product_cost: number;
-    }>();
-
-    // Helper function to parse price values
+    // Helper function to parse price values with detailed logging
     const parsePrice = (value: string | undefined): number => {
       if (!value || value.trim() === '') return 0;
       
-      // Remove £ symbol, any whitespace, and handle thousands separators
-      const cleanValue = value.trim().replace('£', '').replace(/,/g, '');
+      // Remove currency symbols, whitespace, and thousands separators
+      const cleanValue = value.trim().replace(/[£$,\s]/g, '');
       const number = parseFloat(cleanValue);
       
       console.log('Parsing price:', {
@@ -79,114 +80,69 @@ export const processCSV = async (file: File): Promise<{ success: boolean; messag
       return isNaN(number) ? 0 : number;
     };
 
-    // First pass: aggregate data by SKU
+    // Process each row with detailed logging
     for (const row of data) {
-      if (row.length !== headers.length) continue;
-
-      const rawTotalPrice = row[totalPriceIndex];
-      const rawGrossProfit = row[grossProfitIndex];
-
-      console.log('Processing row:', {
-        totalPriceRaw: rawTotalPrice,
-        grossProfitRaw: rawGrossProfit
-      });
+      if (row.length !== headers.length) {
+        console.log('Skipping row - incorrect column count:', row);
+        continue;
+      }
 
       const sku = row[skuIndex];
+      if (!sku) {
+        console.log('Skipping row - no SKU:', row);
+        continue;
+      }
+
+      const rawTotalPrice = row[totalPriceIndex];
+      const rawGrossProfit = grossProfitIndex !== -1 ? row[grossProfitIndex] : null;
       const quantity = parseInt(row[quantityIndex] || '0');
       const total_price = parsePrice(rawTotalPrice);
       const gross_profit = parsePrice(rawGrossProfit);
-      const product_cost = parsePrice(row[productCostIndex]);
 
-      // Log parsed values
-      console.log('Processed values:', {
+      console.log('Processing row:', {
+        sku,
+        quantity,
+        rawTotalPrice,
+        parsedTotalPrice: total_price,
+        rawGrossProfit,
+        parsedGrossProfit: gross_profit
+      });
+
+      // Insert the sale record
+      const saleData = {
+        sale_date: row[saleDateIndex],
+        platform: row[platformIndex],
         sku,
         quantity,
         total_price,
         gross_profit,
-        product_cost
-      });
-
-      // Skip rows without a valid SKU
-      if (!sku) continue;
-
-      // Aggregate sales data
-      if (!salesBySku.has(sku)) {
-        salesBySku.set(sku, {
-          quantity: 0,
-          total_price: 0,
-          gross_profit: 0,
-          sales: [],
-        });
-      }
-      const skuData = salesBySku.get(sku)!;
-      skuData.quantity += quantity;
-      skuData.total_price += total_price;
-      skuData.gross_profit += gross_profit;
-      
-      const sale = {
-        sale_date: row[saleDateIndex],
-        platform: row[platformIndex],
-        promoted: row[promotedIndex]?.toLowerCase() === 'yes',
-        quantity,
-        total_price,
-        gross_profit,
-      };
-      
-      console.log('Adding sale:', sale);
-      skuData.sales.push(sale);
-
-      // Store product data
-      if (!productsBySku.has(sku)) {
-        productsBySku.set(sku, {
-          sku,
-          listing_title: row[listingTitleIndex] || sku,
-          product_cost,
-        });
-      }
-    }
-
-    // Second pass: save aggregated data
-    for (const [sku, productData] of productsBySku) {
-      const product = {
-        ...productData,
-        stock_quantity: 0,
+        promoted: row[promotedIndex]?.toLowerCase() === 'yes'
       };
 
+      console.log('Inserting sale:', saleData);
+
+      const { error: saleError } = await supabase
+        .from('sales')
+        .insert([saleData]);
+
+      if (saleError) {
+        console.error('Error inserting sale:', saleError);
+        throw saleError;
+      }
+
+      // Update product if it exists
       const { error: productError } = await supabase
         .from('products')
-        .upsert([product], { onConflict: 'sku' });
+        .upsert([{
+          sku,
+          listing_title: row[listingTitleIndex] || sku,
+          product_cost: productCostIndex !== -1 ? parsePrice(row[productCostIndex]) : null
+        }], { onConflict: 'sku' });
 
-      if (productError) throw productError;
-
-      const salesData = salesBySku.get(sku)!;
-      console.log('Inserting sales for SKU:', sku, salesData);
-      
-      for (const sale of salesData.sales) {
-        const { data: insertedSale, error: saleError } = await supabase
-          .from('sales')
-          .insert([{ ...sale, sku }])
-          .select();
-
-        if (saleError) throw saleError;
-        console.log('Inserted sale:', insertedSale);
+      if (productError) {
+        console.error('Error upserting product:', productError);
+        throw productError;
       }
-
-      // Update stock quantity
-      const { data: currentProduct } = await supabase
-        .from('products')
-        .select('stock_quantity')
-        .eq('sku', sku)
-        .single();
-
-      const currentQuantity = currentProduct?.stock_quantity ?? 0;
-      const newQuantity = currentQuantity - salesData.quantity;
-
-      const { error: stockError } = await supabase
-        .from('products')
-        .update({ stock_quantity: newQuantity })
-        .eq('sku', sku);
-
-      if (stockError) throw stockError;
     }
 
     return { success: true, message: 'CSV processed successfully' };
