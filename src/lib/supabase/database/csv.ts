@@ -154,19 +154,17 @@ export const processCSV = async (file: File): Promise<{ success: boolean; messag
 export const generateStockCheckTemplate = async () => {
   const { data: products, error } = await supabase
     .from('products')
-    .select('sku, listing_title, stock_quantity, product_cost, warehouse_location');
+    .select('sku');
 
   if (error) throw error;
 
-  // Create CSV content
+  // Create CSV content with the required columns for initial stock
   const csvContent = [
-    ['SKU', 'Product Title', 'Stock Check Quantity', 'Cost Per Unit', 'Warehouse Location'],
+    ['SKU', 'Quantity', 'Effective Date'],
     ...products.map(product => [
       product.sku,
-      product.listing_title,
-      product.stock_quantity ?? '',
-      product.product_cost ?? '',
-      product.warehouse_location ?? ''
+      '', // Empty quantity field for user to fill
+      new Date().toISOString().split('T')[0] // Today's date as default
     ])
   ].map(row => row.join(',')).join('\n');
 
@@ -174,7 +172,7 @@ export const generateStockCheckTemplate = async () => {
   const blob = new Blob([csvContent], { type: 'text/csv;charset=utf-8;' });
   const link = document.createElement('a');
   link.href = URL.createObjectURL(blob);
-  link.setAttribute('download', `stock_check_template_${new Date().toISOString().split('T')[0]}.csv`);
+  link.setAttribute('download', `initial_stock_template_${new Date().toISOString().split('T')[0]}.csv`);
   document.body.appendChild(link);
   link.click();
   document.body.removeChild(link);
