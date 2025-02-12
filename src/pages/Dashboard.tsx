@@ -1,6 +1,6 @@
-
 import { Card } from "@/components/ui/card";
 import { Activity, DollarSign, Package, TrendingUp } from "lucide-react";
+import { cn } from "@/lib/utils";
 
 const stats = [
   {

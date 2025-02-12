@@ -1,9 +1,9 @@
-
 import { useState } from "react";
 import { Card } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
 import { useToast } from "@/components/ui/use-toast";
 import { Upload as UploadIcon, FileText, X } from "lucide-react";
+import { cn } from "@/lib/utils";
 
 const Upload = () => {
   const [isDragging, setIsDragging] = useState(false);
