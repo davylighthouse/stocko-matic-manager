@@ -1,4 +1,3 @@
-
 import { supabase } from '@/integrations/supabase/client';
 import type { Product } from '@/types/database';
 
@@ -43,8 +42,7 @@ export const getStockLevels = async () => {
       .from('sales')
       .select('sku, quantity')
       .eq('sku', check.sku)
-      .gte('sale_date', check.checkDate)
-      .execute();
+      .gte('sale_date', check.checkDate);
 
     if (error) {
       console.error('Error fetching sales for SKU:', check.sku, error);
@@ -61,8 +59,7 @@ export const getStockLevels = async () => {
       .from('stock_adjustments')
       .select('sku, quantity')
       .eq('sku', check.sku)
-      .gte('adjustment_date', check.checkDate)
-      .execute();
+      .gte('adjustment_date', check.checkDate);
 
     if (error) {
       console.error('Error fetching adjustments for SKU:', check.sku, error);
