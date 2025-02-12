@@ -31,14 +31,23 @@ export const processCSV = async (file: File): Promise<{ success: boolean; messag
       product_cost: number;
     }>();
 
+    // Helper function to parse price values
+    const parsePrice = (value: string): number => {
+      // Remove £ symbol and any whitespace, then convert to float
+      const cleanValue = value.replace('£', '').trim();
+      const number = parseFloat(cleanValue);
+      return isNaN(number) ? 0 : number;
+    };
+
     // First pass: aggregate data by SKU
     for (const row of data) {
       if (row.length !== headers.length) continue;
 
       const sku = row[headers.indexOf('SKU')];
       const quantity = parseInt(row[headers.indexOf('Quantity')]);
-      const total_price = parseFloat(row[headers.indexOf('Total Price')]);
-      const gross_profit = parseFloat(row[headers.indexOf('Gross Profit')]);
+      const total_price = parsePrice(row[headers.indexOf('Total Price')]);
+      const gross_profit = parsePrice(row[headers.indexOf('Gross Profit')]);
+      const product_cost = parsePrice(row[headers.indexOf('Product Cost')]);
 
       // Aggregate sales data
       if (!salesBySku.has(sku)) {
@@ -67,7 +76,7 @@ export const processCSV = async (file: File): Promise<{ success: boolean; messag
         productsBySku.set(sku, {
           sku,
           listing_title: row[headers.indexOf('Listing Title')],
-          product_cost: parseFloat(row[headers.indexOf('Product Cost')]),
+          product_cost,
         });
       }
     }
