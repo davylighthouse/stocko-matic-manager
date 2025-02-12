@@ -4,6 +4,8 @@ import { Product } from "@/types/database";
 import { format } from "date-fns";
 import { cn } from "@/lib/utils";
 import { ProductEditDialog } from "./ProductEditDialog";
+import { Circle } from "lucide-react";
+import { Tooltip } from "@/components/ui/tooltip";
 
 interface ProductsTableProps {
   products: Product[];
@@ -12,6 +14,36 @@ interface ProductsTableProps {
   onStockUpdate: (sku: string, quantity: number) => void;
   onProductUpdate: (event: React.FormEvent<HTMLFormElement>) => void;
 }
+
+const calculateCompleteness = (product: Product): { percentage: number; missingFields: string[] } => {
+  const requiredFields = [
+    { name: 'listing_title', label: 'Title' },
+    { name: 'product_cost', label: 'Product Cost' },
+    { name: 'supplier', label: 'Supplier' },
+    { name: 'warehouse_location', label: 'Warehouse Location' },
+    { name: 'product_status', label: 'Product Status' },
+    { name: 'default_shipping_service', label: 'Shipping Service' },
+    { name: 'vat_status', label: 'VAT Status' },
+    { name: 'dimensions_height', label: 'Height' },
+    { name: 'dimensions_width', label: 'Width' },
+    { name: 'dimensions_length', label: 'Length' },
+    { name: 'weight', label: 'Weight' },
+    { name: 'packaging_cost', label: 'Packaging Cost' },
+    { name: 'making_up_cost', label: 'Making Up Cost' }
+  ];
+
+  const missingFields = requiredFields.filter(field => {
+    const value = product[field.name as keyof Product];
+    return value === null || value === undefined || value === '';
+  });
+
+  const percentage = ((requiredFields.length - missingFields.length) / requiredFields.length) * 100;
+
+  return {
+    percentage,
+    missingFields: missingFields.map(f => f.label)
+  };
+};
 
 export const ProductsTable = ({
   products,
@@ -25,6 +57,7 @@ export const ProductsTable = ({
       <table className="w-full">
         <thead>
           <tr className="bg-gray-50">
+            <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">Status</th>
             <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">SKU</th>
             <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">Current Stock</th>
             <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">Title</th>
@@ -36,71 +69,93 @@ export const ProductsTable = ({
           </tr>
         </thead>
         <tbody className="bg-white divide-y divide-gray-200">
-          {products.map((product: Product) => (
-            <tr
-              key={product.sku}
-              onClick={() => onProductSelect(product)}
-              className="cursor-pointer hover:bg-gray-50"
-            >
-              <td className="px-6 py-4 whitespace-nowrap text-sm font-medium text-gray-900">
-                {product.sku}
-              </td>
-              <td className="px-6 py-4 whitespace-nowrap">
-                <span
-                  className={cn(
-                    "inline-flex items-center px-2.5 py-0.5 rounded-full text-xs font-medium",
-                    (product.current_stock ?? 0) > 50
-                      ? "bg-green-100 text-green-800"
-                      : (product.current_stock ?? 0) > 20
-                      ? "bg-yellow-100 text-yellow-800"
-                      : "bg-red-100 text-red-800"
-                  )}
-                >
-                  {product.current_stock ?? 0}
-                </span>
-              </td>
-              <td className="px-6 py-4 whitespace-nowrap text-sm text-gray-500">
-                {product.listing_title}
-              </td>
-              <td className="px-6 py-4 whitespace-nowrap text-sm text-gray-500">
-                {product.latest_stock_check_quantities?.[0]?.last_check_quantity ?? 'No check'}
-                {product.latest_stock_check_quantities?.[0]?.check_date && (
-                  <span className="text-xs text-gray-400 block">
-                    {format(new Date(product.latest_stock_check_quantities[0].check_date), 'dd/MM/yyyy')}
+          {products.map((product: Product) => {
+            const completeness = calculateCompleteness(product);
+            const completenessColor = 
+              completeness.percentage === 100 ? "text-green-500" :
+              completeness.percentage >= 70 ? "text-yellow-500" :
+              "text-red-500";
+            
+            return (
+              <tr
+                key={product.sku}
+                onClick={() => onProductSelect(product)}
+                className="cursor-pointer hover:bg-gray-50"
+              >
+                <td className="px-6 py-4 whitespace-nowrap">
+                  <Tooltip content={
+                    completeness.missingFields.length > 0
+                      ? `Missing information: ${completeness.missingFields.join(', ')}`
+                      : 'All information complete'
+                  }>
+                    <div className="flex items-center">
+                      <Circle className={cn("h-4 w-4 fill-current", completenessColor)} />
+                      <span className="ml-2 text-sm text-gray-500">
+                        {completeness.percentage.toFixed(0)}%
+                      </span>
+                    </div>
+                  </Tooltip>
+                </td>
+                <td className="px-6 py-4 whitespace-nowrap text-sm font-medium text-gray-900">
+                  {product.sku}
+                </td>
+                <td className="px-6 py-4 whitespace-nowrap">
+                  <span
+                    className={cn(
+                      "inline-flex items-center px-2.5 py-0.5 rounded-full text-xs font-medium",
+                      (product.current_stock ?? 0) > 50
+                        ? "bg-green-100 text-green-800"
+                        : (product.current_stock ?? 0) > 20
+                        ? "bg-yellow-100 text-yellow-800"
+                        : "bg-red-100 text-red-800"
+                    )}
+                  >
+                    {product.current_stock ?? 0}
                   </span>
-                )}
-              </td>
-              <td className="px-6 py-4 whitespace-nowrap text-sm text-gray-500">
-                {product.total_sales_quantities?.[0]?.total_sold ?? 0}
-              </td>
-              <td className="px-6 py-4 whitespace-nowrap text-sm text-gray-500">
-                {product.product_cost !== null 
-                  ? `£${product.product_cost.toFixed(2)}`
-                  : 'N/A'}
-              </td>
-              <td className="px-6 py-4 whitespace-nowrap text-sm text-gray-500">
-                {product.warehouse_location || 'N/A'}
-              </td>
-              <td className="px-6 py-4 whitespace-nowrap text-sm text-gray-500 space-x-2">
-                <Button
-                  variant="ghost"
-                  size="sm"
-                  onClick={(e) => {
-                    e.stopPropagation();
-                    const newQuantity = prompt("Enter new stock quantity:", String(product.current_stock ?? 0));
-                    if (newQuantity !== null) {
-                      const quantity = parseInt(newQuantity);
-                      if (!isNaN(quantity)) {
-                        onStockUpdate(product.sku, quantity);
+                </td>
+                <td className="px-6 py-4 whitespace-nowrap text-sm text-gray-500">
+                  {product.listing_title}
+                </td>
+                <td className="px-6 py-4 whitespace-nowrap text-sm text-gray-500">
+                  {product.latest_stock_check_quantities?.[0]?.last_check_quantity ?? 'No check'}
+                  {product.latest_stock_check_quantities?.[0]?.check_date && (
+                    <span className="text-xs text-gray-400 block">
+                      {format(new Date(product.latest_stock_check_quantities[0].check_date), 'dd/MM/yyyy')}
+                    </span>
+                  )}
+                </td>
+                <td className="px-6 py-4 whitespace-nowrap text-sm text-gray-500">
+                  {product.total_sales_quantities?.[0]?.total_sold ?? 0}
+                </td>
+                <td className="px-6 py-4 whitespace-nowrap text-sm text-gray-500">
+                  {product.product_cost !== null 
+                    ? `£${product.product_cost.toFixed(2)}`
+                    : 'N/A'}
+                </td>
+                <td className="px-6 py-4 whitespace-nowrap text-sm text-gray-500">
+                  {product.warehouse_location || 'N/A'}
+                </td>
+                <td className="px-6 py-4 whitespace-nowrap text-sm text-gray-500 space-x-2">
+                  <Button
+                    variant="ghost"
+                    size="sm"
+                    onClick={(e) => {
+                      e.stopPropagation();
+                      const newQuantity = prompt("Enter new stock quantity:", String(product.current_stock ?? 0));
+                      if (newQuantity !== null) {
+                        const quantity = parseInt(newQuantity);
+                        if (!isNaN(quantity)) {
+                          onStockUpdate(product.sku, quantity);
+                        }
                       }
-                    }
-                  }}
-                >
-                  Update Stock
-                </Button>
-              </td>
-            </tr>
-          ))}
+                    }}
+                  >
+                    Update Stock
+                  </Button>
+                </td>
+              </tr>
+            );
+          })}
         </tbody>
       </table>
       <ProductEditDialog
