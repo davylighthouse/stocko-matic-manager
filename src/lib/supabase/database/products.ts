@@ -37,7 +37,6 @@ export const getStockLevels = async () => {
   // Get manual stock adjustments using aggregate function
   const { data: stockAdjustments, error: stockAdjustmentsError } = await supabase
     .from('stock_adjustments')
-    .select('sku, adjustment_sum:quantity')
     .select('sku, adjustment_sum:sum(quantity)')
     .order('sku');
 
