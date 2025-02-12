@@ -150,8 +150,12 @@ const StockManagement = () => {
               </tr>
             </thead>
             <tbody className="bg-white divide-y divide-gray-200">
-              {filteredProducts.map((product: any) => (
-                <tr key={product.sku}>
+              {filteredProducts.map((product: Product) => (
+                <tr 
+                  key={product.sku}
+                  onClick={() => setSelectedProduct(product)}
+                  className="cursor-pointer hover:bg-gray-50"
+                >
                   <td className="px-6 py-4 whitespace-nowrap text-sm font-medium text-gray-900">
                     {product.sku}
                   </td>
@@ -192,19 +196,12 @@ const StockManagement = () => {
                     {product.warehouse_location || 'N/A'}
                   </td>
                   <td className="px-6 py-4 whitespace-nowrap text-sm text-gray-500 space-x-2">
-                    <Dialog open={selectedProduct?.sku === product.sku} onOpenChange={(open) => {
-                      if (!open) setSelectedProduct(null);
-                    }}>
-                      <DialogTrigger asChild>
-                        <Button
-                          variant="ghost"
-                          size="sm"
-                          onClick={() => setSelectedProduct(product)}
-                        >
-                          <Edit className="h-4 w-4 mr-1" />
-                          Edit
-                        </Button>
-                      </DialogTrigger>
+                    <Dialog 
+                      open={selectedProduct?.sku === product.sku} 
+                      onOpenChange={(open) => {
+                        if (!open) setSelectedProduct(null);
+                      }}
+                    >
                       <DialogContent>
                         <DialogHeader>
                           <DialogTitle>Edit Product Details</DialogTitle>
@@ -262,7 +259,8 @@ const StockManagement = () => {
                     <Button
                       variant="ghost"
                       size="sm"
-                      onClick={() => {
+                      onClick={(e) => {
+                        e.stopPropagation(); // Prevent row click when clicking the button
                         const newQuantity = prompt("Enter new stock quantity:", String(product.stock_quantity ?? 0));
                         if (newQuantity !== null) {
                           const quantity = parseInt(newQuantity);
