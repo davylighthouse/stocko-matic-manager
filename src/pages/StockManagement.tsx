@@ -1,32 +1,61 @@
+
 import { useState } from "react";
+import { useQuery, useMutation, useQueryClient } from "@tanstack/react-query";
 import { Card } from "@/components/ui/card";
 import { Input } from "@/components/ui/input";
 import { Button } from "@/components/ui/button";
 import { Search, Plus } from "lucide-react";
 import { cn } from "@/lib/utils";
-
-type Product = {
-  sku: string;
-  title: string;
-  stock: number;
-  cost: number;
-};
-
-const dummyProducts: Product[] = [
-  { sku: "SKU001", title: "Product 1", stock: 100, cost: 10.99 },
-  { sku: "SKU002", title: "Product 2", stock: 50, cost: 15.99 },
-  { sku: "SKU003", title: "Product 3", stock: 75, cost: 20.99 },
-];
+import { getStockLevels, updateStockLevel } from "@/lib/supabase/database";
+import { Product } from "@/types/database";
+import { useToast } from "@/components/ui/use-toast";
 
 const StockManagement = () => {
   const [search, setSearch] = useState("");
-  const [products, setProducts] = useState<Product[]>(dummyProducts);
+  const { toast } = useToast();
+  const queryClient = useQueryClient();
+
+  const { data: products = [], isLoading } = useQuery({
+    queryKey: ['products'],
+    queryFn: getStockLevels
+  });
+
+  const updateStockMutation = useMutation({
+    mutationFn: ({ sku, quantity }: { sku: string; quantity: number }) =>
+      updateStockLevel(sku, quantity),
+    onSuccess: () => {
+      queryClient.invalidateQueries({ queryKey: ['products'] });
+      toast({
+        title: "Success",
+        description: "Stock level updated successfully",
+      });
+    },
+    onError: (error) => {
+      toast({
+        title: "Error",
+        description: error instanceof Error ? error.message : "Failed to update stock level",
+        variant: "destructive",
+      });
+    },
+  });
 
   const filteredProducts = products.filter(
-    (product) =>
+    (product: Product) =>
       product.sku.toLowerCase().includes(search.toLowerCase()) ||
-      product.title.toLowerCase().includes(search.toLowerCase())
+      product.listing_title.toLowerCase().includes(search.toLowerCase())
   );
+
+  const handleStockUpdate = async (sku: string, quantity: number) => {
+    updateStockMutation.mutate({ sku, quantity });
+  };
+
+  if (isLoading) {
+    return (
+      <div className="flex items-center justify-center h-96">
+        <div className="text-lg">Loading...</div>
+      </div>
+    );
+  }
 
   return (
     <div className="space-y-6">
@@ -61,39 +90,57 @@ const StockManagement = () => {
         </div>
 
         <div className="overflow-x-auto">
-          <table className="stock-table">
+          <table className="w-full">
             <thead>
               <tr className="bg-gray-50">
-                <th>SKU</th>
-                <th>Title</th>
-                <th>Stock</th>
-                <th>Cost</th>
-                <th>Actions</th>
+                <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">SKU</th>
+                <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">Title</th>
+                <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">Stock</th>
+                <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">Cost</th>
+                <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">Actions</th>
               </tr>
             </thead>
-            <tbody>
-              {filteredProducts.map((product) => (
+            <tbody className="bg-white divide-y divide-gray-200">
+              {filteredProducts.map((product: Product) => (
                 <tr key={product.sku}>
-                  <td className="font-medium">{product.sku}</td>
-                  <td>{product.title}</td>
-                  <td>
+                  <td className="px-6 py-4 whitespace-nowrap text-sm font-medium text-gray-900">
+                    {product.sku}
+                  </td>
+                  <td className="px-6 py-4 whitespace-nowrap text-sm text-gray-500">
+                    {product.listing_title}
+                  </td>
+                  <td className="px-6 py-4 whitespace-nowrap">
                     <span
                       className={cn(
                         "inline-flex items-center px-2.5 py-0.5 rounded-full text-xs font-medium",
-                        product.stock > 50
+                        product.stock_quantity > 50
                           ? "bg-green-100 text-green-800"
-                          : product.stock > 20
+                          : product.stock_quantity > 20
                           ? "bg-yellow-100 text-yellow-800"
                           : "bg-red-100 text-red-800"
                       )}
                     >
-                      {product.stock}
+                      {product.stock_quantity}
                     </span>
                   </td>
-                  <td>${product.cost.toFixed(2)}</td>
-                  <td>
-                    <Button variant="ghost" size="sm">
-                      Edit
+                  <td className="px-6 py-4 whitespace-nowrap text-sm text-gray-500">
+                    £{product.product_cost.toFixed(2)}
+                  </td>
+                  <td className="px-6 py-4 whitespace-nowrap text-sm text-gray-500">
+                    <Button
+                      variant="ghost"
+                      size="sm"
+                      onClick={() => {
+                        const newQuantity = prompt("Enter new stock quantity:", String(product.stock_quantity));
+                        if (newQuantity !== null) {
+                          const quantity = parseInt(newQuantity);
+                          if (!isNaN(quantity)) {
+                            handleStockUpdate(product.sku, quantity);
+                          }
+                        }
+                      }}
+                    >
+                      Update Stock
                     </Button>
                   </td>
                 </tr>

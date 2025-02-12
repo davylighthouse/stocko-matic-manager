@@ -9,6 +9,27 @@ export type Json =
 export type Database = {
   public: {
     Tables: {
+      products: {
+        Row: {
+          listing_title: string
+          product_cost: number | null
+          sku: string
+          stock_quantity: number | null
+        }
+        Insert: {
+          listing_title: string
+          product_cost?: number | null
+          sku: string
+          stock_quantity?: number | null
+        }
+        Update: {
+          listing_title?: string
+          product_cost?: number | null
+          sku?: string
+          stock_quantity?: number | null
+        }
+        Relationships: []
+      }
       profiles: {
         Row: {
           created_at: string
@@ -30,12 +51,59 @@ export type Database = {
         }
         Relationships: []
       }
+      sales: {
+        Row: {
+          gross_profit: number | null
+          id: number
+          platform: string
+          promoted: boolean | null
+          quantity: number
+          sale_date: string
+          sku: string | null
+          total_price: number | null
+        }
+        Insert: {
+          gross_profit?: number | null
+          id?: number
+          platform: string
+          promoted?: boolean | null
+          quantity: number
+          sale_date: string
+          sku?: string | null
+          total_price?: number | null
+        }
+        Update: {
+          gross_profit?: number | null
+          id?: number
+          platform?: string
+          promoted?: boolean | null
+          quantity?: number
+          sale_date?: string
+          sku?: string | null
+          total_price?: number | null
+        }
+        Relationships: [
+          {
+            foreignKeyName: "sales_sku_fkey"
+            columns: ["sku"]
+            isOneToOne: false
+            referencedRelation: "products"
+            referencedColumns: ["sku"]
+          },
+        ]
+      }
     }
     Views: {
       [_ in never]: never
     }
     Functions: {
-      [_ in never]: never
+      update_stock_quantity: {
+        Args: {
+          p_sku: string
+          p_quantity: number
+        }
+        Returns: undefined
+      }
     }
     Enums: {
       [_ in never]: never

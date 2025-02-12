@@ -25,6 +25,7 @@ export const processCSV = async (file: File): Promise<{ success: boolean; messag
       const product = {
         sku: sale.sku,
         listing_title: row[headers.indexOf('Listing Title')],
+        stock_quantity: 0,
         product_cost: parseFloat(row[headers.indexOf('Product Cost')]),
       };
 
