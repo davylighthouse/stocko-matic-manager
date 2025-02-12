@@ -1,9 +1,10 @@
-
 export interface Product {
   sku: string;
   listing_title: string;
   stock_quantity: number;
   product_cost: number;
+  supplier?: string;
+  warehouse_location?: string;
 }
 
 export interface Sale {

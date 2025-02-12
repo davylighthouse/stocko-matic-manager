@@ -15,18 +15,24 @@ export type Database = {
           product_cost: number | null
           sku: string
           stock_quantity: number | null
+          supplier: string | null
+          warehouse_location: string | null
         }
         Insert: {
           listing_title: string
           product_cost?: number | null
           sku: string
           stock_quantity?: number | null
+          supplier?: string | null
+          warehouse_location?: string | null
         }
         Update: {
           listing_title?: string
           product_cost?: number | null
           sku?: string
           stock_quantity?: number | null
+          supplier?: string | null
+          warehouse_location?: string | null
         }
         Relationships: []
       }
@@ -160,7 +166,45 @@ export type Database = {
       }
     }
     Views: {
-      [_ in never]: never
+      latest_stock_check_quantities: {
+        Row: {
+          check_date: string | null
+          last_check_quantity: number | null
+          sku: string | null
+          stock_check_id: number | null
+        }
+        Relationships: [
+          {
+            foreignKeyName: "stock_check_items_sku_fkey"
+            columns: ["sku"]
+            isOneToOne: false
+            referencedRelation: "products"
+            referencedColumns: ["sku"]
+          },
+          {
+            foreignKeyName: "stock_check_items_stock_check_id_fkey"
+            columns: ["stock_check_id"]
+            isOneToOne: false
+            referencedRelation: "stock_checks"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
+      total_sales_quantities: {
+        Row: {
+          sku: string | null
+          total_sold: number | null
+        }
+        Relationships: [
+          {
+            foreignKeyName: "sales_sku_fkey"
+            columns: ["sku"]
+            isOneToOne: false
+            referencedRelation: "products"
+            referencedColumns: ["sku"]
+          },
+        ]
+      }
     }
     Functions: {
       update_stock_quantity: {

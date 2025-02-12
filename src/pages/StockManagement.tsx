@@ -4,14 +4,24 @@ import { useQuery, useMutation, useQueryClient } from "@tanstack/react-query";
 import { Card } from "@/components/ui/card";
 import { Input } from "@/components/ui/input";
 import { Button } from "@/components/ui/button";
-import { Search, Plus } from "lucide-react";
+import {
+  Dialog,
+  DialogContent,
+  DialogHeader,
+  DialogTitle,
+  DialogTrigger,
+} from "@/components/ui/dialog";
+import { Label } from "@/components/ui/label";
+import { Search, Plus, Edit } from "lucide-react";
 import { cn } from "@/lib/utils";
-import { getStockLevels, updateStockLevel } from "@/lib/supabase/database";
+import { getStockLevels, updateStockLevel, updateProductDetails } from "@/lib/supabase/database";
 import { Product } from "@/types/database";
 import { useToast } from "@/components/ui/use-toast";
+import { format } from "date-fns";
 
 const StockManagement = () => {
   const [search, setSearch] = useState("");
+  const [selectedProduct, setSelectedProduct] = useState<Product | null>(null);
   const { toast } = useToast();
   const queryClient = useQueryClient();
 
@@ -39,6 +49,26 @@ const StockManagement = () => {
     },
   });
 
+  const updateProductMutation = useMutation({
+    mutationFn: ({ sku, data }: { sku: string; data: any }) =>
+      updateProductDetails(sku, data),
+    onSuccess: () => {
+      queryClient.invalidateQueries({ queryKey: ['products'] });
+      setSelectedProduct(null);
+      toast({
+        title: "Success",
+        description: "Product details updated successfully",
+      });
+    },
+    onError: (error) => {
+      toast({
+        title: "Error",
+        description: error instanceof Error ? error.message : "Failed to update product details",
+        variant: "destructive",
+      });
+    },
+  });
+
   const filteredProducts = products.filter(
     (product: Product) =>
       product.sku.toLowerCase().includes(search.toLowerCase()) ||
@@ -47,6 +77,21 @@ const StockManagement = () => {
 
   const handleStockUpdate = async (sku: string, quantity: number) => {
     updateStockMutation.mutate({ sku, quantity });
+  };
+
+  const handleProductUpdate = (event: React.FormEvent<HTMLFormElement>) => {
+    event.preventDefault();
+    if (!selectedProduct) return;
+
+    const formData = new FormData(event.currentTarget);
+    const data = {
+      listing_title: formData.get('listing_title') as string,
+      product_cost: formData.get('product_cost') ? parseFloat(formData.get('product_cost') as string) : null,
+      warehouse_location: formData.get('warehouse_location') as string || null,
+      supplier: formData.get('supplier') as string || null,
+    };
+
+    updateProductMutation.mutate({ sku: selectedProduct.sku, data });
   };
 
   if (isLoading) {
@@ -95,13 +140,16 @@ const StockManagement = () => {
               <tr className="bg-gray-50">
                 <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">SKU</th>
                 <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">Title</th>
-                <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">Stock</th>
+                <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">Current Stock</th>
+                <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">Last Check</th>
+                <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">Total Sold</th>
                 <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">Cost</th>
+                <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">Location</th>
                 <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">Actions</th>
               </tr>
             </thead>
             <tbody className="bg-white divide-y divide-gray-200">
-              {filteredProducts.map((product: Product) => (
+              {filteredProducts.map((product: any) => (
                 <tr key={product.sku}>
                   <td className="px-6 py-4 whitespace-nowrap text-sm font-medium text-gray-900">
                     {product.sku}
@@ -124,11 +172,92 @@ const StockManagement = () => {
                     </span>
                   </td>
                   <td className="px-6 py-4 whitespace-nowrap text-sm text-gray-500">
+                    {product.latest_stock_check_quantities?.[0]?.last_check_quantity ?? 'No check'}
+                    {product.latest_stock_check_quantities?.[0]?.check_date && (
+                      <span className="text-xs text-gray-400 block">
+                        {format(new Date(product.latest_stock_check_quantities[0].check_date), 'dd/MM/yyyy')}
+                      </span>
+                    )}
+                  </td>
+                  <td className="px-6 py-4 whitespace-nowrap text-sm text-gray-500">
+                    {product.total_sales_quantities?.[0]?.total_sold ?? 0}
+                  </td>
+                  <td className="px-6 py-4 whitespace-nowrap text-sm text-gray-500">
                     {product.product_cost !== null 
                       ? `£${product.product_cost.toFixed(2)}`
                       : 'N/A'}
                   </td>
                   <td className="px-6 py-4 whitespace-nowrap text-sm text-gray-500">
+                    {product.warehouse_location || 'N/A'}
+                  </td>
+                  <td className="px-6 py-4 whitespace-nowrap text-sm text-gray-500 space-x-2">
+                    <Dialog open={selectedProduct?.sku === product.sku} onOpenChange={(open) => {
+                      if (!open) setSelectedProduct(null);
+                    }}>
+                      <DialogTrigger asChild>
+                        <Button
+                          variant="ghost"
+                          size="sm"
+                          onClick={() => setSelectedProduct(product)}
+                        >
+                          <Edit className="h-4 w-4 mr-1" />
+                          Edit
+                        </Button>
+                      </DialogTrigger>
+                      <DialogContent>
+                        <DialogHeader>
+                          <DialogTitle>Edit Product Details</DialogTitle>
+                        </DialogHeader>
+                        <form onSubmit={handleProductUpdate} className="space-y-4">
+                          <div>
+                            <Label htmlFor="listing_title">Title</Label>
+                            <Input
+                              id="listing_title"
+                              name="listing_title"
+                              defaultValue={product.listing_title}
+                            />
+                          </div>
+                          <div>
+                            <Label htmlFor="product_cost">Product Cost</Label>
+                            <Input
+                              id="product_cost"
+                              name="product_cost"
+                              type="number"
+                              step="0.01"
+                              defaultValue={product.product_cost}
+                            />
+                          </div>
+                          <div>
+                            <Label htmlFor="warehouse_location">Warehouse Location</Label>
+                            <Input
+                              id="warehouse_location"
+                              name="warehouse_location"
+                              defaultValue={product.warehouse_location}
+                            />
+                          </div>
+                          <div>
+                            <Label htmlFor="supplier">Supplier</Label>
+                            <Input
+                              id="supplier"
+                              name="supplier"
+                              defaultValue={product.supplier}
+                            />
+                          </div>
+                          <div className="flex justify-end space-x-2">
+                            <Button
+                              type="button"
+                              variant="outline"
+                              onClick={() => setSelectedProduct(null)}
+                            >
+                              Cancel
+                            </Button>
+                            <Button type="submit">
+                              Save Changes
+                            </Button>
+                          </div>
+                        </form>
+                      </DialogContent>
+                    </Dialog>
                     <Button
                       variant="ghost"
                       size="sm"
