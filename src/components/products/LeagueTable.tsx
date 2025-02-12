@@ -103,13 +103,13 @@ export const LeagueTable = () => {
                       {product.listing_title}
                     </td>
                     <td className="px-6 py-4 whitespace-nowrap text-sm">
-                      £{product.total_sales.toFixed(2)}
+                      £{(product.total_sales || 0).toFixed(2)}
                     </td>
                     <td className="px-6 py-4 whitespace-nowrap text-sm">
-                      {product.total_quantity}
+                      {product.total_quantity || 0}
                     </td>
                     <td className="px-6 py-4 whitespace-nowrap text-sm">
-                      £{product.avg_price.toFixed(2)}
+                      £{(product.avg_price || 0).toFixed(2)}
                     </td>
                   </tr>
                 ))
