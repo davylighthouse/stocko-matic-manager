@@ -138,6 +138,13 @@ export type Database = {
             foreignKeyName: "stock_check_items_stock_check_id_fkey"
             columns: ["stock_check_id"]
             isOneToOne: false
+            referencedRelation: "latest_stock_check_quantities"
+            referencedColumns: ["stock_check_id"]
+          },
+          {
+            foreignKeyName: "stock_check_items_stock_check_id_fkey"
+            columns: ["stock_check_id"]
+            isOneToOne: false
             referencedRelation: "stock_checks"
             referencedColumns: ["id"]
           },
@@ -180,13 +187,6 @@ export type Database = {
             isOneToOne: false
             referencedRelation: "products"
             referencedColumns: ["sku"]
-          },
-          {
-            foreignKeyName: "stock_check_items_stock_check_id_fkey"
-            columns: ["stock_check_id"]
-            isOneToOne: false
-            referencedRelation: "stock_checks"
-            referencedColumns: ["id"]
           },
         ]
       }
