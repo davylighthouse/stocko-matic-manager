@@ -34,24 +34,27 @@ export const getStockLevels = async () => {
 
   if (totalSalesError) throw totalSalesError;
 
-  // Get manual stock adjustments
+  // Get manual stock adjustments using aggregate function
   const { data: stockAdjustments, error: stockAdjustmentsError } = await supabase
     .from('stock_adjustments')
-    .select('sku, SUM(quantity) as total_adjusted')
-    .group('sku');
+    .select('sku, adjustment_sum:quantity')
+    .select('sku, adjustment_sum:sum(quantity)')
+    .order('sku');
 
   if (stockAdjustmentsError) throw stockAdjustmentsError;
 
   // Convert to lookup maps for efficient access
   const initialStockMap = new Map(initialStock.map(item => [item.sku, item.quantity]));
-  const salesMap = new Map(totalSales.map(item => [item.sku, item.total_sold]));
-  const adjustmentsMap = new Map(stockAdjustments.map(item => [item.sku, item.total_adjusted]));
+  const salesMap = new Map(totalSales.map(item => [item.sku, Number(item.total_sold) || 0]));
+  const adjustmentsMap = new Map(
+    stockAdjustments.map(item => [item.sku, Number(item.adjustment_sum) || 0])
+  );
 
   // Merge all data with products
   const mergedProducts = products.map(product => {
-    const initialQuantity = initialStockMap.get(product.sku) || 0;
-    const totalSold = salesMap.get(product.sku) || 0;
-    const totalAdjusted = adjustmentsMap.get(product.sku) || 0;
+    const initialQuantity = Number(initialStockMap.get(product.sku) || 0);
+    const totalSold = Number(salesMap.get(product.sku) || 0);
+    const totalAdjusted = Number(adjustmentsMap.get(product.sku) || 0);
     
     return {
       ...product,
@@ -93,13 +96,13 @@ export const updateStockLevel = async (sku: string, quantity: number) => {
 
   const { data: adjustments } = await supabase
     .from('stock_adjustments')
-    .select('SUM(quantity) as total_adjusted')
+    .select('adjustment_sum:sum(quantity)')
     .eq('sku', sku)
     .single();
 
-  const currentStock = (initialStock?.quantity || 0) - 
-                      (totalSales?.total_sold || 0) + 
-                      (adjustments?.total_adjusted || 0);
+  const currentStock = Number(initialStock?.quantity || 0) - 
+                      Number(totalSales?.total_sold || 0) + 
+                      Number(adjustments?.adjustment_sum || 0);
 
   // Calculate the adjustment needed
   const adjustment = quantity - currentStock;
