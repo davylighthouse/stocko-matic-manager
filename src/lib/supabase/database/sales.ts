@@ -9,7 +9,15 @@ export const getSalesWithProducts = async () => {
     .order('sale_date', { ascending: false });
 
   if (error) throw error;
-  return data as SaleWithProduct[];
+  
+  // Ensure numeric values are properly handled
+  const formattedData = data?.map(sale => ({
+    ...sale,
+    total_price: parseFloat(sale.total_price?.toString() || '0'),
+    gross_profit: parseFloat(sale.gross_profit?.toString() || '0')
+  }));
+
+  return formattedData as SaleWithProduct[];
 };
 
 export const getSalesTotals = async () => {
