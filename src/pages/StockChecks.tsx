@@ -100,6 +100,26 @@ const StockChecks = () => {
     },
   });
 
+  const handleUpdateItem = async (sku: string) => {
+    if (!selectedCheckId) return;
+
+    const quantity = prompt("Enter quantity:");
+    if (quantity === null) return;
+
+    const productCost = prompt("Enter product cost (optional):");
+    const location = prompt("Enter warehouse location (optional):");
+
+    updateItemMutation.mutate({
+      stockCheckId: selectedCheckId,
+      sku,
+      data: {
+        quantity: parseInt(quantity),
+        ...(productCost ? { product_cost: parseFloat(productCost) } : {}),
+        ...(location ? { warehouse_location: location } : {}),
+      },
+    });
+  };
+
   const handleNewStockCheck = async () => {
     const notes = prompt("Enter notes for this stock check (optional):");
     if (notes !== null) {
