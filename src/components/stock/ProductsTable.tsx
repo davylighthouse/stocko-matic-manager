@@ -26,8 +26,8 @@ export const ProductsTable = ({
         <thead>
           <tr className="bg-gray-50">
             <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">SKU</th>
-            <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">Title</th>
             <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">Current Stock</th>
+            <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">Title</th>
             <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">Last Check</th>
             <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">Total Sold</th>
             <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">Cost</th>
@@ -45,9 +45,6 @@ export const ProductsTable = ({
               <td className="px-6 py-4 whitespace-nowrap text-sm font-medium text-gray-900">
                 {product.sku}
               </td>
-              <td className="px-6 py-4 whitespace-nowrap text-sm text-gray-500">
-                {product.listing_title}
-              </td>
               <td className="px-6 py-4 whitespace-nowrap">
                 <span
                   className={cn(
@@ -61,6 +58,9 @@ export const ProductsTable = ({
                 >
                   {product.stock_quantity ?? 0}
                 </span>
+              </td>
+              <td className="px-6 py-4 whitespace-nowrap text-sm text-gray-500">
+                {product.listing_title}
               </td>
               <td className="px-6 py-4 whitespace-nowrap text-sm text-gray-500">
                 {product.latest_stock_check_quantities?.[0]?.last_check_quantity ?? 'No check'}
