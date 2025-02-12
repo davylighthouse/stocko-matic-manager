@@ -3,6 +3,14 @@ import { supabase } from '@/integrations/supabase/client';
 import type { Product } from '@/types/database';
 
 export const getStockLevels = async () => {
+  // First get the current stock levels
+  const { data: stockLevels, error: stockError } = await supabase
+    .from('current_stock_levels')
+    .select('*');
+
+  if (stockError) throw stockError;
+
+  // Then get the products with their related data
   const { data: products, error: productsError } = await supabase
     .from('products')
     .select(`
@@ -19,14 +27,7 @@ export const getStockLevels = async () => {
 
   if (productsError) throw productsError;
 
-  // Fetch current stock levels using the updated view
-  const { data: stockLevels, error: stockError } = await supabase
-    .from('current_stock_levels')
-    .select('*');
-
-  if (stockError) throw stockError;
-
-  // Merge the current stock data with products
+  // Merge the current stock data with products, ensuring we use the view's calculation
   const mergedProducts = products.map(product => {
     const stockLevel = stockLevels.find(sl => sl.sku === product.sku);
     return {
