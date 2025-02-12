@@ -3,35 +3,47 @@ import { Card } from "@/components/ui/card";
 import { Activity, DollarSign, Package, TrendingUp } from "lucide-react";
 import { cn } from "@/lib/utils";
 import { LeagueTable } from "@/components/products/LeagueTable";
-
-const stats = [
-  {
-    name: "Total Sales",
-    value: "$12,345",
-    change: "+12%",
-    icon: DollarSign,
-  },
-  {
-    name: "Units Sold",
-    value: "234",
-    change: "+5%",
-    icon: Package,
-  },
-  {
-    name: "Gross Profit",
-    value: "$4,567",
-    change: "+8%",
-    icon: TrendingUp,
-  },
-  {
-    name: "Active SKUs",
-    value: "89",
-    change: "-2%",
-    icon: Activity,
-  },
-];
+import { useQuery } from "@tanstack/react-query";
+import { getTopProductsBySales } from "@/lib/supabase/database";
 
 const Dashboard = () => {
+  const { data: products = [] } = useQuery({
+    queryKey: ['topProducts', new Date(new Date().getFullYear(), new Date().getMonth(), 1), new Date()],
+    queryFn: () => getTopProductsBySales(
+      new Date(new Date().getFullYear(), new Date().getMonth(), 1),
+      new Date()
+    ),
+  });
+
+  const grandTotal = products[0]?.grand_total || 0;
+
+  const stats = [
+    {
+      name: "Total Sales",
+      value: `£${grandTotal.toFixed(2)}`,
+      change: "+12%",
+      icon: DollarSign,
+    },
+    {
+      name: "Units Sold",
+      value: "234",
+      change: "+5%",
+      icon: Package,
+    },
+    {
+      name: "Gross Profit",
+      value: "£4,567",
+      change: "+8%",
+      icon: TrendingUp,
+    },
+    {
+      name: "Active SKUs",
+      value: "89",
+      change: "-2%",
+      icon: Activity,
+    },
+  ];
+
   return (
     <div className="space-y-6">
       <div>
