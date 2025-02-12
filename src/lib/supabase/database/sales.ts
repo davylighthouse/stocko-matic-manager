@@ -10,12 +10,16 @@ export const getSalesWithProducts = async () => {
 
   if (error) throw error;
   
+  console.log('Raw data from database:', data);
+  
   // Ensure numeric values are properly handled
   const formattedData = data?.map(sale => ({
     ...sale,
     total_price: parseFloat(sale.total_price?.toString() || '0'),
     gross_profit: parseFloat(sale.gross_profit?.toString() || '0')
   }));
+
+  console.log('Formatted data:', formattedData);
 
   return formattedData as SaleWithProduct[];
 };
@@ -41,14 +45,18 @@ export const deleteSale = async (id: number) => {
 };
 
 export const updateSale = async (id: number, data: Partial<SaleWithProduct>) => {
+  console.log('Received data for update:', data);
+  
   // Parse numeric values to ensure they're saved correctly
   const numericData = {
     ...data,
-    total_price: data.total_price ? parseFloat(data.total_price.toString().replace('£', '')) : data.total_price,
-    gross_profit: data.gross_profit ? parseFloat(data.gross_profit.toString().replace('£', '')) : data.gross_profit
+    total_price: data.total_price ? parseFloat(data.total_price.toString().replace('£', '')) : null,
+    gross_profit: data.gross_profit ? parseFloat(data.gross_profit.toString().replace('£', '')) : null
   };
 
-  const { error } = await supabase
+  console.log('Processed data for update:', numericData);
+
+  const { data: updatedData, error } = await supabase
     .from('sales')
     .update({
       sale_date: numericData.sale_date,
@@ -59,8 +67,12 @@ export const updateSale = async (id: number, data: Partial<SaleWithProduct>) => 
       gross_profit: numericData.gross_profit,
       promoted: numericData.promoted
     })
-    .eq('id', id);
+    .eq('id', id)
+    .select();
 
   if (error) throw error;
+
+  console.log('Update response:', updatedData);
+
   return true;
 };
