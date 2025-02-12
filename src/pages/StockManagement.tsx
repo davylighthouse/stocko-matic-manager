@@ -113,25 +113,27 @@ const StockManagement = () => {
                     <span
                       className={cn(
                         "inline-flex items-center px-2.5 py-0.5 rounded-full text-xs font-medium",
-                        product.stock_quantity > 50
+                        (product.stock_quantity ?? 0) > 50
                           ? "bg-green-100 text-green-800"
-                          : product.stock_quantity > 20
+                          : (product.stock_quantity ?? 0) > 20
                           ? "bg-yellow-100 text-yellow-800"
                           : "bg-red-100 text-red-800"
                       )}
                     >
-                      {product.stock_quantity}
+                      {product.stock_quantity ?? 0}
                     </span>
                   </td>
                   <td className="px-6 py-4 whitespace-nowrap text-sm text-gray-500">
-                    £{product.product_cost.toFixed(2)}
+                    {product.product_cost !== null 
+                      ? `£${product.product_cost.toFixed(2)}`
+                      : 'N/A'}
                   </td>
                   <td className="px-6 py-4 whitespace-nowrap text-sm text-gray-500">
                     <Button
                       variant="ghost"
                       size="sm"
                       onClick={() => {
-                        const newQuantity = prompt("Enter new stock quantity:", String(product.stock_quantity));
+                        const newQuantity = prompt("Enter new stock quantity:", String(product.stock_quantity ?? 0));
                         if (newQuantity !== null) {
                           const quantity = parseInt(newQuantity);
                           if (!isNaN(quantity)) {
