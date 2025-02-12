@@ -1,4 +1,3 @@
-
 import { Toaster } from "@/components/ui/toaster";
 import { Toaster as Sonner } from "@/components/ui/sonner";
 import { TooltipProvider } from "@/components/ui/tooltip";
@@ -11,6 +10,7 @@ import StockManagement from "./pages/StockManagement";
 import Upload from "./pages/Upload";
 import Auth from "./pages/Auth";
 import NotFound from "./pages/NotFound";
+import StockChecks from "./pages/StockChecks";
 
 const queryClient = new QueryClient();
 
@@ -26,6 +26,7 @@ const App = () => (
             <Route path="/" element={<Layout />}>
               <Route index element={<Dashboard />} />
               <Route path="stock" element={<StockManagement />} />
+              <Route path="stock-checks" element={<StockChecks />} />
               <Route path="upload" element={<Upload />} />
               <Route path="*" element={<NotFound />} />
             </Route>

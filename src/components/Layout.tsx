@@ -1,7 +1,6 @@
-
 import { Link, Outlet, useLocation, useNavigate } from "react-router-dom";
 import { cn } from "@/lib/utils";
-import { BarChart2, Package, Upload, LogOut } from "lucide-react";
+import { BarChart2, Package, Upload, LogOut, ClipboardList } from "lucide-react";
 import { useAuth } from "@/contexts/AuthContext";
 import { supabase } from "@/integrations/supabase/client";
 import { useToast } from "@/components/ui/use-toast";
@@ -10,6 +9,7 @@ import { Button } from "@/components/ui/button";
 const navigation = [
   { name: "Dashboard", path: "/", icon: BarChart2 },
   { name: "Stock", path: "/stock", icon: Package },
+  { name: "Stock Checks", path: "/stock-checks", icon: ClipboardList },
   { name: "Upload", path: "/upload", icon: Upload },
 ];
 
@@ -41,7 +41,6 @@ const Layout = () => {
   return (
     <div className="min-h-screen bg-gray-50">
       <div className="flex h-screen">
-        {/* Sidebar */}
         <div className="w-64 bg-white border-r border-gray-200">
           <div className="h-16 flex items-center justify-between px-6 border-b border-gray-200">
             <h1 className="text-xl font-semibold text-gray-800">Stock Manager</h1>
@@ -72,8 +71,6 @@ const Layout = () => {
             </Button>
           </nav>
         </div>
-
-        {/* Main content */}
         <div className="flex-1 flex flex-col overflow-hidden">
           <main className="flex-1 overflow-y-auto bg-gray-50 p-6">
             <div className="max-w-7xl mx-auto">

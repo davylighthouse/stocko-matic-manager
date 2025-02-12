@@ -92,6 +92,72 @@ export type Database = {
           },
         ]
       }
+      stock_check_items: {
+        Row: {
+          created_at: string | null
+          id: number
+          product_cost: number | null
+          quantity: number
+          sku: string | null
+          stock_check_id: number | null
+          warehouse_location: string | null
+        }
+        Insert: {
+          created_at?: string | null
+          id?: number
+          product_cost?: number | null
+          quantity: number
+          sku?: string | null
+          stock_check_id?: number | null
+          warehouse_location?: string | null
+        }
+        Update: {
+          created_at?: string | null
+          id?: number
+          product_cost?: number | null
+          quantity?: number
+          sku?: string | null
+          stock_check_id?: number | null
+          warehouse_location?: string | null
+        }
+        Relationships: [
+          {
+            foreignKeyName: "stock_check_items_sku_fkey"
+            columns: ["sku"]
+            isOneToOne: false
+            referencedRelation: "products"
+            referencedColumns: ["sku"]
+          },
+          {
+            foreignKeyName: "stock_check_items_stock_check_id_fkey"
+            columns: ["stock_check_id"]
+            isOneToOne: false
+            referencedRelation: "stock_checks"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
+      stock_checks: {
+        Row: {
+          check_date: string | null
+          completed: boolean | null
+          id: number
+          notes: string | null
+        }
+        Insert: {
+          check_date?: string | null
+          completed?: boolean | null
+          id?: number
+          notes?: string | null
+        }
+        Update: {
+          check_date?: string | null
+          completed?: boolean | null
+          id?: number
+          notes?: string | null
+        }
+        Relationships: []
+      }
     }
     Views: {
       [_ in never]: never
