@@ -190,6 +190,38 @@ export type Database = {
           },
         ]
       }
+      sales_totals: {
+        Row: {
+          earliest_sale: string | null
+          latest_sale: string | null
+          total_quantity: number | null
+          total_sales: number | null
+          unique_products: number | null
+        }
+        Relationships: []
+      }
+      sales_with_products: {
+        Row: {
+          gross_profit: number | null
+          id: number | null
+          listing_title: string | null
+          platform: string | null
+          promoted: boolean | null
+          quantity: number | null
+          sale_date: string | null
+          sku: string | null
+          total_price: number | null
+        }
+        Relationships: [
+          {
+            foreignKeyName: "sales_sku_fkey"
+            columns: ["sku"]
+            isOneToOne: false
+            referencedRelation: "products"
+            referencedColumns: ["sku"]
+          },
+        ]
+      }
       total_sales_quantities: {
         Row: {
           sku: string | null
