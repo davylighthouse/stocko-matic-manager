@@ -8,30 +8,26 @@ export const processCSV = async (file: File): Promise<{ success: boolean; messag
 
     // Log all headers for debugging
     console.log('CSV Headers:', headers);
-    console.log('Raw headers (with potential whitespace):', rows[0]);
-    console.log('Headers after trimming:', headers.map((h, i) => `${i}: "${h}"`));
+
+    // Helper function to parse price values
+    const parsePrice = (value: string | undefined): number => {
+      // Handle undefined or empty values
+      if (!value || value.trim() === '') return 0;
+      
+      // Remove £ symbol and any whitespace, then convert to float
+      const cleanValue = value.trim().replace('£', '');
+      const number = parseFloat(cleanValue);
+      return isNaN(number) ? 0 : number;
+    };
 
     // Find the correct column indices
     const findColumnIndex = (possibleNames: string[]): number => {
-      const index = headers.findIndex(header => {
-        const headerLower = header.toLowerCase().trim();
-        const found = possibleNames.some(name => name.toLowerCase().trim() === headerLower);
-        console.log(`Checking header "${header}" (${headerLower}) against possible names:`, possibleNames, 'Found:', found);
-        return found;
-      });
-      return index;
+      return headers.findIndex(header => 
+        possibleNames.some(name => header.toLowerCase().trim() === name.toLowerCase().trim())
+      );
     };
 
-    // Specifically look for Total price with exact match
-    const totalPriceIndex = headers.findIndex(header => header === 'Total price');
-    console.log('Looking for exact match "Total price", found at index:', totalPriceIndex);
-
-    // If exact match fails, try case-insensitive
-    const totalPriceIndexCaseInsensitive = totalPriceIndex === -1 ? 
-      headers.findIndex(header => header.toLowerCase() === 'total price') : totalPriceIndex;
-    console.log('Case-insensitive match for "Total price", found at index:', totalPriceIndexCaseInsensitive);
-
-    // Initialize column indices
+    const totalPriceIndex = findColumnIndex(['Total Price']);
     const grossProfitIndex = findColumnIndex(['Gross Profit']);
     const quantityIndex = findColumnIndex(['Quantity']);
     const skuIndex = findColumnIndex(['SKU']);
@@ -41,49 +37,28 @@ export const processCSV = async (file: File): Promise<{ success: boolean; messag
     const productCostIndex = findColumnIndex(['Product Cost']);
     const listingTitleIndex = findColumnIndex(['Listing Title']);
 
-    // Use the case-insensitive match for total price
-    const finalTotalPriceIndex = totalPriceIndexCaseInsensitive;
-
-    // Log all found indices
+    // Log found indices for debugging
     console.log('Column indices found:', {
-      totalPrice: {
-        exactMatch: totalPriceIndex,
-        caseInsensitive: totalPriceIndexCaseInsensitive,
-        final: finalTotalPriceIndex
-      },
+      totalPrice: totalPriceIndex,
       grossProfit: grossProfitIndex,
       quantity: quantityIndex,
-      sku: skuIndex,
-      saleDate: saleDateIndex,
-      platform: platformIndex,
-      promoted: promotedIndex,
-      productCost: productCostIndex,
-      listingTitle: listingTitleIndex
+      sku: skuIndex
     });
 
     // Validate required columns
-    if (finalTotalPriceIndex === -1 || skuIndex === -1 || quantityIndex === -1) {
+    if (totalPriceIndex === -1 || skuIndex === -1 || quantityIndex === -1) {
       console.error('Missing required columns:', {
-        totalPrice: finalTotalPriceIndex === -1,
+        totalPrice: totalPriceIndex === -1,
         sku: skuIndex === -1,
         quantity: quantityIndex === -1
       });
       return {
         success: false,
-        message: 'CSV file is missing required columns (Total price, SKU, or Quantity)'
+        message: 'CSV file is missing required columns (Total Price, SKU, or Quantity)'
       };
     }
 
     const data = rows.slice(1);
-
-    // Helper function to parse price values
-    const parsePrice = (value: string | undefined): number => {
-      if (!value || value.trim() === '') return 0;
-      const cleanValue = value.trim().replace(/[£$,\s]/g, '');
-      const number = parseFloat(cleanValue);
-      console.log('Parsing price value:', { original: value, cleaned: cleanValue, result: number });
-      return isNaN(number) ? 0 : number;
-    };
 
     // Process each row
     for (const row of data) {
@@ -92,12 +67,17 @@ export const processCSV = async (file: File): Promise<{ success: boolean; messag
       const sku = row[skuIndex];
       if (!sku) continue;
 
-      const rawTotalPrice = row[finalTotalPriceIndex];
-      console.log('Processing row total price:', {
-        rowIndex: data.indexOf(row),
-        columnIndex: finalTotalPriceIndex,
-        rawValue: rawTotalPrice,
-        parsedValue: parsePrice(rawTotalPrice)
+      // Process price values using parsePrice()
+      const total_price = parsePrice(row[totalPriceIndex]);
+      const gross_profit = parsePrice(row[grossProfitIndex]);
+      const product_cost = productCostIndex !== -1 ? parsePrice(row[productCostIndex]) : null;
+
+      console.log('Processing row:', {
+        sku,
+        rawTotalPrice: row[totalPriceIndex],
+        parsedTotalPrice: total_price,
+        rawGrossProfit: row[grossProfitIndex],
+        parsedGrossProfit: gross_profit
       });
 
       const saleData = {
@@ -105,8 +85,8 @@ export const processCSV = async (file: File): Promise<{ success: boolean; messag
         platform: row[platformIndex],
         sku,
         quantity: parseInt(row[quantityIndex] || '0'),
-        total_price: parsePrice(rawTotalPrice),
-        gross_profit: parsePrice(row[grossProfitIndex]),
+        total_price,
+        gross_profit,
         promoted: row[promotedIndex]?.toLowerCase() === 'yes'
       };
 
@@ -123,7 +103,7 @@ export const processCSV = async (file: File): Promise<{ success: boolean; messag
         .upsert([{
           sku,
           listing_title: row[listingTitleIndex] || sku,
-          product_cost: productCostIndex !== -1 ? parsePrice(row[productCostIndex]) : null
+          product_cost
         }], { onConflict: 'sku' });
 
       if (productError) throw productError;
