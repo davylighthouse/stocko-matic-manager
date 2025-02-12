@@ -1,4 +1,3 @@
-
 import { useState } from "react";
 import { useQuery, useMutation, useQueryClient } from "@tanstack/react-query";
 import { format } from "date-fns";
@@ -108,26 +107,6 @@ const StockChecks = () => {
     }
   };
 
-  const handleUpdateItem = async (sku: string) => {
-    if (!selectedCheckId) return;
-
-    const quantity = prompt("Enter quantity:");
-    if (quantity === null) return;
-
-    const productCost = prompt("Enter product cost (optional):");
-    const location = prompt("Enter warehouse location (optional):");
-
-    updateItemMutation.mutate({
-      stockCheckId: selectedCheckId,
-      sku,
-      data: {
-        quantity: parseInt(quantity),
-        ...(productCost ? { product_cost: parseFloat(productCost) } : {}),
-        ...(location ? { warehouse_location: location } : {}),
-      },
-    });
-  };
-
   const handleFileUpload = async (event: React.ChangeEvent<HTMLInputElement>) => {
     const file = event.target.files?.[0];
     if (!file || !selectedCheckId) {
@@ -189,24 +168,42 @@ const StockChecks = () => {
             Manage your inventory checks and update stock levels
           </p>
         </div>
-        <DropdownMenu>
-          <DropdownMenuTrigger asChild>
-            <Button className="flex items-center">
-              <Plus className="mr-2 h-4 w-4" />
-              New Stock Check
-            </Button>
-          </DropdownMenuTrigger>
-          <DropdownMenuContent align="end" className="w-48">
-            <DropdownMenuItem onClick={() => generateStockCheckTemplate()}>
-              <Download className="mr-2 h-4 w-4" />
-              Download Template
-            </DropdownMenuItem>
-            <DropdownMenuItem onClick={() => document.getElementById('file-upload')?.click()}>
-              <Upload className="mr-2 h-4 w-4" />
-              Upload Stock Check
-            </DropdownMenuItem>
-          </DropdownMenuContent>
-        </DropdownMenu>
+        <div className="flex gap-2">
+          <Button onClick={handleNewStockCheck} className="flex items-center">
+            <Plus className="mr-2 h-4 w-4" />
+            New Stock Check
+          </Button>
+          <DropdownMenu>
+            <DropdownMenuTrigger asChild>
+              <Button variant="outline" className="flex items-center">
+                <Download className="mr-2 h-4 w-4" />
+                Actions
+              </Button>
+            </DropdownMenuTrigger>
+            <DropdownMenuContent align="end" className="w-48">
+              <DropdownMenuItem onClick={() => generateStockCheckTemplate()}>
+                <Download className="mr-2 h-4 w-4" />
+                Download Template
+              </DropdownMenuItem>
+              <DropdownMenuItem 
+                onClick={() => {
+                  if (!selectedCheckId) {
+                    toast({
+                      title: "Error",
+                      description: "Please create and select a stock check first",
+                      variant: "destructive",
+                    });
+                    return;
+                  }
+                  document.getElementById('file-upload')?.click();
+                }}
+              >
+                <Upload className="mr-2 h-4 w-4" />
+                Upload Stock Check
+              </DropdownMenuItem>
+            </DropdownMenuContent>
+          </DropdownMenu>
+        </div>
         <input
           id="file-upload"
           type="file"
