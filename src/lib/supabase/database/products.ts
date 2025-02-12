@@ -1,3 +1,4 @@
+
 import { supabase } from '@/integrations/supabase/client';
 import type { Product } from '@/types/database';
 
@@ -125,21 +126,23 @@ export const updateProductDetails = async (sku: string, data: {
 };
 
 export const updateStockLevel = async (sku: string, quantity: number) => {
-  // First, get the existing product to preserve listing_title
-  const { data: product, error: productError } = await supabase
-    .from('products')
-    .select('listing_title')
-    .eq('sku', sku)
-    .single();
+  // Get current stock level using our existing function
+  const stockLevels = await getStockLevels();
+  const currentProduct = stockLevels.find(p => p.sku === sku);
+  
+  if (!currentProduct) {
+    throw new Error(`Product with SKU ${sku} not found`);
+  }
 
-  if (productError) throw productError;
+  // Calculate the adjustment needed
+  const adjustment = quantity - (currentProduct.current_stock || 0);
 
   // Record the adjustment
   const { error: adjustmentError } = await supabase
     .from('stock_adjustments')
     .insert({
       sku,
-      quantity: quantity - (product.current_stock || 0),
+      quantity: adjustment,
       notes: 'Manual stock update'
     });
 
