@@ -4,7 +4,7 @@ import { Activity, DollarSign, Package, TrendingUp } from "lucide-react";
 import { cn } from "@/lib/utils";
 import { LeagueTable } from "@/components/products/LeagueTable";
 import { useQuery } from "@tanstack/react-query";
-import { getTopProductsBySales } from "@/lib/supabase/database";
+import { getTopProductsBySales, getSalesTotals } from "@/lib/supabase/database";
 
 const Dashboard = () => {
   // Use a wider date range to ensure we capture all sales
@@ -16,9 +16,13 @@ const Dashboard = () => {
     queryFn: () => getTopProductsBySales(startDate, endDate),
   });
 
-  // Get the grand total and total quantity from the first row
+  const { data: totals } = useQuery({
+    queryKey: ['salesTotals'],
+    queryFn: getSalesTotals,
+  });
+
+  // Get the grand total from the first row
   const grandTotal = products[0]?.grand_total || 0;
-  const totalQuantity = products[0]?.total_quantity || 0;
 
   const stats = [
     {
@@ -29,7 +33,7 @@ const Dashboard = () => {
     },
     {
       name: "Units Sold",
-      value: totalQuantity.toString(),
+      value: totals?.total_quantity?.toString() || "0",
       change: "+5%",
       icon: Package,
     },
