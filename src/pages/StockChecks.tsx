@@ -1,3 +1,4 @@
+
 import { useState } from "react";
 import { useQuery, useMutation, useQueryClient } from "@tanstack/react-query";
 import { supabase } from "@/integrations/supabase/client";
@@ -11,11 +12,13 @@ import {
   completeStockCheck,
   generateStockCheckTemplate,
   processStockCheckCSV,
+} from "@/lib/supabase/database";
+import {
   getCurrentStockLevels,
   setInitialStock,
   addStockAdjustment,
   processInitialStockCSV,
-} from "@/lib/supabase/database";
+} from "@/lib/supabase/database/stock-checks";
 import { StockCheckHeader } from "@/components/stock/StockCheckHeader";
 import { StockCheckList } from "@/components/stock/StockCheckList";
 import { StockCheckItemsTable } from "@/components/stock/StockCheckItemsTable";
@@ -222,10 +225,10 @@ const StockChecks = () => {
     });
   };
 
-  const filteredStock = currentStock.filter(item =>
+  const filteredStock = currentStock?.filter(item =>
     item.sku.toLowerCase().includes(searchTerm.toLowerCase()) ||
     item.listing_title.toLowerCase().includes(searchTerm.toLowerCase())
-  );
+  ) ?? [];
 
   return (
     <div className="space-y-6">
@@ -264,7 +267,7 @@ const StockChecks = () => {
           products={products}
           selectedCheckItems={selectedCheckItems}
           onUpdateItem={handleUpdateItem}
-          onComplete={completeCheckMutation.mutate}
+          onComplete={() => selectedCheckId && completeCheckMutation.mutate(selectedCheckId)}
         />
       </div>
 
