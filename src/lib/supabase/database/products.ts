@@ -37,12 +37,19 @@ export const updateProductDetails = async (sku: string, data: {
   warehouse_location?: string;
   supplier?: string;
 }) => {
+  console.log("Updating product:", sku, data); // Debugging
+
   const { error } = await supabase
     .from('products')
     .update(data)
     .eq('sku', sku);
 
-  if (error) throw error;
+  if (error) {
+    console.error("Error updating product:", error);
+    throw error;
+  }
+
+  console.log("Product updated successfully:", sku);
   return true;
 };
 
