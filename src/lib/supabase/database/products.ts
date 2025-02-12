@@ -127,14 +127,14 @@ export const updateProductDetails = async (sku: string, data: {
 
 export const createProduct = async (product: {
   sku: string;
-  listing_title: string;
+  listing_title?: string;
   stock_quantity?: number;
 }) => {
   const { error } = await supabase
     .from('products')
     .insert({
       sku: product.sku,
-      listing_title: product.listing_title,
+      listing_title: product.listing_title || product.sku, // Use SKU as default listing title
       stock_quantity: product.stock_quantity || 0
     });
 
@@ -152,10 +152,14 @@ export const updateStockLevel = async (sku: string, quantity: number) => {
 
   if (checkError) {
     if (checkError.code === 'PGRST116') {
-      // Product doesn't exist
-      throw new Error(`Product with SKU ${sku} does not exist. Please create the product first with a listing title.`);
+      // Product doesn't exist - create it automatically
+      await createProduct({ 
+        sku,
+        listing_title: sku // Use SKU as initial listing title
+      });
+    } else {
+      throw checkError;
     }
-    throw checkError;
   }
 
   // Get current stock level using our existing function
