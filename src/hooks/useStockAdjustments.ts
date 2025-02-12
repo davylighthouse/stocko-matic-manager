@@ -6,8 +6,8 @@ import {
   getCurrentStockLevels,
   setInitialStock,
   addStockAdjustment,
-  processInitialStockCSV,
 } from "@/lib/supabase/database/stock-checks";
+import { processInitialStockCSV } from "@/lib/supabase/database/csv/initial-stock-csv";
 
 export const useStockAdjustments = () => {
   const [searchTerm, setSearchTerm] = useState("");
