@@ -15,7 +15,9 @@ const Dashboard = () => {
     ),
   });
 
+  // Get the grand total and total quantity from the first row
   const grandTotal = products[0]?.grand_total || 0;
+  const totalQuantity = products[0]?.total_quantity || 0;
 
   const stats = [
     {
@@ -26,7 +28,7 @@ const Dashboard = () => {
     },
     {
       name: "Units Sold",
-      value: "234",
+      value: totalQuantity.toString(),
       change: "+5%",
       icon: Package,
     },
