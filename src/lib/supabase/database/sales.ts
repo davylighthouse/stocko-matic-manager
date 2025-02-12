@@ -33,16 +33,23 @@ export const deleteSale = async (id: number) => {
 };
 
 export const updateSale = async (id: number, data: Partial<SaleWithProduct>) => {
+  // Parse numeric values to ensure they're saved correctly
+  const numericData = {
+    ...data,
+    total_price: data.total_price ? parseFloat(data.total_price.toString().replace('£', '')) : data.total_price,
+    gross_profit: data.gross_profit ? parseFloat(data.gross_profit.toString().replace('£', '')) : data.gross_profit
+  };
+
   const { error } = await supabase
     .from('sales')
     .update({
-      sale_date: data.sale_date,
-      platform: data.platform,
-      sku: data.sku,
-      quantity: data.quantity,
-      total_price: data.total_price,
-      gross_profit: data.gross_profit,
-      promoted: data.promoted
+      sale_date: numericData.sale_date,
+      platform: numericData.platform,
+      sku: numericData.sku,
+      quantity: numericData.quantity,
+      total_price: numericData.total_price,
+      gross_profit: numericData.gross_profit,
+      promoted: numericData.promoted
     })
     .eq('id', id);
 
