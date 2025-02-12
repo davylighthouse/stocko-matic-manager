@@ -253,3 +253,108 @@ export const completeStockCheck = async (stockCheckId: number) => {
   if (error) throw error;
   return true;
 };
+
+export const generateStockCheckTemplate = async () => {
+  const { data: products, error } = await supabase
+    .from('products')
+    .select('sku, listing_title, stock_quantity, product_cost, warehouse_location');
+
+  if (error) throw error;
+
+  // Create CSV content
+  const csvContent = [
+    ['SKU', 'Product Title', 'Stock Check Quantity', 'Cost Per Unit', 'Warehouse Location'],
+    ...products.map(product => [
+      product.sku,
+      product.listing_title,
+      product.stock_quantity ?? '',
+      product.product_cost ?? '',
+      product.warehouse_location ?? ''
+    ])
+  ].map(row => row.join(',')).join('\n');
+
+  // Create and download the file
+  const blob = new Blob([csvContent], { type: 'text/csv;charset=utf-8;' });
+  const link = document.createElement('a');
+  link.href = URL.createObjectURL(blob);
+  link.setAttribute('download', `stock_check_template_${new Date().toISOString().split('T')[0]}.csv`);
+  document.body.appendChild(link);
+  link.click();
+  document.body.removeChild(link);
+};
+
+export const processStockCheckCSV = async (file: File, stockCheckId: number): Promise<{ 
+  success: boolean; 
+  message: string;
+  discrepancies?: Array<{
+    sku: string;
+    product_title: string;
+    current_stock: number;
+    check_quantity: number;
+    difference: number;
+  }>;
+}> => {
+  try {
+    const text = await file.text();
+    const rows = text.split('\n').map(row => row.split(','));
+    const headers = rows[0];
+    const data = rows.slice(1);
+
+    const discrepancies = [];
+
+    for (const row of data) {
+      if (row.length !== headers.length) continue;
+
+      const sku = row[headers.indexOf('SKU')];
+      const checkQuantity = parseInt(row[headers.indexOf('Stock Check Quantity')]);
+      const productCost = parseFloat(row[headers.indexOf('Cost Per Unit')]);
+      const warehouseLocation = row[headers.indexOf('Warehouse Location')];
+
+      if (!sku || isNaN(checkQuantity)) continue;
+
+      // Get current stock level
+      const { data: product } = await supabase
+        .from('products')
+        .select('stock_quantity, listing_title')
+        .eq('sku', sku)
+        .single();
+
+      if (product) {
+        // Record stock check item
+        await supabase
+          .from('stock_check_items')
+          .insert({
+            stock_check_id: stockCheckId,
+            sku,
+            quantity: checkQuantity,
+            product_cost: !isNaN(productCost) ? productCost : null,
+            warehouse_location: warehouseLocation || null
+          });
+
+        // Check for discrepancy
+        const currentStock = product.stock_quantity ?? 0;
+        if (currentStock !== checkQuantity) {
+          discrepancies.push({
+            sku,
+            product_title: product.listing_title,
+            current_stock: currentStock,
+            check_quantity: checkQuantity,
+            difference: checkQuantity - currentStock
+          });
+        }
+      }
+    }
+
+    return { 
+      success: true, 
+      message: 'Stock check processed successfully',
+      discrepancies: discrepancies
+    };
+  } catch (error) {
+    console.error('Error processing CSV:', error);
+    return { 
+      success: false, 
+      message: error instanceof Error ? error.message : 'Failed to process CSV' 
+    };
+  }
+};

@@ -1,4 +1,3 @@
-
 import { useState } from "react";
 import { useQuery, useMutation, useQueryClient } from "@tanstack/react-query";
 import { format } from "date-fns";
@@ -21,7 +20,13 @@ import {
   TableHeader,
   TableRow,
 } from "@/components/ui/table";
-import { Calendar, ClipboardList, Package, Plus } from "lucide-react";
+import {
+  DropdownMenu,
+  DropdownMenuContent,
+  DropdownMenuItem,
+  DropdownMenuTrigger,
+} from "@/components/ui/dropdown-menu";
+import { Calendar, ClipboardList, Package, Plus, Upload, Download } from "lucide-react";
 import {
   createStockCheck,
   getStockChecks,
@@ -29,6 +34,8 @@ import {
   getStockCheckItems,
   updateStockCheckItem,
   completeStockCheck,
+  generateStockCheckTemplate,
+  processStockCheckCSV,
   StockCheck,
 } from "@/lib/supabase/database";
 import { useToast } from "@/components/ui/use-toast";
@@ -119,6 +126,58 @@ const StockChecks = () => {
     });
   };
 
+  const handleFileUpload = async (event: React.ChangeEvent<HTMLInputElement>) => {
+    const file = event.target.files?.[0];
+    if (!file || !selectedCheckId) {
+      toast({
+        title: "Error",
+        description: "Please select a file and ensure a stock check is selected",
+        variant: "destructive",
+      });
+      return;
+    }
+
+    const result = await processStockCheckCSV(file, selectedCheckId);
+    
+    if (result.success) {
+      queryClient.invalidateQueries({ queryKey: ['stock-check-items', selectedCheckId] });
+      toast({
+        title: "Success",
+        description: "Stock check data processed successfully",
+      });
+
+      if (result.discrepancies && result.discrepancies.length > 0) {
+        // Create discrepancy report
+        const reportContent = result.discrepancies.map(d => 
+          `${d.sku} (${d.product_title}): Current Stock: ${d.current_stock}, Check Quantity: ${d.check_quantity}, Difference: ${d.difference}`
+        ).join('\n');
+
+        toast({
+          title: "Stock Discrepancies Found",
+          description: `${result.discrepancies.length} discrepancies found. Check the notes for details.`,
+        });
+
+        // Update stock check notes with discrepancy report
+        const { error } = await supabase
+          .from('stock_checks')
+          .update({ 
+            notes: `Discrepancy Report:\n${reportContent}`
+          })
+          .eq('id', selectedCheckId);
+
+        if (!error) {
+          queryClient.invalidateQueries({ queryKey: ['stock-checks'] });
+        }
+      }
+    } else {
+      toast({
+        title: "Error",
+        description: result.message,
+        variant: "destructive",
+      });
+    }
+  };
+
   return (
     <div className="space-y-6">
       <div className="flex items-center justify-between">
@@ -128,10 +187,31 @@ const StockChecks = () => {
             Manage your inventory checks and update stock levels
           </p>
         </div>
-        <Button onClick={handleNewStockCheck} className="flex items-center">
-          <Plus className="mr-2 h-4 w-4" />
-          New Stock Check
-        </Button>
+        <DropdownMenu>
+          <DropdownMenuTrigger asChild>
+            <Button className="flex items-center">
+              <Plus className="mr-2 h-4 w-4" />
+              New Stock Check
+            </Button>
+          </DropdownMenuTrigger>
+          <DropdownMenuContent align="end" className="w-48">
+            <DropdownMenuItem onClick={() => generateStockCheckTemplate()}>
+              <Download className="mr-2 h-4 w-4" />
+              Download Template
+            </DropdownMenuItem>
+            <DropdownMenuItem onClick={() => document.getElementById('file-upload')?.click()}>
+              <Upload className="mr-2 h-4 w-4" />
+              Upload Stock Check
+            </DropdownMenuItem>
+          </DropdownMenuContent>
+        </DropdownMenu>
+        <input
+          id="file-upload"
+          type="file"
+          accept=".csv"
+          className="hidden"
+          onChange={handleFileUpload}
+        />
       </div>
 
       <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
