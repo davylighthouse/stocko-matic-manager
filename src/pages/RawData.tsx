@@ -86,7 +86,7 @@ const RawData = () => {
     setEditedData({});
   };
 
-  const handleInputChange = (field: string, value: string | number) => {
+  const handleInputChange = (field: keyof SaleWithProduct, value: string | number | boolean) => {
     setEditedData(prev => ({
       ...prev,
       [field]: value
