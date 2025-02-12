@@ -1,7 +1,11 @@
 
-import { Link, Outlet, useLocation } from "react-router-dom";
+import { Link, Outlet, useLocation, useNavigate } from "react-router-dom";
 import { cn } from "@/lib/utils";
-import { BarChart2, Package, Upload } from "lucide-react";
+import { BarChart2, Package, Upload, LogOut } from "lucide-react";
+import { useAuth } from "@/contexts/AuthContext";
+import { supabase } from "@/integrations/supabase/client";
+import { useToast } from "@/components/ui/use-toast";
+import { Button } from "@/components/ui/button";
 
 const navigation = [
   { name: "Dashboard", path: "/", icon: BarChart2 },
@@ -11,13 +15,35 @@ const navigation = [
 
 const Layout = () => {
   const location = useLocation();
+  const navigate = useNavigate();
+  const { user } = useAuth();
+  const { toast } = useToast();
+
+  const handleSignOut = async () => {
+    try {
+      const { error } = await supabase.auth.signOut();
+      if (error) throw error;
+      navigate("/auth");
+    } catch (error) {
+      toast({
+        title: "Error signing out",
+        description: error.message,
+        variant: "destructive",
+      });
+    }
+  };
+
+  if (!user) {
+    navigate("/auth");
+    return null;
+  }
 
   return (
     <div className="min-h-screen bg-gray-50">
       <div className="flex h-screen">
         {/* Sidebar */}
         <div className="w-64 bg-white border-r border-gray-200">
-          <div className="h-16 flex items-center px-6 border-b border-gray-200">
+          <div className="h-16 flex items-center justify-between px-6 border-b border-gray-200">
             <h1 className="text-xl font-semibold text-gray-800">Stock Manager</h1>
           </div>
           <nav className="p-4 space-y-1">
@@ -36,6 +62,14 @@ const Layout = () => {
                 {name}
               </Link>
             ))}
+            <Button
+              variant="ghost"
+              className="w-full justify-start"
+              onClick={handleSignOut}
+            >
+              <LogOut className="mr-3 h-5 w-5" />
+              Sign out
+            </Button>
           </nav>
         </div>
 
