@@ -29,14 +29,29 @@ export const processCSV = async (file: File): Promise<{ success: boolean; messag
       product_cost: number;
     }>();
 
+    // Helper function to parse price values
+    const parsePrice = (value: string | undefined): number => {
+      // Handle undefined or empty values
+      if (!value || value.trim() === '') return 0;
+      
+      // Remove £ symbol and any whitespace, then convert to float
+      const cleanValue = value.trim().replace('£', '');
+      const number = parseFloat(cleanValue);
+      return isNaN(number) ? 0 : number;
+    };
+
     // First pass: aggregate data by SKU
     for (const row of data) {
       if (row.length !== headers.length) continue;
 
       const sku = row[headers.indexOf('SKU')];
-      const quantity = parseInt(row[headers.indexOf('Quantity')]);
-      const total_price = parseFloat(row[headers.indexOf('Total Price')]);
-      const gross_profit = parseFloat(row[headers.indexOf('Gross Profit')]);
+      const quantity = parseInt(row[headers.indexOf('Quantity')] || '0');
+      const total_price = parsePrice(row[headers.indexOf('Total Price')]);
+      const gross_profit = parsePrice(row[headers.indexOf('Gross Profit')]);
+      const product_cost = parsePrice(row[headers.indexOf('Product Cost')]);
+
+      // Skip rows without a valid SKU
+      if (!sku) continue;
 
       // Aggregate sales data
       if (!salesBySku.has(sku)) {
@@ -54,7 +69,7 @@ export const processCSV = async (file: File): Promise<{ success: boolean; messag
       skuData.sales.push({
         sale_date: row[headers.indexOf('Sale Date')],
         platform: row[headers.indexOf('Platform')],
-        promoted: row[headers.indexOf('Promoted Listing')].toLowerCase() === 'yes',
+        promoted: row[headers.indexOf('Promoted Listing')]?.toLowerCase() === 'yes',
         quantity,
         total_price,
         gross_profit,
@@ -64,8 +79,8 @@ export const processCSV = async (file: File): Promise<{ success: boolean; messag
       if (!productsBySku.has(sku)) {
         productsBySku.set(sku, {
           sku,
-          listing_title: row[headers.indexOf('Listing Title')],
-          product_cost: parseFloat(row[headers.indexOf('Product Cost')]),
+          listing_title: row[headers.indexOf('Listing Title')] || sku,
+          product_cost,
         });
       }
     }
