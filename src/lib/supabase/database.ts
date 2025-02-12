@@ -1,11 +1,14 @@
-
 import { createClient } from '@supabase/supabase-js';
 import { Product, Sale } from '@/types/database';
 
-const supabase = createClient(
-  import.meta.env.VITE_SUPABASE_URL,
-  import.meta.env.VITE_SUPABASE_ANON_KEY
-);
+const supabaseUrl = import.meta.env.VITE_SUPABASE_URL;
+const supabaseAnonKey = import.meta.env.VITE_SUPABASE_ANON_KEY;
+
+if (!supabaseUrl || !supabaseAnonKey) {
+  throw new Error('Missing Supabase environment variables. Please make sure you have connected your project to Supabase.');
+}
+
+const supabase = createClient(supabaseUrl, supabaseAnonKey);
 
 export const processCSV = async (file: File): Promise<{ success: boolean; message: string }> => {
   try {
