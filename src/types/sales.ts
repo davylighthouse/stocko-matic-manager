@@ -17,4 +17,5 @@ export interface SalesTotals {
   unique_products: number;
   earliest_sale: string;
   latest_sale: string;
+  total_profit: number;
 }

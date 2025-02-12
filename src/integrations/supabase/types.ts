@@ -194,6 +194,7 @@ export type Database = {
         Row: {
           earliest_sale: string | null
           latest_sale: string | null
+          total_profit: number | null
           total_quantity: number | null
           total_sales: number | null
           unique_products: number | null
