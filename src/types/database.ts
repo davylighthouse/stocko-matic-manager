@@ -24,6 +24,12 @@ export interface Product {
   total_sales_quantities?: Array<{
     total_sold: number;
   }>;
+  current_stock_levels?: {
+    current_stock: number;
+    initial_stock: number;
+    quantity_sold: number;
+    adjustments: number;
+  };
 }
 
 export interface Sale {

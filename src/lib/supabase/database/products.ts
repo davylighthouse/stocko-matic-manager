@@ -1,20 +1,20 @@
-
 import { supabase } from '@/integrations/supabase/client';
 import type { Product } from '@/types/database';
 
 export const getStockLevels = async () => {
   console.log('Fetching stock levels...');
   
-  // Get products with their current stock levels from the view
+  // Join products with current_stock_levels view to get accurate stock data
   const { data: products, error: productsError } = await supabase
-    .from('current_stock_levels')
+    .from('products')
     .select(`
-      sku,
-      listing_title,
-      initial_stock,
-      quantity_sold,
-      adjustments,
-      current_stock
+      *,
+      current_stock_levels!inner (
+        current_stock,
+        initial_stock,
+        quantity_sold,
+        adjustments
+      )
     `)
     .order('listing_title');
 
@@ -23,12 +23,14 @@ export const getStockLevels = async () => {
     throw productsError;
   }
 
-  console.log('Products and their current stock levels:', products);
-
-  return products.map(product => ({
+  // Transform the data to match the expected format
+  const transformedProducts = products.map(product => ({
     ...product,
-    current_stock: product.current_stock || 0
+    current_stock: product.current_stock_levels?.current_stock || 0
   }));
+
+  console.log('Products with current stock levels:', transformedProducts);
+  return transformedProducts;
 };
 
 export const updateProductDetails = async (sku: string, data: {
