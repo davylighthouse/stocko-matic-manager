@@ -19,20 +19,16 @@ export const ProductDetailsTab = ({ product, renderFieldWithCheck, onStockUpdate
       </div>
       <div>
         <Label htmlFor="stock_quantity">Current Stock</Label>
-        {renderFieldWithCheck("stock_quantity",
+        <div className="relative">
           <Input
             id="stock_quantity"
             name="stock_quantity"
             type="number"
-            defaultValue={product.current_stock ?? 0}
-            onChange={(e) => {
-              const quantity = parseInt(e.target.value);
-              if (!isNaN(quantity) && onStockUpdate) {
-                onStockUpdate(product.sku, quantity);
-              }
-            }}
+            value={product.current_stock ?? 0}
+            className="bg-gray-50"
+            readOnly
           />
-        )}
+        </div>
       </div>
       <div>
         <Label htmlFor="low_stock_threshold">Low Stock Threshold</Label>
