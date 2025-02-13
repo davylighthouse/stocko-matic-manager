@@ -16,6 +16,15 @@ export interface ProfitabilityData {
   profit_margin: number;
   ad_costs: number;
   promoted: boolean;
+  product_cost: number;
+  platform_fee_percentage: number;
+  default_shipping_service_id: number;
+  default_picking_fee_id: number;
+  picking_fee: number;
+  packaging_cost: number;
+  making_up_cost: number;
+  promoted_listing_percentage: number;
+  vat_status: string;
 }
 
 export interface ProfitabilityTableProps {
