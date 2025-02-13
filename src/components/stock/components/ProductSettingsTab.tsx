@@ -33,6 +33,9 @@ export const ProductSettingsTab = ({ product, renderFieldWithCheck }: TabContent
     },
   });
 
+  // Get the ID of the first picking fee if available
+  const defaultPickingFeeId = pickingFees[0]?.id.toString();
+
   return (
     <div className="space-y-4">
       <div>
@@ -40,13 +43,13 @@ export const ProductSettingsTab = ({ product, renderFieldWithCheck }: TabContent
         {renderFieldWithCheck("default_shipping_service_id",
           <Select 
             name="default_shipping_service_id" 
-            defaultValue={product.default_shipping_service_id?.toString() || "null"}
+            defaultValue={product.default_shipping_service_id?.toString() || "not_set"}
           >
             <SelectTrigger>
               <SelectValue placeholder="Select shipping service" />
             </SelectTrigger>
             <SelectContent>
-              <SelectItem value="null">None</SelectItem>
+              <SelectItem value="not_set">Not Set</SelectItem>
               {shippingServices.map((service) => (
                 <SelectItem key={service.id} value={service.id.toString()}>
                   {service.courier} - {service.service_name}
@@ -61,13 +64,12 @@ export const ProductSettingsTab = ({ product, renderFieldWithCheck }: TabContent
         {renderFieldWithCheck("default_picking_fee_id",
           <Select 
             name="default_picking_fee_id" 
-            defaultValue={product.default_picking_fee_id?.toString() || "null"}
+            defaultValue={product.default_picking_fee_id?.toString() || defaultPickingFeeId}
           >
             <SelectTrigger>
               <SelectValue placeholder="Select picking fee" />
             </SelectTrigger>
             <SelectContent>
-              <SelectItem value="null">None</SelectItem>
               {pickingFees.map((fee) => (
                 <SelectItem key={fee.id} value={fee.id.toString()}>
                   {fee.fee_name} (£{fee.fee_amount.toFixed(2)})
