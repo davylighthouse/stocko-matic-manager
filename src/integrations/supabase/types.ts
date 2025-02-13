@@ -62,7 +62,7 @@ export type Database = {
           product_cost: number | null
           product_status: string | null
           sku: string
-          stock_quantity: number | null
+          stock_quantity: number
           supplier: string | null
           vat_status: string | null
           warehouse_location: string | null
@@ -81,7 +81,7 @@ export type Database = {
           product_cost?: number | null
           product_status?: string | null
           sku: string
-          stock_quantity?: number | null
+          stock_quantity?: number
           supplier?: string | null
           vat_status?: string | null
           warehouse_location?: string | null
@@ -100,7 +100,7 @@ export type Database = {
           product_cost?: number | null
           product_status?: string | null
           sku?: string
-          stock_quantity?: number | null
+          stock_quantity?: number
           supplier?: string | null
           vat_status?: string | null
           warehouse_location?: string | null
