@@ -90,15 +90,18 @@ export const getCurrentStockLevels = async () => {
     throw error;
   }
 
-  const transformedData = data.map(item => ({
-    sku: item.sku || '',
-    listing_title: item.products?.listing_title || '',
-    initial_stock: item.initial_stock || 0,
-    current_stock: item.current_stock || 0,
-    quantity_sold: item.quantity_sold || 0,
-    adjustments: item.adjustments || 0,
-    stock_count_date: null
-  }));
+  const transformedData = data.map(item => {
+    const product = Array.isArray(item.products) ? item.products[0] : item.products;
+    return {
+      sku: item.sku || '',
+      listing_title: product?.listing_title || '',
+      initial_stock: item.initial_stock || 0,
+      current_stock: item.current_stock || 0,
+      quantity_sold: item.quantity_sold || 0,
+      adjustments: item.adjustments || 0,
+      stock_count_date: null
+    };
+  });
 
   console.log('Fetched stock levels:', transformedData);
   return transformedData as CurrentStockLevel[];
