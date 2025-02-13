@@ -10,6 +10,16 @@ export const processCSV = async (file: File): Promise<{ success: boolean; messag
     const headers = rows[0];
     const data = rows.slice(1);
 
+    // Get default IDs
+    const [{ data: defaultPickingFee }, { data: defaultShippingService }] = await Promise.all([
+      supabase.from('picking_fees').select('id').limit(1).single(),
+      supabase.from('shipping_services').select('id').limit(1).single()
+    ]);
+
+    if (!defaultPickingFee || !defaultShippingService) {
+      throw new Error('Default picking fee or shipping service not found');
+    }
+
     // Create maps to aggregate data by SKU
     const salesBySku = new Map<string, {
       quantity: number;
@@ -29,14 +39,14 @@ export const processCSV = async (file: File): Promise<{ success: boolean; messag
       sku: string;
       listing_title: string;
       product_cost: number;
+      default_picking_fee_id: number;
+      default_shipping_service_id: number;
+      stock_quantity: number;
     }>();
 
     // Helper function to parse price values
     const parsePrice = (value: string | undefined): number => {
-      // Handle undefined or empty values
       if (!value || value.trim() === '') return 0;
-      
-      // Remove £ symbol and any whitespace, then convert to float
       const cleanValue = value.trim().replace('£', '');
       const number = parseFloat(cleanValue);
       return isNaN(number) ? 0 : number;
@@ -52,7 +62,6 @@ export const processCSV = async (file: File): Promise<{ success: boolean; messag
       const gross_profit = parsePrice(row[headers.indexOf('Gross Profit')]);
       const product_cost = parsePrice(row[headers.indexOf('Product Cost')]);
 
-      // Skip rows without a valid SKU
       if (!sku) continue;
 
       // Aggregate sales data
@@ -83,21 +92,19 @@ export const processCSV = async (file: File): Promise<{ success: boolean; messag
           sku,
           listing_title: row[headers.indexOf('Listing Title')] || sku,
           product_cost,
+          default_picking_fee_id: defaultPickingFee.id,
+          default_shipping_service_id: defaultShippingService.id,
+          stock_quantity: 0
         });
       }
     }
 
     // Second pass: save aggregated data
     for (const [sku, productData] of productsBySku) {
-      const product = {
-        ...productData,
-        stock_quantity: 0,
-      };
-
       // First, ensure the product exists by upserting it
       const { error: productError } = await supabase
         .from('products')
-        .upsert([product], { onConflict: 'sku' });
+        .upsert([productData], { onConflict: 'sku' });
 
       if (productError) throw productError;
 
