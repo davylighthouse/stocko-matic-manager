@@ -126,6 +126,7 @@ export type Database = {
       products: {
         Row: {
           additional_costs: number | null
+          default_picking_fee_id: number | null
           default_shipping_service: string | null
           default_shipping_service_id: number | null
           dimensions_height: number | null
@@ -146,6 +147,7 @@ export type Database = {
         }
         Insert: {
           additional_costs?: number | null
+          default_picking_fee_id?: number | null
           default_shipping_service?: string | null
           default_shipping_service_id?: number | null
           dimensions_height?: number | null
@@ -166,6 +168,7 @@ export type Database = {
         }
         Update: {
           additional_costs?: number | null
+          default_picking_fee_id?: number | null
           default_shipping_service?: string | null
           default_shipping_service_id?: number | null
           dimensions_height?: number | null
@@ -185,6 +188,13 @@ export type Database = {
           weight?: number | null
         }
         Relationships: [
+          {
+            foreignKeyName: "products_default_picking_fee_id_fkey"
+            columns: ["default_picking_fee_id"]
+            isOneToOne: false
+            referencedRelation: "picking_fees"
+            referencedColumns: ["id"]
+          },
           {
             foreignKeyName: "products_default_shipping_service_id_fkey"
             columns: ["default_shipping_service_id"]
