@@ -79,11 +79,14 @@ export const getCurrentStockLevels = async () => {
     .select(`
       sku,
       listing_title,
-      current_stock_levels!current_stock_levels_sku_fkey (
-        initial_stock,
-        current_stock,
-        quantity_sold,
-        adjustments
+      (
+        SELECT 
+          initial_stock,
+          current_stock,
+          quantity_sold,
+          adjustments
+        FROM current_stock_levels
+        WHERE current_stock_levels.sku = products.sku
       )
     `);
 
@@ -93,7 +96,7 @@ export const getCurrentStockLevels = async () => {
   }
 
   const transformedData = data.map(item => {
-    const stockLevel = Array.isArray(item.current_stock_levels) 
+    const stockLevel = item.current_stock_levels && Array.isArray(item.current_stock_levels) 
       ? item.current_stock_levels[0] 
       : item.current_stock_levels;
     
