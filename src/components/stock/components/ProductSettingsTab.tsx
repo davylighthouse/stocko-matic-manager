@@ -131,13 +131,13 @@ export const ProductSettingsTab = ({ product, renderFieldWithCheck }: TabContent
         {renderFieldWithCheck("amazon_fba_tier_id",
           <Select 
             name="amazon_fba_tier_id" 
-            defaultValue={product.amazon_fba_tier_id?.toString() || ""}
+            defaultValue={product.amazon_fba_tier_id?.toString() || "none"}
           >
             <SelectTrigger>
               <SelectValue placeholder="Select FBA tier" />
             </SelectTrigger>
             <SelectContent>
-              <SelectItem value="">None</SelectItem>
+              <SelectItem value="none">None</SelectItem>
               {fbaTiers.map((tier) => (
                 <SelectItem key={tier.id} value={tier.id.toString()}>
                   {tier.tier_name} - {tier.size_category} (£{tier.fee_amount.toFixed(2)})
