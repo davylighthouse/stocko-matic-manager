@@ -58,7 +58,7 @@ export const ProductsTable = ({
           <tr className="bg-gray-50">
             <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">Status</th>
             <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">SKU</th>
-            <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">Current Stock</th>
+            <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">Stock Level</th>
             <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">Title</th>
             <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">Last Check</th>
             <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">Total Sold</th>
@@ -75,15 +75,8 @@ export const ProductsTable = ({
               completeness.percentage >= 70 ? "text-yellow-500" :
               "text-red-500";
 
-            // Enhanced stock display with configurable threshold
-            const stockValue = product.current_stock ?? 0;
-            const lowStockThreshold = product.low_stock_threshold ?? 20; // Default threshold
-            const stockClass = cn(
-              "px-3 py-1 rounded-full text-sm font-medium",
-              stockValue <= lowStockThreshold
-                ? "bg-red-100 text-red-800"
-                : "bg-green-100 text-green-800"
-            );
+            const stockLevel = product.stock_quantity;
+            const threshold = product.low_stock_threshold ?? 20;
             
             return (
               <tr
@@ -114,22 +107,19 @@ export const ProductsTable = ({
                   {product.sku}
                 </td>
                 <td className="px-6 py-4 whitespace-nowrap">
-                  <TooltipProvider>
-                    <Tooltip>
-                      <TooltipTrigger>
-                        <div className={stockClass}>
-                          {stockValue}
-                          {stockValue <= lowStockThreshold && (
-                            <span className="ml-1 text-xs">Low Stock</span>
-                          )}
-                        </div>
-                      </TooltipTrigger>
-                      <TooltipContent>
-                        <p>Low stock threshold: {lowStockThreshold}</p>
-                        <p>Click to update stock level</p>
-                      </TooltipContent>
-                    </Tooltip>
-                  </TooltipProvider>
+                  <div 
+                    className={cn(
+                      "px-3 py-1 rounded-full inline-flex items-center",
+                      stockLevel <= threshold 
+                        ? "bg-red-100 text-red-800" 
+                        : "bg-green-100 text-green-800"
+                    )}
+                  >
+                    <span className="text-sm font-medium">{stockLevel}</span>
+                    {stockLevel <= threshold && (
+                      <span className="ml-1 text-xs">Low Stock</span>
+                    )}
+                  </div>
                 </td>
                 <td className="px-6 py-4 whitespace-nowrap text-sm text-gray-500">
                   {product.listing_title}
@@ -159,7 +149,7 @@ export const ProductsTable = ({
                     size="sm"
                     onClick={(e) => {
                       e.stopPropagation();
-                      const newQuantity = prompt("Enter new stock quantity:", String(stockValue));
+                      const newQuantity = prompt("Enter new stock quantity:", String(stockLevel));
                       if (newQuantity !== null) {
                         const quantity = parseInt(newQuantity);
                         if (!isNaN(quantity)) {
