@@ -64,25 +64,35 @@ export const updateProductDetails = async (sku: string, data: Partial<Product>) 
     throw fetchError;
   }
 
-  // Ensure listing_title is never null by using the existing title or SKU as fallback
-  const mergedData = {
+  // Process the data before updating
+  const processedData = {
     ...existingProduct,
     ...data,
+    // Handle shipping service ID - convert "not_set" to null
+    default_shipping_service_id: data.default_shipping_service_id === "not_set" ? 
+      null : 
+      data.default_shipping_service_id ? 
+        parseInt(data.default_shipping_service_id.toString()) : 
+        null,
+    // Handle picking fee ID - ensure it's a number
+    default_picking_fee_id: data.default_picking_fee_id ? 
+      parseInt(data.default_picking_fee_id.toString()) : 
+      null,
     // Triple check the listing_title is set
     listing_title: data.listing_title || existingProduct?.listing_title || sku
   };
 
-  console.log("Data to be updated:", mergedData);
+  console.log("Data to be updated:", processedData);
 
   // Verify listing_title is set before update
-  if (!mergedData.listing_title) {
+  if (!processedData.listing_title) {
     console.error("listing_title is still null after merge, using SKU as fallback");
-    mergedData.listing_title = sku;
+    processedData.listing_title = sku;
   }
 
   const { error: updateError } = await supabase
     .from('products')
-    .update(mergedData)
+    .update(processedData)
     .eq('sku', sku);
 
   if (updateError) {
