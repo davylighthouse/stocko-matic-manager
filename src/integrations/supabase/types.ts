@@ -410,6 +410,10 @@ export type Database = {
           grand_total: number
         }[]
       }
+      update_stock_quantities: {
+        Args: Record<PropertyKey, never>
+        Returns: undefined
+      }
       update_stock_quantity: {
         Args: {
           p_sku: string
