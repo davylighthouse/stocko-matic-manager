@@ -39,7 +39,15 @@ export const ShippingSettings = () => {
         .order('courier, service_name');
       
       if (error) throw error;
-      return data as ShippingService[];
+      
+      // Transform the data to ensure max_weight is included with a default value if missing
+      return (data || []).map(service => ({
+        id: service.id,
+        service_name: service.service_name,
+        courier: service.courier,
+        surcharge_percentage: service.surcharge_percentage,
+        max_weight: service.max_weight || 0
+      })) as ShippingService[];
     },
   });
 
