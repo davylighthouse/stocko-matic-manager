@@ -21,10 +21,11 @@ const Profitability = () => {
 
       if (error) throw error;
       
-      // Ensure all required fields have default values
+      // Map the data to include advertising_cost with a default value
       return (data || []).map(sale => ({
         ...sale,
-        promoted: sale.promoted || false
+        promoted: sale.promoted || false,
+        advertising_cost: sale.advertising_cost || null
       })) as ProfitabilityData[];
     }
   });

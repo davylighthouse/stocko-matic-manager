@@ -28,7 +28,7 @@ export interface ProfitabilityData {
   platform_flat_fee: number | null;
   shipping_service_price: number | null;
   amazon_fba_tier_id: number | null;
-  advertising_cost: number | null;  // Added this new property
+  advertising_cost: number | null;
 }
 
 export interface ProfitabilityTableProps {
