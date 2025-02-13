@@ -75,19 +75,13 @@ export const getCurrentStockLevels = async () => {
   console.log('Fetching current stock levels...');
   
   const { data, error } = await supabase
-    .from('products')
+    .from('current_stock_levels')
     .select(`
       sku,
-      listing_title,
-      (
-        SELECT 
-          initial_stock,
-          current_stock,
-          quantity_sold,
-          adjustments
-        FROM current_stock_levels
-        WHERE current_stock_levels.sku = products.sku
-      )
+      initial_stock,
+      current_stock,
+      quantity_sold,
+      adjustments
     `);
 
   if (error) {
@@ -95,18 +89,29 @@ export const getCurrentStockLevels = async () => {
     throw error;
   }
 
+  // Get all products in a separate query
+  const { data: products, error: productsError } = await supabase
+    .from('products')
+    .select('sku, listing_title');
+
+  if (productsError) {
+    console.error('Error fetching products:', productsError);
+    throw productsError;
+  }
+
+  // Create a map of products by SKU for quick lookup
+  const productMap = new Map(products.map(p => [p.sku, p]));
+
   const transformedData = data.map(item => {
-    const stockLevel = item.current_stock_levels && Array.isArray(item.current_stock_levels) 
-      ? item.current_stock_levels[0] 
-      : item.current_stock_levels;
+    const product = productMap.get(item.sku || '');
     
     return {
       sku: item.sku || '',
-      listing_title: item.listing_title || '',
-      initial_stock: stockLevel?.initial_stock || 0,
-      current_stock: stockLevel?.current_stock || 0,
-      quantity_sold: stockLevel?.quantity_sold || 0,
-      adjustments: stockLevel?.adjustments || 0,
+      listing_title: product?.listing_title || '',
+      initial_stock: item.initial_stock || 0,
+      current_stock: item.current_stock || 0,
+      quantity_sold: item.quantity_sold || 0,
+      adjustments: item.adjustments || 0,
       stock_count_date: null
     };
   });
