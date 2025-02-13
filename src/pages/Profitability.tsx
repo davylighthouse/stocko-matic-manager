@@ -21,12 +21,18 @@ const Profitability = () => {
 
       if (error) throw error;
       
-      // Map the data to include required fields with defaults
-      return (data || []).map(sale => ({
-        ...sale,
-        promoted: sale.promoted || false,
-        advertising_cost: null // Set default value without accessing sale object
-      })) as ProfitabilityData[];
+      // Map the data to include advertising cost calculation
+      return (data || []).map(sale => {
+        const advertisingCost = sale.promoted ? 
+          (sale.total_price * (sale.promoted_listing_percentage || 0)) / 100 : 
+          null;
+
+        return {
+          ...sale,
+          promoted: sale.promoted || false,
+          advertising_cost: advertisingCost
+        };
+      }) as ProfitabilityData[];
     }
   });
 

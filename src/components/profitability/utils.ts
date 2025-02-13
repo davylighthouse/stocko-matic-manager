@@ -78,13 +78,14 @@ VAT Amount = ${formatCurrency(sale.vat_cost)}`;
 Total Platform Fees = ${formatCurrency(sale.platform_fees)}`;
 
     case 'advertising':
-      if (!sale.promoted || sale.platform !== 'eBay') {
+      if (!sale.promoted) {
         return 'No advertising costs for this sale';
       }
+      const adCost = (sale.total_price * (sale.promoted_listing_percentage || 0)) / 100;
       return `Sale Price: ${formatCurrency(sale.total_price)}
-Promoted Listing Rate: ${sale.promoted_listing_percentage}%
+Promoted Listing Rate: ${formatPercentage(sale.promoted_listing_percentage)}
 ----------------------------------
-Advertising Cost = ${formatCurrency((sale.total_price * sale.promoted_listing_percentage) / 100)}`;
+Advertising Cost = ${formatCurrency(adCost)}`;
 
     default:
       return '';
