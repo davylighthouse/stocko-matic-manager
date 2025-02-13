@@ -66,9 +66,9 @@ export const StockAdjustmentsTable = ({
                 <th className="px-4 py-2 text-left">SKU</th>
                 <th className="px-4 py-2 text-left">Title</th>
                 <th className="px-4 py-2 text-right">Current Stock</th>
-                <th className="px-4 py-2 text-right">Initial Stock</th>
                 <th className="px-4 py-2 text-right">Sold</th>
                 <th className="px-4 py-2 text-right">Adjustments</th>
+                <th className="px-4 py-2 text-right">Initial Stock</th>
                 <th className="px-4 py-2"></th>
               </tr>
             </thead>
@@ -89,9 +89,9 @@ export const StockAdjustmentsTable = ({
                       item.current_stock
                     )}
                   </td>
-                  <td className="px-4 py-2 text-right">{item.initial_stock}</td>
                   <td className="px-4 py-2 text-right">{item.quantity_sold}</td>
                   <td className="px-4 py-2 text-right">{item.adjustments}</td>
+                  <td className="px-4 py-2 text-right">{item.initial_stock}</td>
                   <td className="px-4 py-2">
                     <Button
                       variant={editingSku === item.sku ? "default" : "ghost"}
