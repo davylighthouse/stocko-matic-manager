@@ -1,5 +1,6 @@
 
 import { supabase } from '@/integrations/supabase/client';
+import { updateProductDetails } from './details';
 
 export const createProduct = async (product: {
   sku: string;

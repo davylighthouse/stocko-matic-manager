@@ -1,7 +1,5 @@
-
 import { supabase } from '@/integrations/supabase/client';
 import type { Product } from '@/types/database';
-import { createProduct } from './create';
 
 export const updateProductDetails = async (sku: string, data: Partial<Product>) => {
   console.log("Updating product details - Input data:", data);

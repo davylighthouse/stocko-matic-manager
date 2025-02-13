@@ -1,6 +1,8 @@
 
 import { supabase } from '@/integrations/supabase/client';
 import type { Product } from '@/types/database';
+import { createProduct } from './create';
+import { updateProductDetails } from './details';
 
 export const getStockLevels = async () => {
   console.log('Fetching stock levels...');
