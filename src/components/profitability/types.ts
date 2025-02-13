@@ -14,6 +14,8 @@ export interface ProfitabilityData {
   total_costs: number;
   profit: number;
   profit_margin: number;
+  ad_costs: number;
+  promoted: boolean;
 }
 
 export interface ProfitabilityTableProps {

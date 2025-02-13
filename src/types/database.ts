@@ -21,6 +21,7 @@ export interface Product {
   additional_costs?: number;
   low_stock_threshold?: number;
   amazon_fba_tier_id?: number | null;
+  promoted_listing_percentage?: number;
   latest_stock_check_quantities?: Array<{
     last_check_quantity: number;
     check_date: string;

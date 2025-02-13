@@ -166,6 +166,7 @@ export type Database = {
           packaging_cost: number | null
           product_cost: number | null
           product_status: string | null
+          promoted_listing_percentage: number | null
           sku: string
           stock_quantity: number
           supplier: string | null
@@ -188,6 +189,7 @@ export type Database = {
           packaging_cost?: number | null
           product_cost?: number | null
           product_status?: string | null
+          promoted_listing_percentage?: number | null
           sku: string
           stock_quantity?: number
           supplier?: string | null
@@ -210,6 +212,7 @@ export type Database = {
           packaging_cost?: number | null
           product_cost?: number | null
           product_status?: string | null
+          promoted_listing_percentage?: number | null
           sku?: string
           stock_quantity?: number
           supplier?: string | null
@@ -538,6 +541,7 @@ export type Database = {
       }
       sales_profitability: {
         Row: {
+          ad_costs: number | null
           default_picking_fee_id: number | null
           default_shipping_service_id: number | null
           gross_profit: number | null
