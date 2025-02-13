@@ -46,16 +46,17 @@ Profit = ${formatCurrency(sale.profit)}`;
 Margin = ${formatPercentage(sale.profit_margin)}`;
 
     case 'shipping':
-      const shippingBreakdown = [
-        `Base Shipping Cost: ${formatCurrency(sale.shipping_service_price || 0)}`,
-        sale.picking_fee ? `Picking Fee: ${formatCurrency(sale.picking_fee)}` : null,
-        sale.packaging_cost ? `Packaging Cost: ${formatCurrency(sale.packaging_cost)}` : null,
-        sale.making_up_cost ? `Making Up Cost: ${formatCurrency(sale.making_up_cost)}` : null,
-      ].filter(Boolean).join('\n');
-
-      return `${shippingBreakdown}
+      return `Base Shipping Cost: ${formatCurrency(sale.shipping_service_price)}
+Picking Fee: ${formatCurrency(sale.picking_fee)}
 ----------------------------------
 Total Shipping = ${formatCurrency(sale.shipping_cost)}`;
+
+    case 'product_cost':
+      return `Base Product Cost: ${formatCurrency(sale.product_cost)}
+Packaging Cost: ${formatCurrency(sale.packaging_cost)}
+Making Up Cost: ${formatCurrency(sale.making_up_cost)}
+----------------------------------
+Total Product Cost = ${formatCurrency(sale.total_product_cost)}`;
 
     case 'vat':
       const vatRate = sale.vat_status === 'standard' ? '20%' : sale.vat_status;
@@ -83,7 +84,7 @@ Total Platform Fees = ${formatCurrency(sale.platform_fees)}`;
       return `Sale Price: ${formatCurrency(sale.total_price)}
 Promoted Listing Rate: ${sale.promoted_listing_percentage}%
 ----------------------------------
-Advertising Cost = ${formatCurrency(sale.advertising_cost)}`;
+Advertising Cost = ${formatCurrency((sale.total_price * sale.promoted_listing_percentage) / 100)}`;
 
     default:
       return '';
