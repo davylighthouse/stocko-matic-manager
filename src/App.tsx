@@ -14,6 +14,7 @@ import NotFound from "./pages/NotFound";
 import StockChecks from "./pages/StockChecks";
 import Sales from "./pages/Sales";
 import RawData from "./pages/RawData";
+import Settings from "./pages/Settings";
 
 const queryClient = new QueryClient();
 
@@ -33,6 +34,7 @@ const App = () => (
               <Route path="sales" element={<Sales />} />
               <Route path="raw-data" element={<RawData />} />
               <Route path="upload" element={<Upload />} />
+              <Route path="settings" element={<Settings />} />
               <Route path="*" element={<NotFound />} />
             </Route>
           </Routes>

@@ -48,10 +48,62 @@ export type Database = {
           },
         ]
       }
+      picking_fees: {
+        Row: {
+          created_at: string | null
+          fee_amount: number
+          fee_name: string
+          id: number
+          updated_at: string | null
+        }
+        Insert: {
+          created_at?: string | null
+          fee_amount: number
+          fee_name: string
+          id?: number
+          updated_at?: string | null
+        }
+        Update: {
+          created_at?: string | null
+          fee_amount?: number
+          fee_name?: string
+          id?: number
+          updated_at?: string | null
+        }
+        Relationships: []
+      }
+      platform_fees: {
+        Row: {
+          created_at: string | null
+          flat_fee: number
+          id: number
+          percentage_fee: number
+          platform_name: string
+          updated_at: string | null
+        }
+        Insert: {
+          created_at?: string | null
+          flat_fee?: number
+          id?: number
+          percentage_fee?: number
+          platform_name: string
+          updated_at?: string | null
+        }
+        Update: {
+          created_at?: string | null
+          flat_fee?: number
+          id?: number
+          percentage_fee?: number
+          platform_name?: string
+          updated_at?: string | null
+        }
+        Relationships: []
+      }
       products: {
         Row: {
           additional_costs: number | null
           default_shipping_service: string | null
+          default_shipping_service_id: number | null
           dimensions_height: number | null
           dimensions_length: number | null
           dimensions_width: number | null
@@ -71,6 +123,7 @@ export type Database = {
         Insert: {
           additional_costs?: number | null
           default_shipping_service?: string | null
+          default_shipping_service_id?: number | null
           dimensions_height?: number | null
           dimensions_length?: number | null
           dimensions_width?: number | null
@@ -90,6 +143,7 @@ export type Database = {
         Update: {
           additional_costs?: number | null
           default_shipping_service?: string | null
+          default_shipping_service_id?: number | null
           dimensions_height?: number | null
           dimensions_length?: number | null
           dimensions_width?: number | null
@@ -106,7 +160,15 @@ export type Database = {
           warehouse_location?: string | null
           weight?: number | null
         }
-        Relationships: []
+        Relationships: [
+          {
+            foreignKeyName: "products_default_shipping_service_id_fkey"
+            columns: ["default_shipping_service_id"]
+            isOneToOne: false
+            referencedRelation: "shipping_services"
+            referencedColumns: ["id"]
+          },
+        ]
       }
       profiles: {
         Row: {
@@ -176,6 +238,71 @@ export type Database = {
             referencedColumns: ["sku"]
           },
         ]
+      }
+      shipping_rates: {
+        Row: {
+          created_at: string | null
+          id: number
+          price: number
+          service_id: number | null
+          updated_at: string | null
+          weight_from: number
+          weight_to: number
+        }
+        Insert: {
+          created_at?: string | null
+          id?: number
+          price: number
+          service_id?: number | null
+          updated_at?: string | null
+          weight_from: number
+          weight_to: number
+        }
+        Update: {
+          created_at?: string | null
+          id?: number
+          price?: number
+          service_id?: number | null
+          updated_at?: string | null
+          weight_from?: number
+          weight_to?: number
+        }
+        Relationships: [
+          {
+            foreignKeyName: "shipping_rates_service_id_fkey"
+            columns: ["service_id"]
+            isOneToOne: false
+            referencedRelation: "shipping_services"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
+      shipping_services: {
+        Row: {
+          courier: string
+          created_at: string | null
+          id: number
+          service_name: string
+          surcharge_percentage: number
+          updated_at: string | null
+        }
+        Insert: {
+          courier: string
+          created_at?: string | null
+          id?: number
+          service_name: string
+          surcharge_percentage?: number
+          updated_at?: string | null
+        }
+        Update: {
+          courier?: string
+          created_at?: string | null
+          id?: number
+          service_name?: string
+          surcharge_percentage?: number
+          updated_at?: string | null
+        }
+        Relationships: []
       }
       stock_adjustments: {
         Row: {
