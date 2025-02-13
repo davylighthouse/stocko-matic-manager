@@ -1,4 +1,3 @@
-
 import { supabase } from '@/integrations/supabase/client';
 import type { Product } from '@/types/database';
 
@@ -32,23 +31,16 @@ export const getStockLevels = async () => {
 
   console.log('Raw products data:', products);
 
-  // Transform the data to match the expected format
   const transformedProducts = products.map(product => {
-    // Log individual product data for debugging
     console.log('Processing product:', {
       sku: product.sku,
       stockQuantity: product.stock_quantity,
       stockLevels: product.current_stock_levels
     });
 
-    // Use stock_quantity as the primary source of truth
-    const currentStock = product.stock_quantity ?? 0;
-    
-    console.log(`Stock quantity for ${product.sku}:`, currentStock);
-
     return {
       ...product,
-      current_stock: currentStock
+      current_stock: product.stock_quantity ?? 0
     };
   });
 
@@ -56,19 +48,19 @@ export const getStockLevels = async () => {
   return transformedProducts;
 };
 
-export const updateProductDetails = async (sku: string, data: {
-  listing_title?: string;
-  product_cost?: number;
-  warehouse_location?: string;
-  supplier?: string;
-  stock_quantity?: number;
-  low_stock_threshold?: number;
-}) => {
+export const updateProductDetails = async (sku: string, data: Partial<Product>) => {
   console.log("Updating product:", sku, data);
+
+  // Remove any undefined values to prevent database errors
+  const cleanData = Object.fromEntries(
+    Object.entries(data).filter(([_, value]) => value !== undefined)
+  );
+
+  console.log("Clean data for update:", cleanData);
 
   const { error } = await supabase
     .from('products')
-    .update(data)
+    .update(cleanData)
     .eq('sku', sku);
 
   if (error) {
@@ -87,7 +79,6 @@ export const createProduct = async (product: {
 }) => {
   console.log('Creating product with data:', product);
   
-  // Create the product data object with defaults
   const productData = {
     sku: product.sku,
     listing_title: product.listing_title || product.sku,
@@ -96,7 +87,6 @@ export const createProduct = async (product: {
 
   console.log('Final product data:', productData);
 
-  // First, check if the product already exists
   const { data: existingProduct } = await supabase
     .from('products')
     .select('sku')
@@ -108,7 +98,6 @@ export const createProduct = async (product: {
     return existingProduct;
   }
 
-  // Insert the new product
   const { data, error } = await supabase
     .from('products')
     .insert([productData])
@@ -128,7 +117,6 @@ export const updateStockLevel = async (sku: string, quantity: number) => {
   try {
     console.log('Updating stock level for SKU:', sku, 'to quantity:', quantity);
 
-    // First try to get the product
     const { data: existingProduct, error: checkError } = await supabase
       .from('products')
       .select('stock_quantity')
@@ -140,7 +128,6 @@ export const updateStockLevel = async (sku: string, quantity: number) => {
       throw checkError;
     }
 
-    // If product doesn't exist, create it first
     if (!existingProduct) {
       console.log('Product not found, creating new product');
       const newProduct = await createProduct({
@@ -155,8 +142,6 @@ export const updateStockLevel = async (sku: string, quantity: number) => {
       return true;
     }
 
-    // Update the stock quantity directly in the products table
-    // This will trigger our database trigger to update stock_check_items
     const { error: updateError } = await supabase
       .from('products')
       .update({ stock_quantity: quantity })
@@ -167,7 +152,6 @@ export const updateStockLevel = async (sku: string, quantity: number) => {
       throw updateError;
     }
 
-    // Record the adjustment
     const { error: adjustmentError } = await supabase
       .from('stock_adjustments')
       .insert({

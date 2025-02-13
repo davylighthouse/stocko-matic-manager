@@ -41,7 +41,7 @@ const StockManagement = () => {
   });
 
   const updateProductMutation = useMutation({
-    mutationFn: ({ sku, data }: { sku: string; data: any }) =>
+    mutationFn: ({ sku, data }: { sku: string; data: Partial<Product> }) =>
       updateProductDetails(sku, data),
     onSuccess: () => {
       queryClient.invalidateQueries({ queryKey: ['products'] });
@@ -80,6 +80,18 @@ const StockManagement = () => {
       product_cost: formData.get('product_cost') ? parseFloat(formData.get('product_cost') as string) : null,
       warehouse_location: formData.get('warehouse_location') as string || null,
       supplier: formData.get('supplier') as string || null,
+      stock_quantity: formData.get('stock_quantity') ? parseInt(formData.get('stock_quantity') as string) : null,
+      low_stock_threshold: formData.get('low_stock_threshold') ? parseInt(formData.get('low_stock_threshold') as string) : null,
+      product_status: formData.get('product_status') as string || null,
+      default_shipping_service: formData.get('default_shipping_service') as string || null,
+      vat_status: formData.get('vat_status') as string || null,
+      dimensions_height: formData.get('dimensions_height') ? parseFloat(formData.get('dimensions_height') as string) : null,
+      dimensions_width: formData.get('dimensions_width') ? parseFloat(formData.get('dimensions_width') as string) : null,
+      dimensions_length: formData.get('dimensions_length') ? parseFloat(formData.get('dimensions_length') as string) : null,
+      weight: formData.get('weight') ? parseFloat(formData.get('weight') as string) : null,
+      packaging_cost: formData.get('packaging_cost') ? parseFloat(formData.get('packaging_cost') as string) : null,
+      making_up_cost: formData.get('making_up_cost') ? parseFloat(formData.get('making_up_cost') as string) : null,
+      additional_costs: formData.get('additional_costs') ? parseFloat(formData.get('additional_costs') as string) : null,
     };
 
     updateProductMutation.mutate({ sku: selectedProduct.sku, data });
