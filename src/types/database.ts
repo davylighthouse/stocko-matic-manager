@@ -20,6 +20,7 @@ export interface Product {
   making_up_cost?: number;
   additional_costs?: number;
   low_stock_threshold?: number;
+  amazon_fba_tier_id?: number | null;
   latest_stock_check_quantities?: Array<{
     last_check_quantity: number;
     check_date: string;
