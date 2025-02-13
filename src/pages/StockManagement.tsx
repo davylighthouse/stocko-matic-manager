@@ -22,6 +22,12 @@ const StockManagement = () => {
     queryFn: getStockLevels
   });
 
+  // Filter products based on search
+  const filteredProducts = products.filter((product) =>
+    product.sku.toLowerCase().includes(search.toLowerCase()) ||
+    product.listing_title.toLowerCase().includes(search.toLowerCase())
+  );
+
   const updateStockMutation = useMutation({
     mutationFn: ({ sku, quantity }: { sku: string; quantity: number }) =>
       updateStockLevel(sku, quantity),
@@ -40,6 +46,10 @@ const StockManagement = () => {
       });
     },
   });
+
+  const handleStockUpdate = (sku: string, quantity: number) => {
+    updateStockMutation.mutate({ sku, quantity });
+  };
 
   const updateProductMutation = useMutation({
     mutationFn: ({ sku, data }: { sku: string; data: Partial<Product> }) => {
@@ -67,9 +77,11 @@ const StockManagement = () => {
       if (data.low_stock_threshold) processedData.low_stock_threshold = parseInt(data.low_stock_threshold.toString());
       
       // Special handling for FBA tier and promoted listing
-      if (data.amazon_fba_tier_id !== undefined) {
-        processedData.amazon_fba_tier_id = data.amazon_fba_tier_id === 'none' ? null :
-          parseInt(data.amazon_fba_tier_id.toString());
+      const fbaValue = data.amazon_fba_tier_id;
+      if (fbaValue !== undefined) {
+        processedData.amazon_fba_tier_id = fbaValue === null || String(fbaValue) === 'none' ? 
+          null : 
+          parseInt(String(fbaValue));
       }
       
       if (data.promoted_listing_percentage !== undefined) {
