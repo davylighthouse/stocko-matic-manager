@@ -541,9 +541,10 @@ export type Database = {
       }
       sales_profitability: {
         Row: {
-          ad_costs: number | null
+          amazon_fba_tier_id: number | null
           default_picking_fee_id: number | null
           default_shipping_service_id: number | null
+          fba_fee_amount: number | null
           gross_profit: number | null
           id: number | null
           listing_title: string | null
@@ -553,6 +554,7 @@ export type Database = {
           platform: string | null
           platform_fee_percentage: number | null
           platform_fees: number | null
+          platform_flat_fee: number | null
           product_cost: number | null
           profit: number | null
           profit_margin: number | null
@@ -561,6 +563,7 @@ export type Database = {
           quantity: number | null
           sale_date: string | null
           shipping_cost: number | null
+          shipping_service_price: number | null
           sku: string | null
           total_costs: number | null
           total_price: number | null
@@ -569,6 +572,13 @@ export type Database = {
           vat_status: string | null
         }
         Relationships: [
+          {
+            foreignKeyName: "products_amazon_fba_tier_id_fkey"
+            columns: ["amazon_fba_tier_id"]
+            isOneToOne: false
+            referencedRelation: "amazon_fba_tiers"
+            referencedColumns: ["id"]
+          },
           {
             foreignKeyName: "products_default_picking_fee_id_fkey"
             columns: ["default_picking_fee_id"]
