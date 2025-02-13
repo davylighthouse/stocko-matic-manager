@@ -1,5 +1,5 @@
 
-import { useState } from "react";
+import { useEffect, useState } from "react";
 import { TabContentProps } from "../types/product-dialog";
 import { Button } from "@/components/ui/button";
 import { BundleProductDialog } from "../BundleProductDialog";
@@ -10,13 +10,27 @@ import { useToast } from "@/components/ui/use-toast";
 
 export const BundleTab = ({ product, renderFieldWithCheck, onStockUpdate }: TabContentProps) => {
   const [bundleDialogOpen, setBundleDialogOpen] = useState(false);
-  const [isBundle, setIsBundle] = useState(product.is_bundle);
+  const [isBundle, setIsBundle] = useState(false);
   const { toast } = useToast();
 
-  // Create a wrapper function that matches the expected signature
+  useEffect(() => {
+    const checkBundleStatus = async () => {
+      const { data, error } = await supabase
+        .from('bundle_products')
+        .select('bundle_sku')
+        .eq('bundle_sku', product.sku)
+        .maybeSingle();
+
+      if (!error) {
+        setIsBundle(!!data);
+      }
+    };
+
+    checkBundleStatus();
+  }, [product.sku]);
+
   const handleBundleUpdate = () => {
     if (onStockUpdate) {
-      // Trigger a refresh of the product's stock
       onStockUpdate(product.sku, product.stock_quantity);
     }
   };
@@ -27,11 +41,21 @@ export const BundleTab = ({ product, renderFieldWithCheck, onStockUpdate }: TabC
         // Mark as bundle
         const { error } = await supabase
           .from('bundle_products')
-          .upsert({ bundle_sku: product.sku });
+          .upsert({ 
+            bundle_sku: product.sku,
+            created_at: new Date().toISOString(),
+            updated_at: new Date().toISOString()
+          });
 
         if (error) throw error;
       } else {
-        // Remove bundle status
+        // First, remove all components if any
+        await supabase
+          .from('bundle_components')
+          .delete()
+          .eq('bundle_sku', product.sku);
+
+        // Then remove bundle status
         const { error } = await supabase
           .from('bundle_products')
           .delete()

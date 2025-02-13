@@ -66,7 +66,7 @@ export const ProductsTable = ({
               >
                 <td className="px-6 py-4 whitespace-nowrap text-sm font-medium text-gray-900 flex items-center gap-2">
                   {product.sku}
-                  {product.is_bundle && (
+                  {product.bundle_products && (
                     <Package className="h-4 w-4 text-blue-500" />
                   )}
                 </td>
