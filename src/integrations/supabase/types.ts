@@ -557,6 +557,7 @@ export type Database = {
           profit: number | null
           profit_margin: number | null
           promoted: boolean | null
+          promoted_listing_percentage: number | null
           quantity: number | null
           sale_date: string | null
           shipping_cost: number | null
