@@ -282,6 +282,7 @@ export type Database = {
           courier: string
           created_at: string | null
           id: number
+          max_weight: number
           service_name: string
           surcharge_percentage: number
           updated_at: string | null
@@ -290,6 +291,7 @@ export type Database = {
           courier: string
           created_at?: string | null
           id?: number
+          max_weight?: number
           service_name: string
           surcharge_percentage?: number
           updated_at?: string | null
@@ -298,6 +300,7 @@ export type Database = {
           courier?: string
           created_at?: string | null
           id?: number
+          max_weight?: number
           service_name?: string
           surcharge_percentage?: number
           updated_at?: string | null

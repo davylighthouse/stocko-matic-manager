@@ -1,3 +1,4 @@
+
 import { useState } from "react";
 import { useQuery, useMutation, useQueryClient } from "@tanstack/react-query";
 import { Card } from "@/components/ui/card";
@@ -13,14 +14,6 @@ interface ShippingService {
   courier: string;
   surcharge_percentage: number;
   max_weight: number;
-}
-
-interface ShippingRate {
-  id: number;
-  service_id: number;
-  weight_from: number;
-  weight_to: number;
-  price: number;
 }
 
 const VALID_COURIERS = ["Royal Mail", "Evri", "APC Overnight"];
@@ -46,7 +39,7 @@ export const ShippingSettings = () => {
         .order('courier, service_name');
       
       if (error) throw error;
-      return data;
+      return data as ShippingService[];
     },
   });
 
