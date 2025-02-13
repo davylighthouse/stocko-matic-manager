@@ -74,11 +74,11 @@ export const updateProductDetails = async (sku: string, data: Partial<Product>) 
         null : 
         data.default_shipping_service_id ? 
           parseInt(data.default_shipping_service_id.toString()) : 
-          null,
-    // Handle picking fee ID - ensure it's a number
+          existingProduct.default_shipping_service_id,
+    // Handle picking fee ID - ensure it's a number and maintain existing value if not provided
     default_picking_fee_id: data.default_picking_fee_id ? 
       parseInt(data.default_picking_fee_id.toString()) : 
-      null,
+      existingProduct.default_picking_fee_id,
     // Triple check the listing_title is set
     listing_title: data.listing_title || existingProduct?.listing_title || sku
   };
