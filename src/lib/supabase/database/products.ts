@@ -1,3 +1,4 @@
+
 import { supabase } from '@/integrations/supabase/client';
 import type { Product } from '@/types/database';
 
@@ -9,7 +10,7 @@ export const getStockLevels = async () => {
     .from('products')
     .select(`
       *,
-      current_stock_levels!inner (
+      current_stock_levels (
         current_stock,
         initial_stock,
         quantity_sold,
@@ -24,10 +25,18 @@ export const getStockLevels = async () => {
   }
 
   // Transform the data to match the expected format
-  const transformedProducts = products.map(product => ({
-    ...product,
-    current_stock: product.current_stock_levels?.current_stock || 0
-  }));
+  const transformedProducts = products.map(product => {
+    // Safely access current_stock from current_stock_levels
+    // Since current_stock_levels might be an array, we take the first item if it exists
+    const stockLevel = Array.isArray(product.current_stock_levels) 
+      ? product.current_stock_levels[0] 
+      : product.current_stock_levels;
+
+    return {
+      ...product,
+      current_stock: stockLevel?.current_stock || 0
+    };
+  });
 
   console.log('Products with current stock levels:', transformedProducts);
   return transformedProducts;
