@@ -694,6 +694,12 @@ export type Database = {
         }
         Returns: undefined
       }
+      safe_to_integer: {
+        Args: {
+          v: string
+        }
+        Returns: number
+      }
       update_stock_quantities: {
         Args: Record<PropertyKey, never>
         Returns: undefined
