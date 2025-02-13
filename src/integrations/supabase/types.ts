@@ -180,6 +180,7 @@ export type Database = {
       stock_adjustments: {
         Row: {
           adjustment_date: string | null
+          created_at: string | null
           id: number
           notes: string | null
           quantity: number
@@ -187,6 +188,7 @@ export type Database = {
         }
         Insert: {
           adjustment_date?: string | null
+          created_at?: string | null
           id?: number
           notes?: string | null
           quantity: number
@@ -194,6 +196,7 @@ export type Database = {
         }
         Update: {
           adjustment_date?: string | null
+          created_at?: string | null
           id?: number
           notes?: string | null
           quantity?: number
