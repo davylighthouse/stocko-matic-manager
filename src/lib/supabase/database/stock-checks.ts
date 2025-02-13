@@ -75,14 +75,16 @@ export const getCurrentStockLevels = async () => {
   console.log('Fetching current stock levels...');
   
   const { data, error } = await supabase
-    .from('current_stock_levels')
+    .from('products')
     .select(`
       sku,
-      initial_stock,
-      current_stock,
-      quantity_sold,
-      adjustments,
-      products (listing_title)
+      listing_title,
+      current_stock_levels!current_stock_levels_sku_fkey (
+        initial_stock,
+        current_stock,
+        quantity_sold,
+        adjustments
+      )
     `);
 
   if (error) {
@@ -91,14 +93,17 @@ export const getCurrentStockLevels = async () => {
   }
 
   const transformedData = data.map(item => {
-    const product = Array.isArray(item.products) ? item.products[0] : item.products;
+    const stockLevel = Array.isArray(item.current_stock_levels) 
+      ? item.current_stock_levels[0] 
+      : item.current_stock_levels;
+    
     return {
       sku: item.sku || '',
-      listing_title: product?.listing_title || '',
-      initial_stock: item.initial_stock || 0,
-      current_stock: item.current_stock || 0,
-      quantity_sold: item.quantity_sold || 0,
-      adjustments: item.adjustments || 0,
+      listing_title: item.listing_title || '',
+      initial_stock: stockLevel?.initial_stock || 0,
+      current_stock: stockLevel?.current_stock || 0,
+      quantity_sold: stockLevel?.quantity_sold || 0,
+      adjustments: stockLevel?.adjustments || 0,
       stock_count_date: null
     };
   });
