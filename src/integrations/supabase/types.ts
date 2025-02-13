@@ -9,6 +9,33 @@ export type Json =
 export type Database = {
   public: {
     Tables: {
+      amazon_fba_tiers: {
+        Row: {
+          created_at: string | null
+          fee_amount: number
+          id: number
+          size_category: string
+          tier_name: string
+          updated_at: string | null
+        }
+        Insert: {
+          created_at?: string | null
+          fee_amount?: number
+          id?: number
+          size_category: string
+          tier_name: string
+          updated_at?: string | null
+        }
+        Update: {
+          created_at?: string | null
+          fee_amount?: number
+          id?: number
+          size_category?: string
+          tier_name?: string
+          updated_at?: string | null
+        }
+        Relationships: []
+      }
       courier_settings: {
         Row: {
           courier: string
@@ -126,6 +153,7 @@ export type Database = {
       products: {
         Row: {
           additional_costs: number | null
+          amazon_fba_tier_id: number | null
           default_picking_fee_id: number
           default_shipping_service: string | null
           default_shipping_service_id: number
@@ -147,6 +175,7 @@ export type Database = {
         }
         Insert: {
           additional_costs?: number | null
+          amazon_fba_tier_id?: number | null
           default_picking_fee_id: number
           default_shipping_service?: string | null
           default_shipping_service_id: number
@@ -168,6 +197,7 @@ export type Database = {
         }
         Update: {
           additional_costs?: number | null
+          amazon_fba_tier_id?: number | null
           default_picking_fee_id?: number
           default_shipping_service?: string | null
           default_shipping_service_id?: number
@@ -188,6 +218,13 @@ export type Database = {
           weight?: number | null
         }
         Relationships: [
+          {
+            foreignKeyName: "products_amazon_fba_tier_id_fkey"
+            columns: ["amazon_fba_tier_id"]
+            isOneToOne: false
+            referencedRelation: "amazon_fba_tiers"
+            referencedColumns: ["id"]
+          },
           {
             foreignKeyName: "products_default_picking_fee_id_fkey"
             columns: ["default_picking_fee_id"]
