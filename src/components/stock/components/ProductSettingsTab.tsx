@@ -36,6 +36,12 @@ export const ProductSettingsTab = ({ product, renderFieldWithCheck }: TabContent
   // Get the ID of the first picking fee if available
   const defaultPickingFeeId = pickingFees[0]?.id.toString();
 
+  // For debugging
+  console.log('Current product shipping service:', {
+    default_shipping_service_id: product.default_shipping_service_id,
+    shippingServices
+  });
+
   return (
     <div className="space-y-4">
       <div>
@@ -43,13 +49,12 @@ export const ProductSettingsTab = ({ product, renderFieldWithCheck }: TabContent
         {renderFieldWithCheck("default_shipping_service_id",
           <Select 
             name="default_shipping_service_id" 
-            defaultValue={product.default_shipping_service_id?.toString() || "not_set"}
+            defaultValue={product.default_shipping_service_id?.toString()}
           >
             <SelectTrigger>
               <SelectValue placeholder="Select shipping service" />
             </SelectTrigger>
             <SelectContent>
-              <SelectItem value="not_set">Not Set</SelectItem>
               {shippingServices.map((service) => (
                 <SelectItem key={service.id} value={service.id.toString()}>
                   {service.courier} - {service.service_name}

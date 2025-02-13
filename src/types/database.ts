@@ -9,8 +9,8 @@ export interface Product {
   warehouse_location?: string;
   product_status?: string;
   default_shipping_service?: string;
-  default_shipping_service_id?: number | null;
-  default_picking_fee_id?: number | null;
+  default_shipping_service_id: number;
+  default_picking_fee_id: number;
   vat_status?: string;
   dimensions_height?: number;
   dimensions_width?: number;
