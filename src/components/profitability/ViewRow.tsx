@@ -6,6 +6,12 @@ import { Pencil } from "lucide-react";
 import { Tooltip, TooltipContent, TooltipTrigger } from "@/components/ui/tooltip";
 import { ProfitabilityData } from "./types";
 import { formatCurrency, formatPercentage, getCalculationTooltip, getMarginColor, getProfitColor } from "./utils";
+import { useState } from "react";
+import { ProductEditDialog } from "@/components/stock/ProductEditDialog";
+import { useQuery, useQueryClient } from "@tanstack/react-query";
+import { getStockLevels, updateProductDetails } from "@/lib/supabase/database";
+import { useToast } from "@/hooks/use-toast";
+import { Product } from "@/types/database";
 
 interface ViewRowProps {
   sale: ProfitabilityData;
@@ -14,9 +20,60 @@ interface ViewRowProps {
 }
 
 export const ViewRow = ({ sale, columnWidths, onEdit }: ViewRowProps) => {
+  const [isProductDialogOpen, setIsProductDialogOpen] = useState(false);
+  const [updatedFields, setUpdatedFields] = useState<string[]>([]);
+  const { toast } = useToast();
+  const queryClient = useQueryClient();
+
   const getPlatformColor = (platform: string, promoted: boolean) => {
     if (platform.toLowerCase() !== 'ebay') return '';
     return promoted ? 'text-red-600 font-medium' : 'text-green-600 font-medium';
+  };
+
+  const { data: products = [] } = useQuery({
+    queryKey: ['products'],
+    queryFn: getStockLevels
+  });
+
+  const currentProduct = products.find(p => p.sku === sale.sku);
+
+  const handleProductUpdate = async (event: React.FormEvent<HTMLFormElement>) => {
+    event.preventDefault();
+    if (!currentProduct) return;
+
+    const formData = new FormData(event.currentTarget);
+    const updates: Partial<Product> = {};
+    const updatedFieldNames: string[] = [];
+
+    formData.forEach((value, key) => {
+      if (value !== '' && value !== null) {
+        (updates as any)[key] = value;
+        updatedFieldNames.push(key);
+      }
+    });
+
+    try {
+      await updateProductDetails(currentProduct.sku, updates);
+      await queryClient.invalidateQueries({ queryKey: ['products'] });
+      setIsProductDialogOpen(false);
+      toast({
+        title: "Success",
+        description: "Product details updated successfully",
+      });
+      setUpdatedFields([]);
+    } catch (error) {
+      toast({
+        title: "Error",
+        description: error instanceof Error ? error.message : "Failed to update product details",
+        variant: "destructive",
+      });
+      setUpdatedFields([]);
+    }
+  };
+
+  const handleStockUpdate = async (sku: string, quantity: number) => {
+    // This function is required by the ProductEditDialog but won't be used in this context
+    // since we're not allowing stock updates from the profitability view
   };
 
   return (
@@ -30,7 +87,13 @@ export const ViewRow = ({ sale, columnWidths, onEdit }: ViewRowProps) => {
       >
         {sale.platform}
       </TableCell>
-      <TableCell style={{ width: columnWidths.sku }}>{sale.sku}</TableCell>
+      <TableCell 
+        style={{ width: columnWidths.sku }}
+        className="cursor-pointer hover:text-blue-600"
+        onClick={() => setIsProductDialogOpen(true)}
+      >
+        {sale.sku}
+      </TableCell>
       <TableCell style={{ width: columnWidths.title }}>{sale.listing_title}</TableCell>
       <TableCell className="text-right" style={{ width: columnWidths.quantity }}>
         {sale.quantity}
@@ -122,6 +185,15 @@ export const ViewRow = ({ sale, columnWidths, onEdit }: ViewRowProps) => {
           <Pencil className="h-4 w-4" />
         </Button>
       </TableCell>
+
+      <ProductEditDialog
+        product={currentProduct}
+        open={isProductDialogOpen}
+        onOpenChange={setIsProductDialogOpen}
+        onSubmit={handleProductUpdate}
+        onStockUpdate={handleStockUpdate}
+        updatedFields={updatedFields}
+      />
     </>
   );
 };
