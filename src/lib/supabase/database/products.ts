@@ -1,4 +1,3 @@
-
 import { supabase } from '@/integrations/supabase/client';
 import type { Product } from '@/types/database';
 
@@ -10,7 +9,7 @@ export const getStockLevels = async () => {
     .from('products')
     .select(`
       *,
-      current_stock_levels!inner (
+      current_stock_levels (
         current_stock,
         initial_stock,
         quantity_sold,
@@ -34,10 +33,13 @@ export const getStockLevels = async () => {
       stockLevels: product.current_stock_levels
     });
 
-    // Since we're using !inner in the join, current_stock_levels should be a single object
-    const stockLevel = product.current_stock_levels;
+    // Safely handle both array and single object cases
+    const stockLevel = Array.isArray(product.current_stock_levels) 
+      ? product.current_stock_levels[0] 
+      : product.current_stock_levels;
 
-    const currentStock = stockLevel ? stockLevel.current_stock : 0;
+    // Safely access current_stock with null coalescing
+    const currentStock = stockLevel?.current_stock ?? 0;
     
     console.log(`Calculated current stock for ${product.sku}:`, currentStock);
 
