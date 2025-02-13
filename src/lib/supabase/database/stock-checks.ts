@@ -1,3 +1,4 @@
+
 import { supabase } from '@/integrations/supabase/client';
 import type { StockCheck, StockCheckItem, InitialStock, StockAdjustment, CurrentStockLevel } from '@/types/stock-checks';
 
@@ -76,12 +77,12 @@ export const getCurrentStockLevels = async () => {
   const { data, error } = await supabase
     .from('current_stock_levels')
     .select(`
-      current_stock_levels.sku,
-      current_stock_levels.initial_stock,
-      current_stock_levels.current_stock,
-      current_stock_levels.quantity_sold,
-      current_stock_levels.adjustments,
-      products!current_stock_levels_sku_fkey (listing_title)
+      sku,
+      initial_stock,
+      current_stock,
+      quantity_sold,
+      adjustments,
+      products (listing_title)
     `);
 
   if (error) {
@@ -90,13 +91,13 @@ export const getCurrentStockLevels = async () => {
   }
 
   const transformedData = data.map(item => ({
-    sku: item.sku,
+    sku: item.sku || '',
     listing_title: item.products?.listing_title || '',
-    initial_stock: item.initial_stock,
-    current_stock: item.current_stock,
-    quantity_sold: item.quantity_sold,
-    adjustments: item.adjustments,
-    stock_count_date: null // This comes from another join if needed
+    initial_stock: item.initial_stock || 0,
+    current_stock: item.current_stock || 0,
+    quantity_sold: item.quantity_sold || 0,
+    adjustments: item.adjustments || 0,
+    stock_count_date: null
   }));
 
   console.log('Fetched stock levels:', transformedData);
