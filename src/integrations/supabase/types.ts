@@ -126,9 +126,9 @@ export type Database = {
       products: {
         Row: {
           additional_costs: number | null
-          default_picking_fee_id: number | null
+          default_picking_fee_id: number
           default_shipping_service: string | null
-          default_shipping_service_id: number | null
+          default_shipping_service_id: number
           dimensions_height: number | null
           dimensions_length: number | null
           dimensions_width: number | null
@@ -147,9 +147,9 @@ export type Database = {
         }
         Insert: {
           additional_costs?: number | null
-          default_picking_fee_id?: number | null
+          default_picking_fee_id: number
           default_shipping_service?: string | null
-          default_shipping_service_id?: number | null
+          default_shipping_service_id: number
           dimensions_height?: number | null
           dimensions_length?: number | null
           dimensions_width?: number | null
@@ -168,9 +168,9 @@ export type Database = {
         }
         Update: {
           additional_costs?: number | null
-          default_picking_fee_id?: number | null
+          default_picking_fee_id?: number
           default_shipping_service?: string | null
-          default_shipping_service_id?: number | null
+          default_shipping_service_id?: number
           dimensions_height?: number | null
           dimensions_length?: number | null
           dimensions_width?: number | null

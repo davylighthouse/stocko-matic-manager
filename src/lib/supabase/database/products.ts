@@ -52,12 +52,12 @@ export const getStockLevels = async () => {
 export const updateProductDetails = async (sku: string, data: Partial<Product>) => {
   console.log("Updating product:", sku, data);
 
-  // First, get the existing product data
-  const { data: existingProduct, error: fetchError } = await supabase
-    .from('products')
-    .select('*')
-    .eq('sku', sku)
-    .single();
+  // First, get the existing product data and default IDs
+  const [{ data: existingProduct, error: fetchError }, { data: defaultPickingFee }, { data: defaultShippingService }] = await Promise.all([
+    supabase.from('products').select('*').eq('sku', sku).single(),
+    supabase.from('picking_fees').select('id').limit(1).single(),
+    supabase.from('shipping_services').select('id').limit(1).single()
+  ]);
 
   if (fetchError) {
     console.error("Error fetching existing product:", fetchError);
@@ -68,17 +68,18 @@ export const updateProductDetails = async (sku: string, data: Partial<Product>) 
   const processedData = {
     ...existingProduct,
     ...data,
-    // Handle shipping service ID - convert "not_set" to null
-    default_shipping_service_id: typeof data.default_shipping_service_id === 'string' && 
+    // Handle shipping service ID
+    default_shipping_service_id: 
       data.default_shipping_service_id === "not_set" ? 
-        null : 
+        defaultShippingService.id : 
         data.default_shipping_service_id ? 
           parseInt(data.default_shipping_service_id.toString()) : 
           existingProduct.default_shipping_service_id,
-    // Handle picking fee ID - ensure it's a number and maintain existing value if not provided
-    default_picking_fee_id: data.default_picking_fee_id ? 
-      parseInt(data.default_picking_fee_id.toString()) : 
-      existingProduct.default_picking_fee_id,
+    // Handle picking fee ID
+    default_picking_fee_id: 
+      data.default_picking_fee_id ? 
+        parseInt(data.default_picking_fee_id.toString()) : 
+        existingProduct.default_picking_fee_id || defaultPickingFee.id,
     // Triple check the listing_title is set
     listing_title: data.listing_title || existingProduct?.listing_title || sku
   };
@@ -112,11 +113,19 @@ export const createProduct = async (product: {
 }) => {
   console.log('Creating product with data:', product);
   
+  // Get default IDs for new products
+  const [{ data: defaultPickingFee }, { data: defaultShippingService }] = await Promise.all([
+    supabase.from('picking_fees').select('id').limit(1).single(),
+    supabase.from('shipping_services').select('id').limit(1).single()
+  ]);
+  
   // Always ensure listing_title is set, using SKU as fallback
   const productData = {
     sku: product.sku,
-    listing_title: product.listing_title || product.sku, // Ensure listing_title is never null
-    stock_quantity: product.stock_quantity ?? 0
+    listing_title: product.listing_title || product.sku,
+    stock_quantity: product.stock_quantity ?? 0,
+    default_picking_fee_id: defaultPickingFee.id,
+    default_shipping_service_id: defaultShippingService.id
   };
 
   // Additional verification
@@ -129,13 +138,12 @@ export const createProduct = async (product: {
 
   const { data: existingProduct } = await supabase
     .from('products')
-    .select('*')  // Changed to select all fields
+    .select('*')
     .eq('sku', product.sku)
     .maybeSingle();
 
   if (existingProduct) {
     console.log('Product already exists:', existingProduct);
-    // If product exists but listing_title is null, update it
     if (!existingProduct.listing_title) {
       await updateProductDetails(product.sku, { listing_title: product.sku });
     }
