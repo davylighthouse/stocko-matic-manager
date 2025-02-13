@@ -75,9 +75,23 @@ export const processCSV = async (file: File): Promise<{ success: boolean; messag
             // Filter out empty values and create updates object
             const updates = Object.entries(row).reduce((acc: Record<string, any>, [key, value]) => {
               if (value !== undefined && value !== '' && key !== 'sku') {
-                // Convert numeric strings to numbers
-                if (!isNaN(value as any)) {
-                  acc[key] = Number(value);
+                // List of numeric fields
+                const numericFields = [
+                  'stock_quantity',
+                  'product_cost',
+                  'dimensions_height',
+                  'dimensions_width',
+                  'dimensions_length',
+                  'weight',
+                  'packaging_cost',
+                  'making_up_cost',
+                  'additional_costs',
+                  'low_stock_threshold'
+                ];
+
+                if (numericFields.includes(key)) {
+                  // Use parsePrice for any numeric field to handle various formats
+                  acc[key] = parsePrice(value);
                 } else {
                   acc[key] = value;
                 }
@@ -86,6 +100,7 @@ export const processCSV = async (file: File): Promise<{ success: boolean; messag
             }, {});
 
             if (Object.keys(updates).length > 0) {
+              console.log('Updating product with data:', { sku: row.sku, updates });
               const { error } = await supabase.rpc('process_product_updates', {
                 p_sku: row.sku,
                 p_updates: updates
