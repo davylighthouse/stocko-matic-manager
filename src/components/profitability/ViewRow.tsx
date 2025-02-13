@@ -1,4 +1,3 @@
-
 import { TableCell, TableRow } from "@/components/ui/table";
 import { format } from "date-fns";
 import { Button } from "@/components/ui/button";
@@ -144,13 +143,13 @@ export const ViewRow = ({ sale, columnWidths, onEdit }: ViewRowProps) => {
       <TableCell className="text-right" style={{ width: columnWidths.shipping }}>
         <TooltipWrapper 
           value={formatCurrency(sale.shipping_cost)}
-          tooltipContent={`Shipping Cost: ${formatCurrency(sale.shipping_cost)}`}
+          tooltipContent={getCalculationTooltip(sale, 'shipping', formatCurrency, formatPercentage)}
         />
       </TableCell>
       <TableCell className="text-right" style={{ width: columnWidths.vat }}>
         <TooltipWrapper 
           value={formatCurrency(sale.vat_cost)}
-          tooltipContent={`VAT (20%): ${formatCurrency(sale.vat_cost)}`}
+          tooltipContent={getCalculationTooltip(sale, 'vat', formatCurrency, formatPercentage)}
         />
       </TableCell>
       <TableCell className="text-right" style={{ width: columnWidths.totalCosts }}>

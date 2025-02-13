@@ -26,19 +26,56 @@ export const getMarginColor = (margin: number | null | undefined) => {
 export const getCalculationTooltip = (sale: any, type: string, formatCurrency: (n: number | null | undefined) => string, formatPercentage: (n: number | null | undefined) => string) => {
   switch (type) {
     case 'total_costs':
-      return `Product Cost: ${formatCurrency(sale.total_product_cost)}
+      return `Total Product Cost: ${formatCurrency(sale.total_product_cost)}
 Platform Fees: ${formatCurrency(sale.platform_fees)}
 Shipping Cost: ${formatCurrency(sale.shipping_cost)}
 VAT: ${formatCurrency(sale.vat_cost)}
-= ${formatCurrency(sale.total_costs)}`;
+----------------------------------
+Total = ${formatCurrency(sale.total_costs)}`;
+
     case 'profit':
       return `Sale Price: ${formatCurrency(sale.total_price)}
 - Total Costs: ${formatCurrency(sale.total_costs)}
-= ${formatCurrency(sale.profit)}`;
+----------------------------------
+Profit = ${formatCurrency(sale.profit)}`;
+
     case 'profit_margin':
-      return `Profit: ${formatCurrency(sale.profit)}
-÷ Sale Price: ${formatCurrency(sale.total_price)}
-× 100 = ${formatPercentage(sale.profit_margin)}`;
+      return `(Profit ${formatCurrency(sale.profit)} ÷ Sale Price ${formatCurrency(sale.total_price)}) × 100
+----------------------------------
+Margin = ${formatPercentage(sale.profit_margin)}`;
+
+    case 'shipping':
+      const shippingBreakdown = [
+        `Base Shipping Cost: ${formatCurrency(sale.shipping_service_price || 0)}`,
+        sale.picking_fee ? `Picking Fee: ${formatCurrency(sale.picking_fee)}` : null,
+        sale.packaging_cost ? `Packaging Cost: ${formatCurrency(sale.packaging_cost)}` : null,
+        sale.making_up_cost ? `Making Up Cost: ${formatCurrency(sale.making_up_cost)}` : null,
+      ].filter(Boolean).join('\n');
+
+      return `${shippingBreakdown}
+----------------------------------
+Total Shipping = ${formatCurrency(sale.shipping_cost)}`;
+
+    case 'vat':
+      const vatRate = sale.vat_status === 'standard' ? '20%' : sale.vat_status;
+      return `Sale Price: ${formatCurrency(sale.total_price)}
+VAT Rate: ${vatRate}
+VAT Status: ${sale.vat_status}
+----------------------------------
+VAT Amount = ${formatCurrency(sale.vat_cost)}`;
+
+    case 'platform_fees':
+      const feeBreakdown = [
+        sale.platform_fee_percentage ? `Percentage Fee (${sale.platform_fee_percentage}%): ${formatCurrency((sale.total_price * sale.platform_fee_percentage) / 100)}` : null,
+        sale.platform_flat_fee ? `Flat Fee: ${formatCurrency(sale.platform_flat_fee)}` : null,
+        sale.promoted_listing_percentage ? `Promoted Listing Fee (${sale.promoted_listing_percentage}%): ${formatCurrency((sale.total_price * sale.promoted_listing_percentage) / 100)}` : null,
+        sale.fba_fee_amount ? `FBA Fee: ${formatCurrency(sale.fba_fee_amount)}` : null,
+      ].filter(Boolean).join('\n');
+
+      return `${feeBreakdown}
+----------------------------------
+Total Platform Fees = ${formatCurrency(sale.platform_fees)}`;
+
     default:
       return '';
   }
