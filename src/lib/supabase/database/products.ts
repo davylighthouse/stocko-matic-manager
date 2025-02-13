@@ -1,4 +1,3 @@
-
 import { supabase } from '@/integrations/supabase/client';
 import type { Product } from '@/types/database';
 
@@ -52,12 +51,12 @@ export const getStockLevels = async () => {
 export const updateProductDetails = async (sku: string, data: Partial<Product>) => {
   console.log("Updating product:", sku, data);
 
-  // First, get the existing product data and default IDs
-  const [{ data: existingProduct, error: fetchError }, { data: defaultPickingFee }, { data: defaultShippingService }] = await Promise.all([
-    supabase.from('products').select('*').eq('sku', sku).single(),
-    supabase.from('picking_fees').select('id').limit(1).single(),
-    supabase.from('shipping_services').select('id').limit(1).single()
-  ]);
+  // First, get the existing product data
+  const { data: existingProduct, error: fetchError } = await supabase
+    .from('products')
+    .select('*')
+    .eq('sku', sku)
+    .single();
 
   if (fetchError) {
     console.error("Error fetching existing product:", fetchError);
@@ -68,19 +67,14 @@ export const updateProductDetails = async (sku: string, data: Partial<Product>) 
   const processedData = {
     ...existingProduct,
     ...data,
-    // Handle shipping service ID
-    default_shipping_service_id: 
-      data.default_shipping_service_id === null || 
-      (typeof data.default_shipping_service_id === 'string' && data.default_shipping_service_id === "not_set") ? 
-        defaultShippingService.id : 
-        data.default_shipping_service_id ? 
-          parseInt(String(data.default_shipping_service_id)) : 
-          existingProduct.default_shipping_service_id,
-    // Handle picking fee ID
-    default_picking_fee_id: 
-      data.default_picking_fee_id ? 
-        parseInt(String(data.default_picking_fee_id)) : 
-        existingProduct.default_picking_fee_id || defaultPickingFee.id,
+    // Only update shipping service ID if it's explicitly provided in the update data
+    default_shipping_service_id: data.default_shipping_service_id !== undefined ? 
+      parseInt(String(data.default_shipping_service_id)) : 
+      existingProduct.default_shipping_service_id,
+    // Only update picking fee ID if it's explicitly provided in the update data
+    default_picking_fee_id: data.default_picking_fee_id !== undefined ? 
+      parseInt(String(data.default_picking_fee_id)) : 
+      existingProduct.default_picking_fee_id,
     // Triple check the listing_title is set
     listing_title: data.listing_title || existingProduct?.listing_title || sku
   };
