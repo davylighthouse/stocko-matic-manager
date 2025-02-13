@@ -1,3 +1,4 @@
+
 import { supabase } from '@/integrations/supabase/client';
 import type { Product } from '@/types/database';
 
@@ -63,28 +64,18 @@ export const updateProductDetails = async (sku: string, data: Partial<Product>) 
     throw fetchError;
   }
 
-  // Merge existing data with updates, ensuring required fields are preserved
+  // Ensure listing_title is never null by using the existing title or SKU as fallback
   const mergedData = {
     ...existingProduct,
     ...data,
-    listing_title: data.listing_title || existingProduct.listing_title, // Ensure listing_title is never null
+    listing_title: data.listing_title || existingProduct.listing_title || sku
   };
 
-  // Remove any undefined or null values from optional fields
-  const cleanData = Object.fromEntries(
-    Object.entries(mergedData).filter(([key, value]) => {
-      // Keep required fields even if null/undefined
-      if (key === 'sku' || key === 'listing_title') return true;
-      // Filter out null/undefined for optional fields
-      return value !== undefined && value !== null;
-    })
-  );
-
-  console.log("Clean data for update:", cleanData);
+  console.log("Clean data for update:", mergedData);
 
   const { error: updateError } = await supabase
     .from('products')
-    .update(cleanData)
+    .update(mergedData)
     .eq('sku', sku);
 
   if (updateError) {
@@ -103,10 +94,11 @@ export const createProduct = async (product: {
 }) => {
   console.log('Creating product with data:', product);
   
+  // Always ensure listing_title is set, using SKU as fallback
   const productData = {
     sku: product.sku,
-    listing_title: product.listing_title || product.sku, // Ensure listing_title is never null
-    stock_quantity: product.stock_quantity || 0
+    listing_title: product.listing_title || product.sku,
+    stock_quantity: product.stock_quantity ?? 0
   };
 
   console.log('Final product data:', productData);
@@ -143,7 +135,7 @@ export const updateStockLevel = async (sku: string, quantity: number) => {
 
     const { data: existingProduct, error: checkError } = await supabase
       .from('products')
-      .select('stock_quantity, listing_title')  // Also fetch listing_title
+      .select('stock_quantity, listing_title')
       .eq('sku', sku)
       .maybeSingle();
 
@@ -154,9 +146,10 @@ export const updateStockLevel = async (sku: string, quantity: number) => {
 
     if (!existingProduct) {
       console.log('Product not found, creating new product');
+      // When creating a new product, explicitly set listing_title to SKU
       const newProduct = await createProduct({
         sku,
-        listing_title: sku,  // Use SKU as listing_title if not provided
+        listing_title: sku,
         stock_quantity: quantity
       });
 
