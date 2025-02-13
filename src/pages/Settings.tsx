@@ -3,6 +3,7 @@ import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
 import { PlatformSettings } from "@/components/settings/PlatformSettings";
 import { ShippingSettings } from "@/components/settings/ShippingSettings";
 import { PickingSettings } from "@/components/settings/PickingSettings";
+import { AmazonFBASettings } from "@/components/settings/components/AmazonFBASettings";
 
 const Settings = () => {
   return (
@@ -19,6 +20,7 @@ const Settings = () => {
           <TabsTrigger value="platforms">Platforms</TabsTrigger>
           <TabsTrigger value="shipping">Shipping</TabsTrigger>
           <TabsTrigger value="picking">Picking Fees</TabsTrigger>
+          <TabsTrigger value="fba">Amazon FBA</TabsTrigger>
         </TabsList>
 
         <TabsContent value="platforms" className="space-y-4">
@@ -31,6 +33,10 @@ const Settings = () => {
 
         <TabsContent value="picking" className="space-y-4">
           <PickingSettings />
+        </TabsContent>
+
+        <TabsContent value="fba" className="space-y-4">
+          <AmazonFBASettings />
         </TabsContent>
       </Tabs>
     </div>
