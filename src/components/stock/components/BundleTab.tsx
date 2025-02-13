@@ -11,18 +11,31 @@ import { useToast } from "@/components/ui/use-toast";
 export const BundleTab = ({ product, renderFieldWithCheck, onStockUpdate }: TabContentProps) => {
   const [bundleDialogOpen, setBundleDialogOpen] = useState(false);
   const [isBundle, setIsBundle] = useState(false);
+  const [isComponent, setIsComponent] = useState(false);
   const { toast } = useToast();
 
   useEffect(() => {
     const checkBundleStatus = async () => {
-      const { data, error } = await supabase
+      // Check if it's a bundle
+      const { data: bundleData, error: bundleError } = await supabase
         .from('bundle_products')
         .select('bundle_sku')
         .eq('bundle_sku', product.sku)
         .maybeSingle();
 
-      if (!error) {
-        setIsBundle(!!data);
+      if (!bundleError) {
+        setIsBundle(!!bundleData);
+      }
+
+      // Check if it's used as a component
+      const { data: componentData, error: componentError } = await supabase
+        .from('bundle_components')
+        .select('component_sku')
+        .eq('component_sku', product.sku)
+        .maybeSingle();
+
+      if (!componentError) {
+        setIsComponent(!!componentData);
       }
     };
 
@@ -88,9 +101,16 @@ export const BundleTab = ({ product, renderFieldWithCheck, onStockUpdate }: TabC
           id="is-bundle"
           checked={isBundle}
           onCheckedChange={handleBundleToggle}
+          disabled={isComponent}
         />
         <Label htmlFor="is-bundle">This product is a bundle</Label>
       </div>
+      
+      {isComponent && (
+        <p className="text-sm text-yellow-600">
+          This product cannot be marked as a bundle because it is currently used as a component in another bundle.
+        </p>
+      )}
 
       <div className="pt-4">
         {isBundle ? (
