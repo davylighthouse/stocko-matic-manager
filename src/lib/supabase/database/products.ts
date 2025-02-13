@@ -1,3 +1,4 @@
+
 import { supabase } from '@/integrations/supabase/client';
 import type { Product } from '@/types/database';
 
@@ -49,7 +50,7 @@ export const getStockLevels = async () => {
 };
 
 export const updateProductDetails = async (sku: string, data: Partial<Product>) => {
-  console.log("Updating product:", sku, data);
+  console.log("Updating product details - Input data:", data);
 
   // First, get the existing product data
   const { data: existingProduct, error: fetchError } = await supabase
@@ -63,23 +64,27 @@ export const updateProductDetails = async (sku: string, data: Partial<Product>) 
     throw fetchError;
   }
 
+  console.log("Existing product data:", existingProduct);
+
   // Process the data before updating
   const processedData = {
     ...existingProduct,
     ...data,
-    // Only update shipping service ID if it's explicitly provided in the update data
-    default_shipping_service_id: data.default_shipping_service_id !== undefined ? 
-      parseInt(String(data.default_shipping_service_id)) : 
+    // Handle shipping service ID
+    default_shipping_service_id: 
+      data.default_shipping_service_id !== undefined ?
+      parseInt(String(data.default_shipping_service_id)) :
       existingProduct.default_shipping_service_id,
-    // Only update picking fee ID if it's explicitly provided in the update data
-    default_picking_fee_id: data.default_picking_fee_id !== undefined ? 
-      parseInt(String(data.default_picking_fee_id)) : 
+    // Handle picking fee ID
+    default_picking_fee_id: 
+      data.default_picking_fee_id !== undefined ?
+      parseInt(String(data.default_picking_fee_id)) :
       existingProduct.default_picking_fee_id,
-    // Triple check the listing_title is set
+    // Ensure listing_title is set
     listing_title: data.listing_title || existingProduct?.listing_title || sku
   };
 
-  console.log("Data to be updated:", processedData);
+  console.log("Processed data to be updated:", processedData);
 
   // Verify listing_title is set before update
   if (!processedData.listing_title) {
@@ -97,7 +102,12 @@ export const updateProductDetails = async (sku: string, data: Partial<Product>) 
     throw updateError;
   }
 
-  console.log("Product updated successfully:", sku);
+  console.log("Product updated successfully:", {
+    sku,
+    shippingServiceId: processedData.default_shipping_service_id,
+    pickingFeeId: processedData.default_picking_fee_id
+  });
+  
   return true;
 };
 

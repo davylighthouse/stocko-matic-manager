@@ -1,3 +1,4 @@
+
 import { useState } from "react";
 import { useQuery, useMutation, useQueryClient } from "@tanstack/react-query";
 import { Card } from "@/components/ui/card";
@@ -79,70 +80,50 @@ const StockManagement = () => {
     const updates: Partial<Product> = {};
     const updatedFieldNames: string[] = [];
 
-    if (formData.get('listing_title')) {
-      updates.listing_title = formData.get('listing_title') as string;
-      updatedFieldNames.push('listing_title');
+    // Helper function to process form fields
+    const processField = <T extends keyof Product>(
+      fieldName: T, 
+      transform?: (value: string) => Product[T]
+    ) => {
+      const value = formData.get(fieldName);
+      if (value !== null && value !== '') {
+        updates[fieldName] = transform ? transform(value as string) : value as Product[T];
+        updatedFieldNames.push(fieldName);
+      }
+    };
+
+    // Process each field with appropriate type conversion
+    processField('listing_title');
+    processField('product_cost', value => parseFloat(value));
+    processField('warehouse_location');
+    processField('supplier');
+    processField('stock_quantity', value => parseInt(value));
+    processField('low_stock_threshold', value => parseInt(value));
+    processField('product_status');
+    processField('default_shipping_service');
+    processField('vat_status');
+    processField('dimensions_height', value => parseFloat(value));
+    processField('dimensions_width', value => parseFloat(value));
+    processField('dimensions_length', value => parseFloat(value));
+    processField('weight', value => parseFloat(value));
+    processField('packaging_cost', value => parseFloat(value));
+    processField('making_up_cost', value => parseFloat(value));
+    processField('additional_costs', value => parseFloat(value));
+
+    // Special handling for shipping service and picking fee IDs
+    const shippingServiceId = formData.get('default_shipping_service_id');
+    if (shippingServiceId) {
+      updates.default_shipping_service_id = parseInt(shippingServiceId as string);
+      updatedFieldNames.push('default_shipping_service_id');
     }
-    if (formData.get('product_cost')) {
-      updates.product_cost = parseFloat(formData.get('product_cost') as string);
-      updatedFieldNames.push('product_cost');
+
+    const pickingFeeId = formData.get('default_picking_fee_id');
+    if (pickingFeeId) {
+      updates.default_picking_fee_id = parseInt(pickingFeeId as string);
+      updatedFieldNames.push('default_picking_fee_id');
     }
-    if (formData.get('warehouse_location')) {
-      updates.warehouse_location = formData.get('warehouse_location') as string;
-      updatedFieldNames.push('warehouse_location');
-    }
-    if (formData.get('supplier')) {
-      updates.supplier = formData.get('supplier') as string;
-      updatedFieldNames.push('supplier');
-    }
-    if (formData.get('stock_quantity')) {
-      updates.stock_quantity = parseInt(formData.get('stock_quantity') as string);
-      updatedFieldNames.push('stock_quantity');
-    }
-    if (formData.get('low_stock_threshold')) {
-      updates.low_stock_threshold = parseInt(formData.get('low_stock_threshold') as string);
-      updatedFieldNames.push('low_stock_threshold');
-    }
-    if (formData.get('product_status')) {
-      updates.product_status = formData.get('product_status') as string;
-      updatedFieldNames.push('product_status');
-    }
-    if (formData.get('default_shipping_service')) {
-      updates.default_shipping_service = formData.get('default_shipping_service') as string;
-      updatedFieldNames.push('default_shipping_service');
-    }
-    if (formData.get('vat_status')) {
-      updates.vat_status = formData.get('vat_status') as string;
-      updatedFieldNames.push('vat_status');
-    }
-    if (formData.get('dimensions_height')) {
-      updates.dimensions_height = parseFloat(formData.get('dimensions_height') as string);
-      updatedFieldNames.push('dimensions_height');
-    }
-    if (formData.get('dimensions_width')) {
-      updates.dimensions_width = parseFloat(formData.get('dimensions_width') as string);
-      updatedFieldNames.push('dimensions_width');
-    }
-    if (formData.get('dimensions_length')) {
-      updates.dimensions_length = parseFloat(formData.get('dimensions_length') as string);
-      updatedFieldNames.push('dimensions_length');
-    }
-    if (formData.get('weight')) {
-      updates.weight = parseFloat(formData.get('weight') as string);
-      updatedFieldNames.push('weight');
-    }
-    if (formData.get('packaging_cost')) {
-      updates.packaging_cost = parseFloat(formData.get('packaging_cost') as string);
-      updatedFieldNames.push('packaging_cost');
-    }
-    if (formData.get('making_up_cost')) {
-      updates.making_up_cost = parseFloat(formData.get('making_up_cost') as string);
-      updatedFieldNames.push('making_up_cost');
-    }
-    if (formData.get('additional_costs')) {
-      updates.additional_costs = parseFloat(formData.get('additional_costs') as string);
-      updatedFieldNames.push('additional_costs');
-    }
+
+    console.log('Form updates:', updates);
 
     if (Object.keys(updates).length > 0) {
       setUpdatedFields(updatedFieldNames);
