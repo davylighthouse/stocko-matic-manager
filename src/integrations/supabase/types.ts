@@ -560,7 +560,6 @@ export type Database = {
           promoted_listing_percentage: number | null
           quantity: number | null
           sale_date: string | null
-          shipping_cost: number | null
           sku: string | null
           total_costs: number | null
           total_price: number | null
