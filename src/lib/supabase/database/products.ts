@@ -4,7 +4,6 @@ import type { Product } from '@/types/database';
 export const getStockLevels = async () => {
   console.log('Fetching stock levels...');
   
-  // Join products with current_stock_levels view to get accurate stock data
   const { data: products, error: productsError } = await supabase
     .from('products')
     .select(`
@@ -14,6 +13,13 @@ export const getStockLevels = async () => {
         initial_stock,
         quantity_sold,
         adjustments
+      ),
+      latest_stock_check_quantities (
+        last_check_quantity,
+        check_date
+      ),
+      total_sales_quantities (
+        total_sold
       )
     `)
     .order('listing_title');
@@ -30,18 +36,14 @@ export const getStockLevels = async () => {
     // Log individual product data for debugging
     console.log('Processing product:', {
       sku: product.sku,
+      stockQuantity: product.stock_quantity,
       stockLevels: product.current_stock_levels
     });
 
-    // Safely handle both array and single object cases
-    const stockLevel = Array.isArray(product.current_stock_levels) 
-      ? product.current_stock_levels[0] 
-      : product.current_stock_levels;
-
-    // Safely access current_stock with null coalescing
-    const currentStock = stockLevel?.current_stock ?? 0;
+    // Use stock_quantity as the primary source of truth
+    const currentStock = product.stock_quantity ?? 0;
     
-    console.log(`Calculated current stock for ${product.sku}:`, currentStock);
+    console.log(`Stock quantity for ${product.sku}:`, currentStock);
 
     return {
       ...product,
@@ -149,28 +151,23 @@ export const updateStockLevel = async (sku: string, quantity: number) => {
       }
     }
 
-    // Get current stock level from the view
-    const { data: stockLevels, error: stockError } = await supabase
-      .from('current_stock_levels')
-      .select('*')
-      .eq('sku', sku)
-      .single();
+    // Update the stock quantity directly in the products table
+    const { error: updateError } = await supabase
+      .from('products')
+      .update({ stock_quantity: quantity })
+      .eq('sku', sku);
 
-    if (stockError) {
-      console.error('Error fetching current stock level:', stockError);
-      throw stockError;
+    if (updateError) {
+      console.error('Error updating stock quantity:', updateError);
+      throw updateError;
     }
-
-    // Calculate the adjustment needed
-    const adjustment = quantity - (stockLevels.current_stock || 0);
-    console.log('Calculated adjustment:', adjustment);
 
     // Record the adjustment
     const { error: adjustmentError } = await supabase
       .from('stock_adjustments')
       .insert({
         sku,
-        quantity: adjustment,
+        quantity: quantity - (existingProduct?.stock_quantity ?? 0),
         notes: 'Manual stock update'
       });
 
