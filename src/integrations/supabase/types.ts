@@ -635,6 +635,13 @@ export type Database = {
           grand_total: number
         }[]
       }
+      process_product_updates: {
+        Args: {
+          p_sku: string
+          p_updates: Json
+        }
+        Returns: undefined
+      }
       update_stock_quantities: {
         Args: Record<PropertyKey, never>
         Returns: undefined
