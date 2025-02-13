@@ -16,6 +16,13 @@ interface BundleProductDialogProps {
   onBundleUpdate: () => void;
 }
 
+// Create a simpler type for available products
+interface AvailableProduct {
+  sku: string;
+  listing_title: string;
+  stock_quantity: number;
+}
+
 export const BundleProductDialog = ({
   product,
   open,
@@ -23,7 +30,7 @@ export const BundleProductDialog = ({
   onBundleUpdate,
 }: BundleProductDialogProps) => {
   const [components, setComponents] = useState<BundleComponent[]>([]);
-  const [availableProducts, setAvailableProducts] = useState<Product[]>([]);
+  const [availableProducts, setAvailableProducts] = useState<AvailableProduct[]>([]);
   const { toast } = useToast();
 
   useEffect(() => {
