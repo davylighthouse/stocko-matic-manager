@@ -91,6 +91,18 @@ export const updateStockLevel = async (sku: string, quantity: number) => {
   try {
     console.log('Updating stock level for SKU:', sku, 'to quantity:', quantity);
 
+    // First check if this is a bundle
+    const { data: bundleProduct } = await supabase
+      .from('bundle_products')
+      .select('*')
+      .eq('bundle_sku', sku)
+      .maybeSingle();
+
+    if (bundleProduct) {
+      console.error('Cannot directly update stock for bundle products');
+      throw new Error('Cannot directly update stock for bundle products. Stock is calculated based on components.');
+    }
+
     const { data: existingProduct, error: checkError } = await supabase
       .from('products')
       .select('stock_quantity, listing_title')
@@ -104,7 +116,6 @@ export const updateStockLevel = async (sku: string, quantity: number) => {
 
     if (!existingProduct) {
       console.log('Product not found, creating new product');
-      // When creating a new product, explicitly set listing_title to SKU
       const newProduct = await createProduct({
         sku,
         listing_title: sku,
@@ -123,6 +134,8 @@ export const updateStockLevel = async (sku: string, quantity: number) => {
       await updateProductDetails(sku, { listing_title: sku });
     }
 
+    console.log('Updating stock quantity from', existingProduct.stock_quantity, 'to', quantity);
+
     const { error: updateError } = await supabase
       .from('products')
       .update({ 
@@ -136,17 +149,39 @@ export const updateStockLevel = async (sku: string, quantity: number) => {
       throw updateError;
     }
 
+    const adjustmentQuantity = quantity - (existingProduct?.stock_quantity ?? 0);
+    console.log('Recording stock adjustment of:', adjustmentQuantity);
+
     const { error: adjustmentError } = await supabase
       .from('stock_adjustments')
       .insert({
         sku,
-        quantity: quantity - (existingProduct?.stock_quantity ?? 0),
+        quantity: adjustmentQuantity,
         notes: 'Manual stock update'
       });
 
     if (adjustmentError) {
       console.error('Error recording adjustment:', adjustmentError);
       throw adjustmentError;
+    }
+
+    // After updating, trigger a refresh of any bundles that use this component
+    const { data: affectedBundles } = await supabase
+      .from('bundle_components')
+      .select('bundle_sku')
+      .eq('component_sku', sku);
+
+    if (affectedBundles && affectedBundles.length > 0) {
+      console.log('Updating affected bundles:', affectedBundles);
+      // The update_bundle_stock trigger will handle updating the bundle stock
+      const { error: bundleUpdateError } = await supabase
+        .from('bundle_components')
+        .update({ updated_at: new Date().toISOString() })
+        .in('bundle_sku', affectedBundles.map(b => b.bundle_sku));
+
+      if (bundleUpdateError) {
+        console.error('Error updating bundles:', bundleUpdateError);
+      }
     }
 
     console.log('Stock level updated successfully');
