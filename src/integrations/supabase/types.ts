@@ -267,6 +267,7 @@ export type Database = {
       }
       sales: {
         Row: {
+          advertising_cost: number | null
           gross_profit: number | null
           id: number
           platform: string
@@ -277,6 +278,7 @@ export type Database = {
           total_price: number | null
         }
         Insert: {
+          advertising_cost?: number | null
           gross_profit?: number | null
           id?: number
           platform: string
@@ -287,6 +289,7 @@ export type Database = {
           total_price?: number | null
         }
         Update: {
+          advertising_cost?: number | null
           gross_profit?: number | null
           id?: number
           platform?: string

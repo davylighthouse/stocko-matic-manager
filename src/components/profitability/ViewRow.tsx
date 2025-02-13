@@ -1,8 +1,9 @@
+
 import { TableCell, TableRow } from "@/components/ui/table";
 import { format } from "date-fns";
 import { Button } from "@/components/ui/button";
 import { Pencil, Calculator } from "lucide-react";
-import { Tooltip, TooltipContent, TooltipTrigger } from "@/components/ui/tooltip";
+import { Dialog, DialogContent, DialogDescription, DialogHeader, DialogTitle, DialogTrigger } from "@/components/ui/dialog";
 import { ProfitabilityData } from "./types";
 import { formatCurrency, formatPercentage, getCalculationTooltip, getMarginColor, getProfitColor } from "./utils";
 import { useState } from "react";
@@ -72,32 +73,27 @@ export const ViewRow = ({ sale, columnWidths, onEdit }: ViewRowProps) => {
 
   const handleStockUpdate = async (sku: string, quantity: number) => {
     // This function is required by the ProductEditDialog but won't be used in this context
-    // since we're not allowing stock updates from the profitability view
   };
 
-  const TooltipWrapper = ({ value, tooltipContent, className = "" }: { value: React.ReactNode, tooltipContent: string, className?: string }) => (
-    <Tooltip>
-      <TooltipTrigger asChild>
-        <div className={`group inline-flex items-center gap-1 cursor-help ${className}`}>
+  const CalculationDialog = ({ title, value, tooltipContent, className = "" }: { title: string, value: React.ReactNode, tooltipContent: string, className?: string }) => (
+    <Dialog>
+      <DialogTrigger asChild>
+        <div className={`group inline-flex items-center gap-1 cursor-pointer ${className}`}>
           {value}
           <Calculator className="h-3.5 w-3.5 opacity-50 group-hover:opacity-100 transition-opacity" />
         </div>
-      </TooltipTrigger>
-      <TooltipContent 
-        side="top" 
-        align="start"
-        className="max-w-[400px] w-fit bg-slate-900 text-slate-50 p-4 rounded-lg shadow-lg border border-slate-800"
-      >
-        <div className="space-y-2">
-          <div className="font-medium text-slate-200 border-b border-slate-700 pb-2 mb-2">
-            Calculation Breakdown
-          </div>
-          <pre className="text-sm whitespace-pre-wrap font-mono bg-slate-800 p-2 rounded">
-            {tooltipContent}
-          </pre>
-        </div>
-      </TooltipContent>
-    </Tooltip>
+      </DialogTrigger>
+      <DialogContent className="bg-slate-900 text-slate-50">
+        <DialogHeader>
+          <DialogTitle className="text-slate-200">{title}</DialogTitle>
+          <DialogDescription>
+            <pre className="text-sm whitespace-pre-wrap font-mono bg-slate-800 p-4 rounded mt-4 text-slate-100">
+              {tooltipContent}
+            </pre>
+          </DialogDescription>
+        </DialogHeader>
+      </DialogContent>
+    </Dialog>
   );
 
   return (
@@ -123,50 +119,65 @@ export const ViewRow = ({ sale, columnWidths, onEdit }: ViewRowProps) => {
         {sale.quantity}
       </TableCell>
       <TableCell className="text-right" style={{ width: columnWidths.salePrice }}>
-        <TooltipWrapper 
+        <CalculationDialog 
+          title="Sale Price"
           value={formatCurrency(sale.total_price)}
           tooltipContent={`Sale Price: ${formatCurrency(sale.total_price)}`}
         />
       </TableCell>
       <TableCell className="text-right" style={{ width: columnWidths.productCost }}>
-        <TooltipWrapper 
+        <CalculationDialog 
+          title="Product Cost"
           value={formatCurrency(sale.total_product_cost)}
           tooltipContent={`Product Cost per Unit (${formatCurrency(sale.product_cost)}) × Quantity (${sale.quantity}) = ${formatCurrency(sale.total_product_cost)}`}
         />
       </TableCell>
       <TableCell className="text-right" style={{ width: columnWidths.platformFees }}>
-        <TooltipWrapper 
+        <CalculationDialog 
+          title="Platform Fees"
           value={formatCurrency(sale.platform_fees)}
-          tooltipContent={`Platform Fee: ${formatCurrency(sale.platform_fees)}${sale.platform_fee_percentage ? `\nFee Rate: ${sale.platform_fee_percentage}%` : ''}`}
+          tooltipContent={getCalculationTooltip(sale, 'platform_fees', formatCurrency, formatPercentage)}
         />
       </TableCell>
       <TableCell className="text-right" style={{ width: columnWidths.shipping }}>
-        <TooltipWrapper 
+        <CalculationDialog 
+          title="Shipping Costs"
           value={formatCurrency(sale.shipping_cost)}
           tooltipContent={getCalculationTooltip(sale, 'shipping', formatCurrency, formatPercentage)}
         />
       </TableCell>
       <TableCell className="text-right" style={{ width: columnWidths.vat }}>
-        <TooltipWrapper 
+        <CalculationDialog 
+          title="VAT"
           value={formatCurrency(sale.vat_cost)}
           tooltipContent={getCalculationTooltip(sale, 'vat', formatCurrency, formatPercentage)}
         />
       </TableCell>
+      <TableCell className="text-right" style={{ width: columnWidths.advertising }}>
+        <CalculationDialog 
+          title="Advertising Cost"
+          value={formatCurrency(sale.advertising_cost)}
+          tooltipContent={getCalculationTooltip(sale, 'advertising', formatCurrency, formatPercentage)}
+        />
+      </TableCell>
       <TableCell className="text-right" style={{ width: columnWidths.totalCosts }}>
-        <TooltipWrapper 
+        <CalculationDialog 
+          title="Total Costs"
           value={formatCurrency(sale.total_costs)}
           tooltipContent={getCalculationTooltip(sale, 'total_costs', formatCurrency, formatPercentage)}
         />
       </TableCell>
       <TableCell className="text-right" style={{ width: columnWidths.profit }}>
-        <TooltipWrapper 
+        <CalculationDialog 
+          title="Profit"
           value={formatCurrency(sale.profit)}
           tooltipContent={getCalculationTooltip(sale, 'profit', formatCurrency, formatPercentage)}
           className={getProfitColor(sale.profit)}
         />
       </TableCell>
       <TableCell className="text-right" style={{ width: columnWidths.margin }}>
-        <TooltipWrapper 
+        <CalculationDialog 
+          title="Profit Margin"
           value={formatPercentage(sale.profit_margin)}
           tooltipContent={getCalculationTooltip(sale, 'profit_margin', formatCurrency, formatPercentage)}
           className={getMarginColor(sale.profit_margin)}

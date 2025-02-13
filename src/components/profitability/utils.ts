@@ -30,6 +30,7 @@ export const getCalculationTooltip = (sale: any, type: string, formatCurrency: (
 Platform Fees: ${formatCurrency(sale.platform_fees)}
 Shipping Cost: ${formatCurrency(sale.shipping_cost)}
 VAT: ${formatCurrency(sale.vat_cost)}
+Advertising Cost: ${formatCurrency(sale.advertising_cost)}
 ----------------------------------
 Total = ${formatCurrency(sale.total_costs)}`;
 
@@ -68,13 +69,21 @@ VAT Amount = ${formatCurrency(sale.vat_cost)}`;
       const feeBreakdown = [
         sale.platform_fee_percentage ? `Percentage Fee (${sale.platform_fee_percentage}%): ${formatCurrency((sale.total_price * sale.platform_fee_percentage) / 100)}` : null,
         sale.platform_flat_fee ? `Flat Fee: ${formatCurrency(sale.platform_flat_fee)}` : null,
-        sale.promoted_listing_percentage ? `Promoted Listing Fee (${sale.promoted_listing_percentage}%): ${formatCurrency((sale.total_price * sale.promoted_listing_percentage) / 100)}` : null,
         sale.fba_fee_amount ? `FBA Fee: ${formatCurrency(sale.fba_fee_amount)}` : null,
       ].filter(Boolean).join('\n');
 
       return `${feeBreakdown}
 ----------------------------------
 Total Platform Fees = ${formatCurrency(sale.platform_fees)}`;
+
+    case 'advertising':
+      if (!sale.promoted || sale.platform !== 'eBay') {
+        return 'No advertising costs for this sale';
+      }
+      return `Sale Price: ${formatCurrency(sale.total_price)}
+Promoted Listing Rate: ${sale.promoted_listing_percentage}%
+----------------------------------
+Advertising Cost = ${formatCurrency(sale.advertising_cost)}`;
 
     default:
       return '';
