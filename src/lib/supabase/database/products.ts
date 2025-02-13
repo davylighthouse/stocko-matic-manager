@@ -69,11 +69,12 @@ export const updateProductDetails = async (sku: string, data: Partial<Product>) 
     ...existingProduct,
     ...data,
     // Handle shipping service ID - convert "not_set" to null
-    default_shipping_service_id: data.default_shipping_service_id === "not_set" ? 
-      null : 
-      data.default_shipping_service_id ? 
-        parseInt(data.default_shipping_service_id.toString()) : 
-        null,
+    default_shipping_service_id: typeof data.default_shipping_service_id === 'string' && 
+      data.default_shipping_service_id === "not_set" ? 
+        null : 
+        data.default_shipping_service_id ? 
+          parseInt(data.default_shipping_service_id.toString()) : 
+          null,
     // Handle picking fee ID - ensure it's a number
     default_picking_fee_id: data.default_picking_fee_id ? 
       parseInt(data.default_picking_fee_id.toString()) : 
