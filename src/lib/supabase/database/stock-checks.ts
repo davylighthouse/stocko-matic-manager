@@ -72,12 +72,26 @@ export const completeStockCheck = async (stockCheckId: number) => {
 };
 
 export const getCurrentStockLevels = async () => {
+  console.log('Fetching current stock levels...');
+  
   const { data, error } = await supabase
     .from('current_stock_levels')
-    .select('*')
+    .select(`
+      sku,
+      listing_title,
+      initial_stock,
+      current_stock,
+      quantity_sold,
+      adjustments
+    `)
     .order('sku');
 
-  if (error) throw error;
+  if (error) {
+    console.error('Error fetching stock levels:', error);
+    throw error;
+  }
+
+  console.log('Fetched stock levels:', data);
   return data as CurrentStockLevel[];
 };
 
