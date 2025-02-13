@@ -68,10 +68,17 @@ export const updateProductDetails = async (sku: string, data: Partial<Product>) 
   const mergedData = {
     ...existingProduct,
     ...data,
-    listing_title: data.listing_title || existingProduct.listing_title || sku
+    // Triple check the listing_title is set
+    listing_title: data.listing_title || existingProduct?.listing_title || sku
   };
 
-  console.log("Clean data for update:", mergedData);
+  console.log("Data to be updated:", mergedData);
+
+  // Verify listing_title is set before update
+  if (!mergedData.listing_title) {
+    console.error("listing_title is still null after merge, using SKU as fallback");
+    mergedData.listing_title = sku;
+  }
 
   const { error: updateError } = await supabase
     .from('products')
@@ -97,20 +104,30 @@ export const createProduct = async (product: {
   // Always ensure listing_title is set, using SKU as fallback
   const productData = {
     sku: product.sku,
-    listing_title: product.listing_title || product.sku,
+    listing_title: product.listing_title || product.sku, // Ensure listing_title is never null
     stock_quantity: product.stock_quantity ?? 0
   };
+
+  // Additional verification
+  if (!productData.listing_title) {
+    console.error("listing_title is null after initial setup, using SKU");
+    productData.listing_title = product.sku;
+  }
 
   console.log('Final product data:', productData);
 
   const { data: existingProduct } = await supabase
     .from('products')
-    .select('sku')
+    .select('*')  // Changed to select all fields
     .eq('sku', product.sku)
     .maybeSingle();
 
   if (existingProduct) {
     console.log('Product already exists:', existingProduct);
+    // If product exists but listing_title is null, update it
+    if (!existingProduct.listing_title) {
+      await updateProductDetails(product.sku, { listing_title: product.sku });
+    }
     return existingProduct;
   }
 
@@ -149,7 +166,7 @@ export const updateStockLevel = async (sku: string, quantity: number) => {
       // When creating a new product, explicitly set listing_title to SKU
       const newProduct = await createProduct({
         sku,
-        listing_title: sku,
+        listing_title: sku, // Explicitly set listing_title to SKU
         stock_quantity: quantity
       });
 
@@ -159,9 +176,18 @@ export const updateStockLevel = async (sku: string, quantity: number) => {
       return true;
     }
 
+    // If existing product has null listing_title, update it
+    if (!existingProduct.listing_title) {
+      console.log('Existing product has null listing_title, updating to SKU');
+      await updateProductDetails(sku, { listing_title: sku });
+    }
+
     const { error: updateError } = await supabase
       .from('products')
-      .update({ stock_quantity: quantity })
+      .update({ 
+        stock_quantity: quantity,
+        listing_title: existingProduct.listing_title || sku // Ensure listing_title is set
+      })
       .eq('sku', sku);
 
     if (updateError) {
