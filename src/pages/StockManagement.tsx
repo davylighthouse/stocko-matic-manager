@@ -43,15 +43,49 @@ const StockManagement = () => {
 
   const updateProductMutation = useMutation({
     mutationFn: ({ sku, data }: { sku: string; data: Partial<Product> }) => {
-      // Create a new object with only the valid properties from Product type
-      const updatedData: Partial<Product> = {
-        ...data,
-        amazon_fba_tier_id: data.amazon_fba_tier_id ? 
-          parseInt(data.amazon_fba_tier_id.toString()) : null,
-        promoted_listing_percentage: data.promoted_listing_percentage ? 
-          parseFloat(data.promoted_listing_percentage.toString()) : null
-      };
-      return updateProductDetails(sku, updatedData);
+      console.log('Form data before processing:', data);
+      
+      // Process form data
+      const processedData: Partial<Product> = {};
+      
+      // Process text fields
+      if (data.listing_title) processedData.listing_title = data.listing_title;
+      if (data.supplier) processedData.supplier = data.supplier;
+      if (data.warehouse_location) processedData.warehouse_location = data.warehouse_location;
+      if (data.product_status) processedData.product_status = data.product_status;
+      if (data.vat_status) processedData.vat_status = data.vat_status;
+
+      // Process numeric fields
+      if (data.product_cost) processedData.product_cost = parseFloat(data.product_cost.toString());
+      if (data.dimensions_height) processedData.dimensions_height = parseFloat(data.dimensions_height.toString());
+      if (data.dimensions_width) processedData.dimensions_width = parseFloat(data.dimensions_width.toString());
+      if (data.dimensions_length) processedData.dimensions_length = parseFloat(data.dimensions_length.toString());
+      if (data.weight) processedData.weight = parseFloat(data.weight.toString());
+      if (data.packaging_cost) processedData.packaging_cost = parseFloat(data.packaging_cost.toString());
+      if (data.making_up_cost) processedData.making_up_cost = parseFloat(data.making_up_cost.toString());
+      if (data.additional_costs) processedData.additional_costs = parseFloat(data.additional_costs.toString());
+      if (data.low_stock_threshold) processedData.low_stock_threshold = parseInt(data.low_stock_threshold.toString());
+      
+      // Special handling for FBA tier and promoted listing
+      if (data.amazon_fba_tier_id !== undefined) {
+        processedData.amazon_fba_tier_id = data.amazon_fba_tier_id === 'none' ? null :
+          parseInt(data.amazon_fba_tier_id.toString());
+      }
+      
+      if (data.promoted_listing_percentage !== undefined) {
+        processedData.promoted_listing_percentage = parseFloat(data.promoted_listing_percentage.toString());
+      }
+
+      // Service IDs
+      if (data.default_shipping_service_id) {
+        processedData.default_shipping_service_id = parseInt(data.default_shipping_service_id.toString());
+      }
+      if (data.default_picking_fee_id) {
+        processedData.default_picking_fee_id = parseInt(data.default_picking_fee_id.toString());
+      }
+
+      console.log('Processed data before sending to API:', processedData);
+      return updateProductDetails(sku, processedData);
     },
     onSuccess: () => {
       queryClient.invalidateQueries({ queryKey: ['products'] });
@@ -71,16 +105,6 @@ const StockManagement = () => {
     },
   });
 
-  const filteredProducts = products.filter(
-    (product: Product) =>
-      product.sku.toLowerCase().includes(search.toLowerCase()) ||
-      product.listing_title.toLowerCase().includes(search.toLowerCase())
-  );
-
-  const handleStockUpdate = async (sku: string, quantity: number) => {
-    updateStockMutation.mutate({ sku, quantity });
-  };
-
   const handleProductUpdate = (event: React.FormEvent<HTMLFormElement>) => {
     event.preventDefault();
     if (!selectedProduct) return;
@@ -89,48 +113,13 @@ const StockManagement = () => {
     const updates: Partial<Product> = {};
     const updatedFieldNames: string[] = [];
 
-    // Helper function to process form fields
-    const processField = <T extends keyof Product>(
-      fieldName: T, 
-      transform?: (value: string) => Product[T]
-    ) => {
-      const value = formData.get(fieldName);
-      if (value !== null && value !== '') {
-        updates[fieldName] = transform ? transform(value as string) : value as Product[T];
-        updatedFieldNames.push(fieldName);
+    // Collect all form fields
+    formData.forEach((value, key) => {
+      if (value !== '' && value !== null) {
+        (updates as any)[key] = value;
+        updatedFieldNames.push(key);
       }
-    };
-
-    // Process each field with appropriate type conversion
-    processField('listing_title');
-    processField('product_cost', value => parseFloat(value));
-    processField('warehouse_location');
-    processField('supplier');
-    processField('stock_quantity', value => parseInt(value));
-    processField('low_stock_threshold', value => parseInt(value));
-    processField('product_status');
-    processField('default_shipping_service');
-    processField('vat_status');
-    processField('dimensions_height', value => parseFloat(value));
-    processField('dimensions_width', value => parseFloat(value));
-    processField('dimensions_length', value => parseFloat(value));
-    processField('weight', value => parseFloat(value));
-    processField('packaging_cost', value => parseFloat(value));
-    processField('making_up_cost', value => parseFloat(value));
-    processField('additional_costs', value => parseFloat(value));
-
-    // Special handling for shipping service and picking fee IDs
-    const shippingServiceId = formData.get('default_shipping_service_id');
-    if (shippingServiceId) {
-      updates.default_shipping_service_id = parseInt(shippingServiceId as string);
-      updatedFieldNames.push('default_shipping_service_id');
-    }
-
-    const pickingFeeId = formData.get('default_picking_fee_id');
-    if (pickingFeeId) {
-      updates.default_picking_fee_id = parseInt(pickingFeeId as string);
-      updatedFieldNames.push('default_picking_fee_id');
-    }
+    });
 
     console.log('Form updates:', updates);
 
