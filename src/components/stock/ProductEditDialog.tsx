@@ -11,6 +11,7 @@ import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
 import { Product } from "@/types/database";
 import { useEffect, useState } from "react";
+import { Check } from "lucide-react";
 
 interface ProductEditDialogProps {
   product: Product | null;
@@ -18,6 +19,7 @@ interface ProductEditDialogProps {
   onOpenChange: (open: boolean) => void;
   onStockUpdate: (sku: string, quantity: number) => void;
   onSubmit: (event: React.FormEvent<HTMLFormElement>) => void;
+  updatedFields?: string[];
 }
 
 export const ProductEditDialog = ({
@@ -26,6 +28,7 @@ export const ProductEditDialog = ({
   onOpenChange,
   onStockUpdate,
   onSubmit,
+  updatedFields = [],
 }: ProductEditDialogProps) => {
   const [totalCost, setTotalCost] = useState<number>(0);
 
@@ -38,6 +41,15 @@ export const ProductEditDialog = ({
       setTotalCost(total);
     }
   }, [product]);
+
+  const renderFieldWithCheck = (fieldName: string, children: React.ReactNode) => (
+    <div className="relative">
+      {children}
+      {updatedFields.includes(fieldName) && (
+        <Check className="absolute right-2 top-1/2 -translate-y-1/2 h-4 w-4 text-green-500" />
+      )}
+    </div>
+  );
 
   if (!product) return null;
 
@@ -58,128 +70,152 @@ export const ProductEditDialog = ({
             <TabsContent value="details" className="space-y-4">
               <div>
                 <Label htmlFor="listing_title">Title</Label>
-                <Input
-                  id="listing_title"
-                  name="listing_title"
-                  defaultValue={product.listing_title}
-                />
+                {renderFieldWithCheck("listing_title",
+                  <Input
+                    id="listing_title"
+                    name="listing_title"
+                    defaultValue={product.listing_title}
+                  />
+                )}
               </div>
               <div>
                 <Label htmlFor="stock_quantity">Current Stock</Label>
-                <Input
-                  id="stock_quantity"
-                  name="stock_quantity"
-                  type="number"
-                  defaultValue={product.current_stock ?? 0}
-                  onChange={(e) => {
-                    const quantity = parseInt(e.target.value);
-                    if (!isNaN(quantity)) {
-                      onStockUpdate(product.sku, quantity);
-                    }
-                  }}
-                />
+                {renderFieldWithCheck("stock_quantity",
+                  <Input
+                    id="stock_quantity"
+                    name="stock_quantity"
+                    type="number"
+                    defaultValue={product.current_stock ?? 0}
+                    onChange={(e) => {
+                      const quantity = parseInt(e.target.value);
+                      if (!isNaN(quantity)) {
+                        onStockUpdate(product.sku, quantity);
+                      }
+                    }}
+                  />
+                )}
               </div>
               <div>
                 <Label htmlFor="low_stock_threshold">Low Stock Threshold</Label>
-                <Input
-                  id="low_stock_threshold"
-                  name="low_stock_threshold"
-                  type="number"
-                  defaultValue={product.low_stock_threshold ?? 20}
-                />
+                {renderFieldWithCheck("low_stock_threshold",
+                  <Input
+                    id="low_stock_threshold"
+                    name="low_stock_threshold"
+                    type="number"
+                    defaultValue={product.low_stock_threshold ?? 20}
+                  />
+                )}
               </div>
               <div>
                 <Label htmlFor="supplier">Supplier</Label>
-                <Input
-                  id="supplier"
-                  name="supplier"
-                  defaultValue={product.supplier}
-                />
+                {renderFieldWithCheck("supplier",
+                  <Input
+                    id="supplier"
+                    name="supplier"
+                    defaultValue={product.supplier}
+                  />
+                )}
               </div>
               <div>
                 <Label htmlFor="product_status">Product Status</Label>
-                <Select name="product_status" defaultValue={product.product_status || "active"}>
-                  <SelectTrigger>
-                    <SelectValue placeholder="Select status" />
-                  </SelectTrigger>
-                  <SelectContent>
-                    <SelectItem value="active">Active</SelectItem>
-                    <SelectItem value="discontinued">Discontinued</SelectItem>
-                    <SelectItem value="out_of_stock">Out of Stock</SelectItem>
-                  </SelectContent>
-                </Select>
+                {renderFieldWithCheck("product_status",
+                  <Select name="product_status" defaultValue={product.product_status || "active"}>
+                    <SelectTrigger>
+                      <SelectValue placeholder="Select status" />
+                    </SelectTrigger>
+                    <SelectContent>
+                      <SelectItem value="active">Active</SelectItem>
+                      <SelectItem value="discontinued">Discontinued</SelectItem>
+                      <SelectItem value="out_of_stock">Out of Stock</SelectItem>
+                    </SelectContent>
+                  </Select>
+                )}
               </div>
               <div>
                 <Label htmlFor="default_shipping_service">Default Shipping Service</Label>
-                <Input
-                  id="default_shipping_service"
-                  name="default_shipping_service"
-                  defaultValue={product.default_shipping_service}
-                />
+                {renderFieldWithCheck("default_shipping_service",
+                  <Input
+                    id="default_shipping_service"
+                    name="default_shipping_service"
+                    defaultValue={product.default_shipping_service}
+                  />
+                )}
               </div>
               <div>
                 <Label htmlFor="vat_status">VAT Status</Label>
-                <Select name="vat_status" defaultValue={product.vat_status || "standard"}>
-                  <SelectTrigger>
-                    <SelectValue placeholder="Select VAT status" />
-                  </SelectTrigger>
-                  <SelectContent>
-                    <SelectItem value="standard">Standard Rate</SelectItem>
-                    <SelectItem value="reduced">Reduced Rate</SelectItem>
-                    <SelectItem value="zero">Zero Rate</SelectItem>
-                    <SelectItem value="exempt">Exempt</SelectItem>
-                  </SelectContent>
-                </Select>
+                {renderFieldWithCheck("vat_status",
+                  <Select name="vat_status" defaultValue={product.vat_status || "standard"}>
+                    <SelectTrigger>
+                      <SelectValue placeholder="Select VAT status" />
+                    </SelectTrigger>
+                    <SelectContent>
+                      <SelectItem value="standard">Standard Rate</SelectItem>
+                      <SelectItem value="reduced">Reduced Rate</SelectItem>
+                      <SelectItem value="zero">Zero Rate</SelectItem>
+                      <SelectItem value="exempt">Exempt</SelectItem>
+                    </SelectContent>
+                  </Select>
+                )}
               </div>
             </TabsContent>
 
             <TabsContent value="information" className="space-y-4">
               <div className="grid grid-cols-3 gap-4">
+                {renderFieldWithCheck("dimensions_height",
+                  <div>
+                    <Label htmlFor="dimensions_height">Height (mm)</Label>
+                    <Input
+                      id="dimensions_height"
+                      name="dimensions_height"
+                      type="number"
+                      defaultValue={product.dimensions_height}
+                    />
+                  </div>
+                )}
+                {renderFieldWithCheck("dimensions_width",
+                  <div>
+                    <Label htmlFor="dimensions_width">Width (mm)</Label>
+                    <Input
+                      id="dimensions_width"
+                      name="dimensions_width"
+                      type="number"
+                      defaultValue={product.dimensions_width}
+                    />
+                  </div>
+                )}
+                {renderFieldWithCheck("dimensions_length",
+                  <div>
+                    <Label htmlFor="dimensions_length">Length (mm)</Label>
+                    <Input
+                      id="dimensions_length"
+                      name="dimensions_length"
+                      type="number"
+                      defaultValue={product.dimensions_length}
+                    />
+                  </div>
+                )}
+              </div>
+              {renderFieldWithCheck("weight",
                 <div>
-                  <Label htmlFor="dimensions_height">Height (mm)</Label>
+                  <Label htmlFor="weight">Weight (g)</Label>
                   <Input
-                    id="dimensions_height"
-                    name="dimensions_height"
+                    id="weight"
+                    name="weight"
                     type="number"
-                    defaultValue={product.dimensions_height}
+                    defaultValue={product.weight}
                   />
                 </div>
+              )}
+              {renderFieldWithCheck("warehouse_location",
                 <div>
-                  <Label htmlFor="dimensions_width">Width (mm)</Label>
+                  <Label htmlFor="warehouse_location">Warehouse Location</Label>
                   <Input
-                    id="dimensions_width"
-                    name="dimensions_width"
-                    type="number"
-                    defaultValue={product.dimensions_width}
+                    id="warehouse_location"
+                    name="warehouse_location"
+                    defaultValue={product.warehouse_location}
                   />
                 </div>
-                <div>
-                  <Label htmlFor="dimensions_length">Length (mm)</Label>
-                  <Input
-                    id="dimensions_length"
-                    name="dimensions_length"
-                    type="number"
-                    defaultValue={product.dimensions_length}
-                  />
-                </div>
-              </div>
-              <div>
-                <Label htmlFor="weight">Weight (g)</Label>
-                <Input
-                  id="weight"
-                  name="weight"
-                  type="number"
-                  defaultValue={product.weight}
-                />
-              </div>
-              <div>
-                <Label htmlFor="warehouse_location">Warehouse Location</Label>
-                <Input
-                  id="warehouse_location"
-                  name="warehouse_location"
-                  defaultValue={product.warehouse_location}
-                />
-              </div>
+              )}
             </TabsContent>
 
             <TabsContent value="cost" className="space-y-4">
@@ -192,46 +228,54 @@ export const ProductEditDialog = ({
                   className="bg-gray-100"
                 />
               </div>
-              <div>
-                <Label htmlFor="product_cost">Product Cost</Label>
-                <Input
-                  id="product_cost"
-                  name="product_cost"
-                  type="number"
-                  step="0.01"
-                  defaultValue={product.product_cost}
-                />
-              </div>
-              <div>
-                <Label htmlFor="packaging_cost">Packaging Cost</Label>
-                <Input
-                  id="packaging_cost"
-                  name="packaging_cost"
-                  type="number"
-                  step="0.01"
-                  defaultValue={product.packaging_cost}
-                />
-              </div>
-              <div>
-                <Label htmlFor="making_up_cost">Making Up Cost</Label>
-                <Input
-                  id="making_up_cost"
-                  name="making_up_cost"
-                  type="number"
-                  step="0.01"
-                  defaultValue={product.making_up_cost}
-                />
-              </div>
-              <div>
-                <Label htmlFor="additional_costs">Additional Costs</Label>
-                <Input
-                  id="additional_costs"
-                  name="additional_costs"
-                  type="number"
-                  step="0.01"
-                  defaultValue={product.additional_costs}
-                />
-              </div>
+              {renderFieldWithCheck("product_cost",
+                <div>
+                  <Label htmlFor="product_cost">Product Cost</Label>
+                  <Input
+                    id="product_cost"
+                    name="product_cost"
+                    type="number"
+                    step="0.01"
+                    defaultValue={product.product_cost}
+                  />
+                </div>
+              )}
+              {renderFieldWithCheck("packaging_cost",
+                <div>
+                  <Label htmlFor="packaging_cost">Packaging Cost</Label>
+                  <Input
+                    id="packaging_cost"
+                    name="packaging_cost"
+                    type="number"
+                    step="0.01"
+                    defaultValue={product.packaging_cost}
+                  />
+                </div>
+              )}
+              {renderFieldWithCheck("making_up_cost",
+                <div>
+                  <Label htmlFor="making_up_cost">Making Up Cost</Label>
+                  <Input
+                    id="making_up_cost"
+                    name="making_up_cost"
+                    type="number"
+                    step="0.01"
+                    defaultValue={product.making_up_cost}
+                  />
+                </div>
+              )}
+              {renderFieldWithCheck("additional_costs",
+                <div>
+                  <Label htmlFor="additional_costs">Additional Costs</Label>
+                  <Input
+                    id="additional_costs"
+                    name="additional_costs"
+                    type="number"
+                    step="0.01"
+                    defaultValue={product.additional_costs}
+                  />
+                </div>
+              )}
             </TabsContent>
           </Tabs>
 

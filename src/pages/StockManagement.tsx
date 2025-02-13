@@ -1,4 +1,3 @@
-
 import { useState } from "react";
 import { useQuery, useMutation, useQueryClient } from "@tanstack/react-query";
 import { Card } from "@/components/ui/card";
@@ -13,6 +12,7 @@ import { ProductsTable } from "@/components/stock/ProductsTable";
 const StockManagement = () => {
   const [search, setSearch] = useState("");
   const [selectedProduct, setSelectedProduct] = useState<Product | null>(null);
+  const [updatedFields, setUpdatedFields] = useState<string[]>([]);
   const { toast } = useToast();
   const queryClient = useQueryClient();
 
@@ -57,6 +57,7 @@ const StockManagement = () => {
         description: error instanceof Error ? error.message : "Failed to update product details",
         variant: "destructive",
       });
+      setUpdatedFields([]); // Clear updated fields on error
     },
   });
 
@@ -76,27 +77,75 @@ const StockManagement = () => {
 
     const formData = new FormData(event.currentTarget);
     const updates: Partial<Product> = {};
+    const updatedFieldNames: string[] = [];
 
-    // Only include fields that have been filled in
-    if (formData.get('listing_title')) updates.listing_title = formData.get('listing_title') as string;
-    if (formData.get('product_cost')) updates.product_cost = parseFloat(formData.get('product_cost') as string);
-    if (formData.get('warehouse_location')) updates.warehouse_location = formData.get('warehouse_location') as string;
-    if (formData.get('supplier')) updates.supplier = formData.get('supplier') as string;
-    if (formData.get('stock_quantity')) updates.stock_quantity = parseInt(formData.get('stock_quantity') as string);
-    if (formData.get('low_stock_threshold')) updates.low_stock_threshold = parseInt(formData.get('low_stock_threshold') as string);
-    if (formData.get('product_status')) updates.product_status = formData.get('product_status') as string;
-    if (formData.get('default_shipping_service')) updates.default_shipping_service = formData.get('default_shipping_service') as string;
-    if (formData.get('vat_status')) updates.vat_status = formData.get('vat_status') as string;
-    if (formData.get('dimensions_height')) updates.dimensions_height = parseFloat(formData.get('dimensions_height') as string);
-    if (formData.get('dimensions_width')) updates.dimensions_width = parseFloat(formData.get('dimensions_width') as string);
-    if (formData.get('dimensions_length')) updates.dimensions_length = parseFloat(formData.get('dimensions_length') as string);
-    if (formData.get('weight')) updates.weight = parseFloat(formData.get('weight') as string);
-    if (formData.get('packaging_cost')) updates.packaging_cost = parseFloat(formData.get('packaging_cost') as string);
-    if (formData.get('making_up_cost')) updates.making_up_cost = parseFloat(formData.get('making_up_cost') as string);
-    if (formData.get('additional_costs')) updates.additional_costs = parseFloat(formData.get('additional_costs') as string);
+    if (formData.get('listing_title')) {
+      updates.listing_title = formData.get('listing_title') as string;
+      updatedFieldNames.push('listing_title');
+    }
+    if (formData.get('product_cost')) {
+      updates.product_cost = parseFloat(formData.get('product_cost') as string);
+      updatedFieldNames.push('product_cost');
+    }
+    if (formData.get('warehouse_location')) {
+      updates.warehouse_location = formData.get('warehouse_location') as string;
+      updatedFieldNames.push('warehouse_location');
+    }
+    if (formData.get('supplier')) {
+      updates.supplier = formData.get('supplier') as string;
+      updatedFieldNames.push('supplier');
+    }
+    if (formData.get('stock_quantity')) {
+      updates.stock_quantity = parseInt(formData.get('stock_quantity') as string);
+      updatedFieldNames.push('stock_quantity');
+    }
+    if (formData.get('low_stock_threshold')) {
+      updates.low_stock_threshold = parseInt(formData.get('low_stock_threshold') as string);
+      updatedFieldNames.push('low_stock_threshold');
+    }
+    if (formData.get('product_status')) {
+      updates.product_status = formData.get('product_status') as string;
+      updatedFieldNames.push('product_status');
+    }
+    if (formData.get('default_shipping_service')) {
+      updates.default_shipping_service = formData.get('default_shipping_service') as string;
+      updatedFieldNames.push('default_shipping_service');
+    }
+    if (formData.get('vat_status')) {
+      updates.vat_status = formData.get('vat_status') as string;
+      updatedFieldNames.push('vat_status');
+    }
+    if (formData.get('dimensions_height')) {
+      updates.dimensions_height = parseFloat(formData.get('dimensions_height') as string);
+      updatedFieldNames.push('dimensions_height');
+    }
+    if (formData.get('dimensions_width')) {
+      updates.dimensions_width = parseFloat(formData.get('dimensions_width') as string);
+      updatedFieldNames.push('dimensions_width');
+    }
+    if (formData.get('dimensions_length')) {
+      updates.dimensions_length = parseFloat(formData.get('dimensions_length') as string);
+      updatedFieldNames.push('dimensions_length');
+    }
+    if (formData.get('weight')) {
+      updates.weight = parseFloat(formData.get('weight') as string);
+      updatedFieldNames.push('weight');
+    }
+    if (formData.get('packaging_cost')) {
+      updates.packaging_cost = parseFloat(formData.get('packaging_cost') as string);
+      updatedFieldNames.push('packaging_cost');
+    }
+    if (formData.get('making_up_cost')) {
+      updates.making_up_cost = parseFloat(formData.get('making_up_cost') as string);
+      updatedFieldNames.push('making_up_cost');
+    }
+    if (formData.get('additional_costs')) {
+      updates.additional_costs = parseFloat(formData.get('additional_costs') as string);
+      updatedFieldNames.push('additional_costs');
+    }
 
-    // Only proceed with update if there are actual changes
     if (Object.keys(updates).length > 0) {
+      setUpdatedFields(updatedFieldNames);
       updateProductMutation.mutate({ sku: selectedProduct.sku, data: updates });
     } else {
       toast({
@@ -152,6 +201,7 @@ const StockManagement = () => {
           onProductSelect={setSelectedProduct}
           onStockUpdate={handleStockUpdate}
           onProductUpdate={handleProductUpdate}
+          updatedFields={updatedFields}
         />
       </Card>
     </div>
