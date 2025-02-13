@@ -4,8 +4,9 @@ import { Product } from "@/types/database";
 import { format } from "date-fns";
 import { cn } from "@/lib/utils";
 import { ProductEditDialog } from "./ProductEditDialog";
-import { Circle } from "lucide-react";
+import { Circle, Eye, EyeOff } from "lucide-react";
 import { Tooltip, TooltipContent, TooltipProvider, TooltipTrigger } from "@/components/ui/tooltip";
+import { useState } from "react";
 
 interface ProductsTableProps {
   products: Product[];
@@ -18,24 +19,25 @@ interface ProductsTableProps {
 
 const calculateCompleteness = (product: Product): { percentage: number; missingFields: string[] } => {
   const requiredFields = [
-    { name: 'listing_title', label: 'Title' },
-    { name: 'product_cost', label: 'Product Cost' },
-    { name: 'supplier', label: 'Supplier' },
-    { name: 'warehouse_location', label: 'Warehouse Location' },
-    { name: 'product_status', label: 'Product Status' },
-    { name: 'default_shipping_service', label: 'Shipping Service' },
-    { name: 'vat_status', label: 'VAT Status' },
-    { name: 'dimensions_height', label: 'Height' },
-    { name: 'dimensions_width', label: 'Width' },
-    { name: 'dimensions_length', label: 'Length' },
-    { name: 'weight', label: 'Weight' },
-    { name: 'packaging_cost', label: 'Packaging Cost' },
-    { name: 'making_up_cost', label: 'Making Up Cost' }
+    { name: 'listing_title', label: 'Title', defaultValue: product.sku },
+    { name: 'product_cost', label: 'Product Cost', defaultValue: null },
+    { name: 'supplier', label: 'Supplier', defaultValue: null },
+    { name: 'warehouse_location', label: 'Warehouse Location', defaultValue: null },
+    { name: 'product_status', label: 'Product Status', defaultValue: null },
+    { name: 'default_shipping_service', label: 'Shipping Service', defaultValue: null },
+    { name: 'vat_status', label: 'VAT Status', defaultValue: null },
+    { name: 'dimensions_height', label: 'Height', defaultValue: null },
+    { name: 'dimensions_width', label: 'Width', defaultValue: null },
+    { name: 'dimensions_length', label: 'Length', defaultValue: null },
+    { name: 'weight', label: 'Weight', defaultValue: null },
+    { name: 'packaging_cost', label: 'Packaging Cost', defaultValue: null },
+    { name: 'making_up_cost', label: 'Making Up Cost', defaultValue: null }
   ];
 
   const missingFields = requiredFields.filter(field => {
     const value = product[field.name as keyof Product];
-    return value === null || value === undefined || value === '';
+    // Only consider a field missing if it's not at its default value
+    return value !== field.defaultValue && (value === null || value === undefined || value === '');
   });
 
   const percentage = ((requiredFields.length - missingFields.length) / requiredFields.length) * 100;
@@ -54,12 +56,27 @@ export const ProductsTable = ({
   onProductUpdate,
   updatedFields = [],
 }: ProductsTableProps) => {
+  const [showStatus, setShowStatus] = useState(true);
+
   return (
     <div className="overflow-x-auto">
+      <div className="flex justify-between items-center mb-4">
+        <Button
+          variant="outline"
+          size="sm"
+          onClick={() => setShowStatus(!showStatus)}
+          className="flex items-center gap-2"
+        >
+          {showStatus ? <EyeOff className="h-4 w-4" /> : <Eye className="h-4 w-4" />}
+          {showStatus ? "Hide Status" : "Show Status"}
+        </Button>
+      </div>
       <table className="w-full">
         <thead>
           <tr className="bg-gray-50">
-            <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">Status</th>
+            {showStatus && (
+              <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">Status</th>
+            )}
             <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">SKU</th>
             <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">Stock Level</th>
             <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">Title</th>
@@ -87,25 +104,27 @@ export const ProductsTable = ({
                 onClick={() => onProductSelect(product)}
                 className="cursor-pointer hover:bg-gray-50"
               >
-                <td className="px-6 py-4 whitespace-nowrap">
-                  <TooltipProvider>
-                    <Tooltip>
-                      <TooltipTrigger>
-                        <div className="flex items-center">
-                          <Circle className={cn("h-4 w-4 fill-current", completenessColor)} />
-                          <span className="ml-2 text-sm text-gray-500">
-                            {completeness.percentage.toFixed(0)}%
-                          </span>
-                        </div>
-                      </TooltipTrigger>
-                      <TooltipContent>
-                        {completeness.missingFields.length > 0
-                          ? `Missing information: ${completeness.missingFields.join(', ')}`
-                          : 'All information complete'}
-                      </TooltipContent>
-                    </Tooltip>
-                  </TooltipProvider>
-                </td>
+                {showStatus && (
+                  <td className="px-6 py-4 whitespace-nowrap">
+                    <TooltipProvider>
+                      <Tooltip>
+                        <TooltipTrigger>
+                          <div className="flex items-center">
+                            <Circle className={cn("h-4 w-4 fill-current", completenessColor)} />
+                            <span className="ml-2 text-sm text-gray-500">
+                              {completeness.percentage.toFixed(0)}%
+                            </span>
+                          </div>
+                        </TooltipTrigger>
+                        <TooltipContent>
+                          {completeness.missingFields.length > 0
+                            ? `Missing information: ${completeness.missingFields.join(', ')}`
+                            : 'All information complete'}
+                        </TooltipContent>
+                      </Tooltip>
+                    </TooltipProvider>
+                  </td>
+                )}
                 <td className="px-6 py-4 whitespace-nowrap text-sm font-medium text-gray-900">
                   {product.sku}
                 </td>
