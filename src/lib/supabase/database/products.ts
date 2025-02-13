@@ -22,7 +22,7 @@ export const getStockLevels = async () => {
       total_sales_quantities (
         total_sold
       ),
-      bundle_products!bundle_products_bundle_sku_fkey (
+      bundle_products (
         bundle_sku
       ),
       bundle_components (
@@ -62,7 +62,7 @@ export const getStockLevels = async () => {
     return {
       ...product,
       current_stock: product.stock_quantity ?? 0,
-      bundle_products: product.bundle_products || null,
+      bundle_products: product.bundle_products?.[0] || null,
       bundle_components
     };
   });
