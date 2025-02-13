@@ -21,6 +21,13 @@ export const getStockLevels = async () => {
       ),
       total_sales_quantities (
         total_sold
+      ),
+      bundle_products!bundle_products_bundle_sku_fkey (
+        bundle_sku
+      ),
+      bundle_components!bundle_components_component_sku_fkey (
+        bundle_sku,
+        quantity
       )
     `)
     .order('listing_title');
@@ -41,7 +48,9 @@ export const getStockLevels = async () => {
 
     return {
       ...product,
-      current_stock: product.stock_quantity ?? 0
+      current_stock: product.stock_quantity ?? 0,
+      is_bundle: !!product.bundle_products,
+      bundle_components: product.bundle_components
     };
   });
 

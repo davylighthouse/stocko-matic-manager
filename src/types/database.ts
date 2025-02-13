@@ -35,6 +35,15 @@ export interface Product {
     quantity_sold: number;
     adjustments: number;
   };
+  is_bundle?: boolean;
+  bundle_components?: BundleComponent[];
+}
+
+export interface BundleComponent {
+  component_sku: string;
+  quantity: number;
+  listing_title?: string;
+  stock_quantity?: number;
 }
 
 export interface Sale {

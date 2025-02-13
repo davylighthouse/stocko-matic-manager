@@ -36,6 +36,88 @@ export type Database = {
         }
         Relationships: []
       }
+      bundle_components: {
+        Row: {
+          bundle_sku: string | null
+          component_sku: string | null
+          created_at: string | null
+          id: number
+          quantity: number
+          updated_at: string | null
+        }
+        Insert: {
+          bundle_sku?: string | null
+          component_sku?: string | null
+          created_at?: string | null
+          id?: number
+          quantity: number
+          updated_at?: string | null
+        }
+        Update: {
+          bundle_sku?: string | null
+          component_sku?: string | null
+          created_at?: string | null
+          id?: number
+          quantity?: number
+          updated_at?: string | null
+        }
+        Relationships: [
+          {
+            foreignKeyName: "bundle_components_bundle_sku_fkey"
+            columns: ["bundle_sku"]
+            isOneToOne: false
+            referencedRelation: "bundle_products"
+            referencedColumns: ["bundle_sku"]
+          },
+          {
+            foreignKeyName: "bundle_components_component_sku_fkey"
+            columns: ["component_sku"]
+            isOneToOne: false
+            referencedRelation: "current_stock_levels"
+            referencedColumns: ["sku"]
+          },
+          {
+            foreignKeyName: "bundle_components_component_sku_fkey"
+            columns: ["component_sku"]
+            isOneToOne: false
+            referencedRelation: "products"
+            referencedColumns: ["sku"]
+          },
+        ]
+      }
+      bundle_products: {
+        Row: {
+          bundle_sku: string
+          created_at: string | null
+          updated_at: string | null
+        }
+        Insert: {
+          bundle_sku: string
+          created_at?: string | null
+          updated_at?: string | null
+        }
+        Update: {
+          bundle_sku?: string
+          created_at?: string | null
+          updated_at?: string | null
+        }
+        Relationships: [
+          {
+            foreignKeyName: "bundle_products_bundle_sku_fkey"
+            columns: ["bundle_sku"]
+            isOneToOne: true
+            referencedRelation: "current_stock_levels"
+            referencedColumns: ["sku"]
+          },
+          {
+            foreignKeyName: "bundle_products_bundle_sku_fkey"
+            columns: ["bundle_sku"]
+            isOneToOne: true
+            referencedRelation: "products"
+            referencedColumns: ["sku"]
+          },
+        ]
+      }
       courier_settings: {
         Row: {
           courier: string
