@@ -108,18 +108,14 @@ export const updateSaleProfitability = async (id: number, data: Partial<Profitab
   console.log('Updating sale profitability:', { id, data });
   
   const { error } = await supabase
-    .from('sales_profitability')
+    .from('sales')  // Changed from 'sales_profitability' to 'sales' since it's a view
     .update({
       sale_date: data.sale_date,
       platform: data.platform,
       sku: data.sku,
-      listing_title: data.listing_title,
       quantity: data.quantity,
       total_price: parsePrice(data.total_price),
-      total_product_cost: parsePrice(data.total_product_cost),
-      platform_fees: parsePrice(data.platform_fees),
-      shipping_cost: parsePrice(data.shipping_cost),
-      vat_cost: parsePrice(data.vat_cost)
+      gross_profit: data.profit  // We'll calculate this from the profitability data
     })
     .eq('id', id);
 
