@@ -35,7 +35,7 @@ export interface Product {
     quantity_sold: number;
     adjustments: number;
   };
-  is_bundle?: boolean;
+  bundle_products?: { bundle_sku: string } | null;
   bundle_components?: BundleComponent[];
 }
 
