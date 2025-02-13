@@ -5,6 +5,7 @@ import type { Product } from '@/types/database';
 export const getStockLevels = async () => {
   console.log('Fetching stock levels...');
   
+  // First, get all products with their basic info
   const { data: products, error: productsError } = await supabase
     .from('products')
     .select(`
@@ -24,14 +25,6 @@ export const getStockLevels = async () => {
       ),
       bundle_products (
         bundle_sku
-      ),
-      bundle_components (
-        component_sku,
-        quantity,
-        products (
-          listing_title,
-          stock_quantity
-        )
       )
     `)
     .order('listing_title');
@@ -41,29 +34,50 @@ export const getStockLevels = async () => {
     throw productsError;
   }
 
+  // Then, get bundle information from the view for any products that are bundles
+  const bundleSkus = products
+    .filter(p => p.bundle_products?.length > 0)
+    .map(p => p.sku);
+
+  let bundleData = [];
+  if (bundleSkus.length > 0) {
+    const { data: bundles, error: bundlesError } = await supabase
+      .from('bundle_stock_levels')
+      .select('*')
+      .in('sku', bundleSkus);
+
+    if (bundlesError) {
+      console.error('Error fetching bundle data:', bundlesError);
+      throw bundlesError;
+    }
+
+    bundleData = bundles || [];
+  }
+
   console.log('Raw products data:', products);
+  console.log('Bundle data:', bundleData);
 
   const transformedProducts = products.map(product => {
-    console.log('Processing product:', {
-      sku: product.sku,
-      stockQuantity: product.stock_quantity,
-      stockLevels: product.current_stock_levels,
-      bundle: product.bundle_products
-    });
-
-    // Transform bundle components to include product details
-    const bundle_components = product.bundle_components?.map(component => ({
+    // Find bundle data if this product is a bundle
+    const bundleInfo = bundleData.find(b => b.sku === product.sku);
+    
+    const bundle_components = bundleInfo?.components_details?.map(component => ({
       component_sku: component.component_sku,
       quantity: component.quantity,
-      listing_title: component.products?.listing_title,
-      stock_quantity: component.products?.stock_quantity
+      listing_title: component.listing_title,
+      stock_quantity: component.stock_quantity
     })) || [];
 
     return {
       ...product,
       current_stock: product.stock_quantity ?? 0,
       bundle_products: product.bundle_products?.[0] || null,
-      bundle_components
+      bundle_components,
+      // If it's a bundle, use the calculated values from the view
+      ...(bundleInfo && {
+        stock_quantity: bundleInfo.bundle_stock,
+        product_cost: bundleInfo.bundle_cost
+      })
     };
   });
 

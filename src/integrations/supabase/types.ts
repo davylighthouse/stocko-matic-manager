@@ -73,6 +73,13 @@ export type Database = {
             foreignKeyName: "bundle_components_component_sku_fkey"
             columns: ["component_sku"]
             isOneToOne: false
+            referencedRelation: "bundle_stock_levels"
+            referencedColumns: ["sku"]
+          },
+          {
+            foreignKeyName: "bundle_components_component_sku_fkey"
+            columns: ["component_sku"]
+            isOneToOne: false
             referencedRelation: "current_stock_levels"
             referencedColumns: ["sku"]
           },
@@ -102,6 +109,13 @@ export type Database = {
           updated_at?: string | null
         }
         Relationships: [
+          {
+            foreignKeyName: "bundle_products_bundle_sku_fkey"
+            columns: ["bundle_sku"]
+            isOneToOne: true
+            referencedRelation: "bundle_stock_levels"
+            referencedColumns: ["sku"]
+          },
           {
             foreignKeyName: "bundle_products_bundle_sku_fkey"
             columns: ["bundle_sku"]
@@ -165,6 +179,13 @@ export type Database = {
           sku?: string | null
         }
         Relationships: [
+          {
+            foreignKeyName: "initial_stock_sku_fkey"
+            columns: ["sku"]
+            isOneToOne: true
+            referencedRelation: "bundle_stock_levels"
+            referencedColumns: ["sku"]
+          },
           {
             foreignKeyName: "initial_stock_sku_fkey"
             columns: ["sku"]
@@ -386,6 +407,13 @@ export type Database = {
             foreignKeyName: "sales_sku_fkey"
             columns: ["sku"]
             isOneToOne: false
+            referencedRelation: "bundle_stock_levels"
+            referencedColumns: ["sku"]
+          },
+          {
+            foreignKeyName: "sales_sku_fkey"
+            columns: ["sku"]
+            isOneToOne: false
             referencedRelation: "current_stock_levels"
             referencedColumns: ["sku"]
           },
@@ -496,6 +524,13 @@ export type Database = {
             foreignKeyName: "stock_adjustments_sku_fkey"
             columns: ["sku"]
             isOneToOne: false
+            referencedRelation: "bundle_stock_levels"
+            referencedColumns: ["sku"]
+          },
+          {
+            foreignKeyName: "stock_adjustments_sku_fkey"
+            columns: ["sku"]
+            isOneToOne: false
             referencedRelation: "current_stock_levels"
             referencedColumns: ["sku"]
           },
@@ -537,6 +572,13 @@ export type Database = {
           warehouse_location?: string | null
         }
         Relationships: [
+          {
+            foreignKeyName: "stock_check_items_sku_fkey"
+            columns: ["sku"]
+            isOneToOne: false
+            referencedRelation: "bundle_stock_levels"
+            referencedColumns: ["sku"]
+          },
           {
             foreignKeyName: "stock_check_items_sku_fkey"
             columns: ["sku"]
@@ -590,6 +632,16 @@ export type Database = {
       }
     }
     Views: {
+      bundle_stock_levels: {
+        Row: {
+          bundle_cost: number | null
+          bundle_stock: number | null
+          components_details: Json | null
+          listing_title: string | null
+          sku: string | null
+        }
+        Relationships: []
+      }
       current_stock_levels: {
         Row: {
           adjustments: number | null
@@ -608,6 +660,13 @@ export type Database = {
           stock_check_id: number | null
         }
         Relationships: [
+          {
+            foreignKeyName: "stock_check_items_sku_fkey"
+            columns: ["sku"]
+            isOneToOne: false
+            referencedRelation: "bundle_stock_levels"
+            referencedColumns: ["sku"]
+          },
           {
             foreignKeyName: "stock_check_items_sku_fkey"
             columns: ["sku"]
@@ -682,6 +741,13 @@ export type Database = {
             foreignKeyName: "sales_sku_fkey"
             columns: ["sku"]
             isOneToOne: false
+            referencedRelation: "bundle_stock_levels"
+            referencedColumns: ["sku"]
+          },
+          {
+            foreignKeyName: "sales_sku_fkey"
+            columns: ["sku"]
+            isOneToOne: false
             referencedRelation: "current_stock_levels"
             referencedColumns: ["sku"]
           },
@@ -722,6 +788,13 @@ export type Database = {
             foreignKeyName: "sales_sku_fkey"
             columns: ["sku"]
             isOneToOne: false
+            referencedRelation: "bundle_stock_levels"
+            referencedColumns: ["sku"]
+          },
+          {
+            foreignKeyName: "sales_sku_fkey"
+            columns: ["sku"]
+            isOneToOne: false
             referencedRelation: "current_stock_levels"
             referencedColumns: ["sku"]
           },
@@ -740,6 +813,13 @@ export type Database = {
           total_sold: number | null
         }
         Relationships: [
+          {
+            foreignKeyName: "sales_sku_fkey"
+            columns: ["sku"]
+            isOneToOne: false
+            referencedRelation: "bundle_stock_levels"
+            referencedColumns: ["sku"]
+          },
           {
             foreignKeyName: "sales_sku_fkey"
             columns: ["sku"]
