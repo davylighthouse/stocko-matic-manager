@@ -6,23 +6,7 @@ import { Input } from "@/components/ui/input";
 import { Search } from "lucide-react";
 import { supabase } from "@/integrations/supabase/client";
 import { ProfitabilityTable } from "@/components/profitability/ProfitabilityTable";
-
-interface ProfitabilityData {
-  id: number;
-  sale_date: string;
-  platform: string;
-  sku: string;
-  listing_title: string;
-  quantity: number;
-  total_price: number;
-  total_product_cost: number;
-  platform_fees: number;
-  shipping_cost: number;
-  vat_cost: number;
-  total_costs: number;
-  profit: number;
-  profit_margin: number;
-}
+import type { ProfitabilityData } from "@/components/profitability/types";
 
 const Profitability = () => {
   const [search, setSearch] = useState("");
@@ -36,7 +20,13 @@ const Profitability = () => {
         .order('sale_date', { ascending: false });
 
       if (error) throw error;
-      return data as ProfitabilityData[];
+      
+      // Ensure all required fields have default values
+      return (data || []).map(sale => ({
+        ...sale,
+        ad_costs: sale.ad_costs || 0,
+        promoted: sale.promoted || false
+      })) as ProfitabilityData[];
     }
   });
 

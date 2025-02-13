@@ -1,25 +1,29 @@
 
-export const formatCurrency = (value: number) => {
+export const formatCurrency = (value: number | null | undefined) => {
+  if (value === null || value === undefined) return '£0.00';
   return `£${value.toFixed(2)}`;
 };
 
-export const formatPercentage = (value: number) => {
+export const formatPercentage = (value: number | null | undefined) => {
+  if (value === null || value === undefined) return '0.0%';
   return `${value.toFixed(1)}%`;
 };
 
-export const getProfitColor = (profit: number) => {
+export const getProfitColor = (profit: number | null | undefined) => {
+  if (profit === null || profit === undefined) return "bg-red-100 text-red-900";
   if (profit >= 3) return "bg-green-100 text-green-900";
   if (profit >= 2) return "bg-yellow-100 text-yellow-900";
   return "bg-red-100 text-red-900";
 };
 
-export const getMarginColor = (margin: number) => {
+export const getMarginColor = (margin: number | null | undefined) => {
+  if (margin === null || margin === undefined) return "bg-red-100 text-red-900";
   if (margin >= 20) return "bg-green-100 text-green-900";
   if (margin >= 15) return "bg-yellow-100 text-yellow-900";
   return "bg-red-100 text-red-900";
 };
 
-export const getCalculationTooltip = (sale: any, type: string, formatCurrency: (n: number) => string, formatPercentage: (n: number) => string) => {
+export const getCalculationTooltip = (sale: any, type: string, formatCurrency: (n: number | null | undefined) => string, formatPercentage: (n: number | null | undefined) => string) => {
   switch (type) {
     case 'total_costs':
       return `Product Cost: ${formatCurrency(sale.total_product_cost)}
