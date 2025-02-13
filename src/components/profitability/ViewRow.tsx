@@ -1,8 +1,7 @@
-
 import { TableCell, TableRow } from "@/components/ui/table";
 import { format } from "date-fns";
 import { Button } from "@/components/ui/button";
-import { Pencil } from "lucide-react";
+import { Pencil, Calculator } from "lucide-react";
 import { Tooltip, TooltipContent, TooltipTrigger } from "@/components/ui/tooltip";
 import { ProfitabilityData } from "./types";
 import { formatCurrency, formatPercentage, getCalculationTooltip, getMarginColor, getProfitColor } from "./utils";
@@ -76,6 +75,20 @@ export const ViewRow = ({ sale, columnWidths, onEdit }: ViewRowProps) => {
     // since we're not allowing stock updates from the profitability view
   };
 
+  const TooltipWrapper = ({ value, tooltipContent, className = "" }: { value: React.ReactNode, tooltipContent: string, className?: string }) => (
+    <Tooltip delayDuration={0}>
+      <TooltipTrigger asChild>
+        <div className={`group inline-flex items-center gap-1 cursor-help ${className}`}>
+          {value}
+          <Calculator className="h-3 w-3 opacity-0 group-hover:opacity-100 transition-opacity" />
+        </div>
+      </TooltipTrigger>
+      <TooltipContent className="max-w-[300px] whitespace-pre-wrap bg-slate-900 text-slate-50 p-3 rounded-md shadow-lg">
+        <pre className="text-sm">{tooltipContent}</pre>
+      </TooltipContent>
+    </Tooltip>
+  );
+
   return (
     <>
       <TableCell style={{ width: columnWidths.date }}>
@@ -99,82 +112,54 @@ export const ViewRow = ({ sale, columnWidths, onEdit }: ViewRowProps) => {
         {sale.quantity}
       </TableCell>
       <TableCell className="text-right" style={{ width: columnWidths.salePrice }}>
-        {formatCurrency(sale.total_price)}
+        <TooltipWrapper 
+          value={formatCurrency(sale.total_price)}
+          tooltipContent={`Sale Price: ${formatCurrency(sale.total_price)}`}
+        />
       </TableCell>
-      <TableCell className="text-right cursor-pointer" style={{ width: columnWidths.productCost }}>
-        <Tooltip>
-          <TooltipTrigger>
-            {formatCurrency(sale.total_product_cost)}
-          </TooltipTrigger>
-          <TooltipContent>
-            <pre>Product Cost per Unit × Quantity = {formatCurrency(sale.total_product_cost)}</pre>
-          </TooltipContent>
-        </Tooltip>
+      <TableCell className="text-right" style={{ width: columnWidths.productCost }}>
+        <TooltipWrapper 
+          value={formatCurrency(sale.total_product_cost)}
+          tooltipContent={`Product Cost per Unit (${formatCurrency(sale.product_cost)}) × Quantity (${sale.quantity}) = ${formatCurrency(sale.total_product_cost)}`}
+        />
       </TableCell>
-      <TableCell className="text-right cursor-pointer" style={{ width: columnWidths.platformFees }}>
-        <Tooltip>
-          <TooltipTrigger>
-            {formatCurrency(sale.platform_fees)}
-          </TooltipTrigger>
-          <TooltipContent>
-            <pre>Platform Fee: {formatCurrency(sale.platform_fees)}</pre>
-          </TooltipContent>
-        </Tooltip>
+      <TableCell className="text-right" style={{ width: columnWidths.platformFees }}>
+        <TooltipWrapper 
+          value={formatCurrency(sale.platform_fees)}
+          tooltipContent={`Platform Fee: ${formatCurrency(sale.platform_fees)}${sale.platform_fee_percentage ? `\nFee Rate: ${sale.platform_fee_percentage}%` : ''}`}
+        />
       </TableCell>
       <TableCell className="text-right" style={{ width: columnWidths.shipping }}>
-        {formatCurrency(sale.shipping_cost)}
+        <TooltipWrapper 
+          value={formatCurrency(sale.shipping_cost)}
+          tooltipContent={`Shipping Cost: ${formatCurrency(sale.shipping_cost)}`}
+        />
       </TableCell>
-      <TableCell className="text-right cursor-pointer" style={{ width: columnWidths.vat }}>
-        <Tooltip>
-          <TooltipTrigger>
-            {formatCurrency(sale.vat_cost)}
-          </TooltipTrigger>
-          <TooltipContent>
-            <pre>VAT (20%): {formatCurrency(sale.vat_cost)}</pre>
-          </TooltipContent>
-        </Tooltip>
+      <TableCell className="text-right" style={{ width: columnWidths.vat }}>
+        <TooltipWrapper 
+          value={formatCurrency(sale.vat_cost)}
+          tooltipContent={`VAT (20%): ${formatCurrency(sale.vat_cost)}`}
+        />
       </TableCell>
-      <TableCell className="text-right cursor-pointer" style={{ width: columnWidths.totalCosts }}>
-        <Tooltip>
-          <TooltipTrigger>
-            {formatCurrency(sale.total_costs)}
-          </TooltipTrigger>
-          <TooltipContent>
-            <pre className="whitespace-pre-line">
-              {getCalculationTooltip(sale, 'total_costs', formatCurrency, formatPercentage)}
-            </pre>
-          </TooltipContent>
-        </Tooltip>
+      <TableCell className="text-right" style={{ width: columnWidths.totalCosts }}>
+        <TooltipWrapper 
+          value={formatCurrency(sale.total_costs)}
+          tooltipContent={getCalculationTooltip(sale, 'total_costs', formatCurrency, formatPercentage)}
+        />
       </TableCell>
-      <TableCell 
-        className={`text-right font-medium rounded-sm cursor-pointer ${getProfitColor(sale.profit)}`}
-        style={{ width: columnWidths.profit }}
-      >
-        <Tooltip>
-          <TooltipTrigger>
-            {formatCurrency(sale.profit)}
-          </TooltipTrigger>
-          <TooltipContent>
-            <pre className="whitespace-pre-line">
-              {getCalculationTooltip(sale, 'profit', formatCurrency, formatPercentage)}
-            </pre>
-          </TooltipContent>
-        </Tooltip>
+      <TableCell className="text-right" style={{ width: columnWidths.profit }}>
+        <TooltipWrapper 
+          value={formatCurrency(sale.profit)}
+          tooltipContent={getCalculationTooltip(sale, 'profit', formatCurrency, formatPercentage)}
+          className={getProfitColor(sale.profit)}
+        />
       </TableCell>
-      <TableCell 
-        className={`text-right rounded-sm cursor-pointer ${getMarginColor(sale.profit_margin)}`}
-        style={{ width: columnWidths.margin }}
-      >
-        <Tooltip>
-          <TooltipTrigger>
-            {formatPercentage(sale.profit_margin)}
-          </TooltipTrigger>
-          <TooltipContent>
-            <pre className="whitespace-pre-line">
-              {getCalculationTooltip(sale, 'profit_margin', formatCurrency, formatPercentage)}
-            </pre>
-          </TooltipContent>
-        </Tooltip>
+      <TableCell className="text-right" style={{ width: columnWidths.margin }}>
+        <TooltipWrapper 
+          value={formatPercentage(sale.profit_margin)}
+          tooltipContent={getCalculationTooltip(sale, 'profit_margin', formatCurrency, formatPercentage)}
+          className={getMarginColor(sale.profit_margin)}
+        />
       </TableCell>
       <TableCell style={{ width: 100 }}>
         <Button 
