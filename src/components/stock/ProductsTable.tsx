@@ -8,7 +8,6 @@ import { calculateCompleteness } from "./utils/calculateCompleteness";
 import { ProductsTableHeader } from "./ProductsTableHeader";
 import { ProductStatusIndicator } from "./ProductStatusIndicator";
 import { StockLevelIndicator } from "./StockLevelIndicator";
-import { BundleProductDialog } from "./BundleProductDialog";
 import { Package } from "lucide-react";
 
 interface ProductsTableProps {
@@ -29,12 +28,6 @@ export const ProductsTable = ({
   updatedFields = [],
 }: ProductsTableProps) => {
   const [showStatus, setShowStatus] = useState(true);
-  const [bundleDialogOpen, setBundleDialogOpen] = useState(false);
-
-  const handleBundleUpdate = () => {
-    // Trigger a refresh of the products list
-    // This will be handled by the parent component's query invalidation
-  };
 
   return (
     <div className="overflow-x-auto">
@@ -105,7 +98,7 @@ export const ProductsTable = ({
                 <td className="px-6 py-4 whitespace-nowrap text-sm text-gray-500">
                   {product.warehouse_location || 'N/A'}
                 </td>
-                <td className="px-6 py-4 whitespace-nowrap text-sm text-gray-500 space-x-2">
+                <td className="px-6 py-4 whitespace-nowrap text-sm text-gray-500">
                   <Button
                     variant="ghost"
                     size="sm"
@@ -121,18 +114,6 @@ export const ProductsTable = ({
                     }}
                   >
                     Update Stock
-                  </Button>
-                  <Button
-                    variant="ghost"
-                    size="sm"
-                    onClick={(e) => {
-                      e.stopPropagation();
-                      onProductSelect(product);
-                      setBundleDialogOpen(true);
-                    }}
-                  >
-                    <Package className="h-4 w-4 mr-2" />
-                    Manage Bundle
                   </Button>
                 </td>
                 {showStatus && (
@@ -150,17 +131,11 @@ export const ProductsTable = ({
       </table>
       <ProductEditDialog
         product={selectedProduct}
-        open={selectedProduct !== null && !bundleDialogOpen}
+        open={selectedProduct !== null}
         onOpenChange={(open) => !open && onProductSelect(null)}
         onStockUpdate={onStockUpdate}
         onSubmit={onProductUpdate}
         updatedFields={updatedFields}
-      />
-      <BundleProductDialog
-        product={selectedProduct}
-        open={bundleDialogOpen}
-        onOpenChange={setBundleDialogOpen}
-        onBundleUpdate={handleBundleUpdate}
       />
     </div>
   );
