@@ -1,4 +1,3 @@
-
 import { format } from "date-fns";
 import {
   Table,
@@ -19,10 +18,15 @@ import { ProfitabilityTableProps, ProfitabilityData, ColumnWidth } from "./types
 import { formatCurrency, formatPercentage, getCalculationTooltip, getMarginColor, getProfitColor } from "./utils";
 import { EditableCell } from "./EditableCell";
 import { ProfitabilityTableHeader } from "./TableHeader";
+import { updateSaleProfitability } from "@/lib/supabase/database/sales";
+import { useToast } from "@/hooks/use-toast";
+import { useQueryClient } from "@tanstack/react-query";
 
 export const ProfitabilityTable = ({ sales }: ProfitabilityTableProps) => {
   const [editingId, setEditingId] = useState<number | null>(null);
   const [editedData, setEditedData] = useState<Partial<ProfitabilityData>>({});
+  const { toast } = useToast();
+  const queryClient = useQueryClient();
 
   const [columnWidths, setColumnWidths] = useState<ColumnWidth>({
     date: 120,
@@ -53,9 +57,23 @@ export const ProfitabilityTable = ({ sales }: ProfitabilityTableProps) => {
   };
 
   const handleSave = async () => {
-    console.log('Saving changes:', editedData);
-    setEditingId(null);
-    setEditedData({});
+    try {
+      await updateSaleProfitability(editingId!, editedData);
+      await queryClient.invalidateQueries({ queryKey: ['profitability'] });
+      toast({
+        title: "Changes saved",
+        description: "The sale has been updated successfully.",
+      });
+      setEditingId(null);
+      setEditedData({});
+    } catch (error) {
+      console.error('Error saving changes:', error);
+      toast({
+        title: "Error",
+        description: "Failed to save changes. Please try again.",
+        variant: "destructive",
+      });
+    }
   };
 
   const handleCancel = () => {

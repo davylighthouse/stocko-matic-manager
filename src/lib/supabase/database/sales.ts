@@ -1,4 +1,3 @@
-
 import { supabase } from '@/integrations/supabase/client';
 import type { SaleWithProduct, SalesTotals } from '@/types/sales';
 
@@ -100,5 +99,32 @@ export const updateSale = async (id: number, data: Partial<SaleWithProduct>) => 
     .select();
 
   if (error) throw error;
+  return true;
+};
+
+export const updateSaleProfitability = async (id: number, data: any) => {
+  console.log('Updating sale profitability:', { id, data });
+  
+  const { error } = await supabase
+    .from('sales_profitability')
+    .update({
+      sale_date: data.sale_date,
+      platform: data.platform,
+      sku: data.sku,
+      listing_title: data.listing_title,
+      quantity: data.quantity,
+      total_price: parsePrice(data.total_price),
+      total_product_cost: parsePrice(data.total_product_cost),
+      platform_fees: parsePrice(data.platform_fees),
+      shipping_cost: parsePrice(data.shipping_cost),
+      vat_cost: parsePrice(data.vat_cost)
+    })
+    .eq('id', id);
+
+  if (error) {
+    console.error('Error updating sale:', error);
+    throw error;
+  }
+
   return true;
 };
