@@ -1,4 +1,3 @@
-
 import { supabase } from '@/integrations/supabase/client';
 import type { StockCheck, StockCheckItem, InitialStock, StockAdjustment, CurrentStockLevel } from '@/types/stock-checks';
 
@@ -136,13 +135,25 @@ export const setInitialStock = async (stockData: InitialStock) => {
 };
 
 export const addStockAdjustment = async (adjustment: StockAdjustment) => {
+  // First verify the SKU exists in products
+  const { data: product, error: productError } = await supabase
+    .from('products')
+    .select('sku')
+    .eq('sku', adjustment.sku)
+    .maybeSingle();
+
+  if (productError) throw productError;
+  if (!product) throw new Error(`Product with SKU ${adjustment.sku} not found`);
+
+  // Then insert the adjustment
   const { error } = await supabase
     .from('stock_adjustments')
-    .insert({
+    .insert([{
       sku: adjustment.sku,
       quantity: adjustment.quantity,
-      notes: adjustment.notes,
-    });
+      notes: adjustment.notes || null,
+      adjustment_date: new Date().toISOString()
+    }]);
 
   if (error) throw error;
   return true;
