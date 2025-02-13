@@ -25,9 +25,13 @@ export const getStockLevels = async () => {
       bundle_products!bundle_products_bundle_sku_fkey (
         bundle_sku
       ),
-      bundle_components!bundle_components_component_sku_fkey (
-        bundle_sku,
-        quantity
+      bundle_components (
+        component_sku,
+        quantity,
+        products (
+          listing_title,
+          stock_quantity
+        )
       )
     `)
     .order('listing_title');
@@ -43,14 +47,23 @@ export const getStockLevels = async () => {
     console.log('Processing product:', {
       sku: product.sku,
       stockQuantity: product.stock_quantity,
-      stockLevels: product.current_stock_levels
+      stockLevels: product.current_stock_levels,
+      bundle: product.bundle_products
     });
+
+    // Transform bundle components to include product details
+    const bundle_components = product.bundle_components?.map(component => ({
+      component_sku: component.component_sku,
+      quantity: component.quantity,
+      listing_title: component.products?.listing_title,
+      stock_quantity: component.products?.stock_quantity
+    })) || [];
 
     return {
       ...product,
       current_stock: product.stock_quantity ?? 0,
-      is_bundle: !!product.bundle_products,
-      bundle_components: product.bundle_components
+      bundle_products: product.bundle_products || null,
+      bundle_components
     };
   });
 
