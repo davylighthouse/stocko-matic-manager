@@ -14,12 +14,22 @@ interface ViewRowProps {
 }
 
 export const ViewRow = ({ sale, columnWidths, onEdit }: ViewRowProps) => {
+  const getPlatformColor = (platform: string, promoted: boolean) => {
+    if (platform.toLowerCase() !== 'ebay') return '';
+    return promoted ? 'text-red-600 font-medium' : 'text-green-600 font-medium';
+  };
+
   return (
     <>
       <TableCell style={{ width: columnWidths.date }}>
         {format(new Date(sale.sale_date), 'dd MMM yyyy')}
       </TableCell>
-      <TableCell style={{ width: columnWidths.platform }}>{sale.platform}</TableCell>
+      <TableCell 
+        style={{ width: columnWidths.platform }}
+        className={getPlatformColor(sale.platform, sale.promoted)}
+      >
+        {sale.platform}
+      </TableCell>
       <TableCell style={{ width: columnWidths.sku }}>{sale.sku}</TableCell>
       <TableCell style={{ width: columnWidths.title }}>{sale.listing_title}</TableCell>
       <TableCell className="text-right" style={{ width: columnWidths.quantity }}>
