@@ -24,7 +24,7 @@ export const ProductDetailsTab = ({ product, renderFieldWithCheck, onStockUpdate
             id="stock_quantity"
             name="stock_quantity"
             type="number"
-            value={product.current_stock ?? 0}
+            value={product.stock_quantity}
             className="bg-gray-50"
             readOnly
           />
