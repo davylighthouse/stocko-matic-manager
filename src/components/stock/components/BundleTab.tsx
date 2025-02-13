@@ -9,6 +9,14 @@ import { Label } from "@/components/ui/label";
 export const BundleTab = ({ product, renderFieldWithCheck, onStockUpdate }: TabContentProps) => {
   const [bundleDialogOpen, setBundleDialogOpen] = useState(false);
 
+  // Create a wrapper function that matches the expected signature
+  const handleBundleUpdate = () => {
+    if (onStockUpdate) {
+      // Trigger a refresh of the product's stock
+      onStockUpdate(product.sku, product.stock_quantity);
+    }
+  };
+
   return (
     <div className="space-y-4">
       <div className="flex items-center space-x-2">
@@ -45,7 +53,7 @@ export const BundleTab = ({ product, renderFieldWithCheck, onStockUpdate }: TabC
         product={product}
         open={bundleDialogOpen}
         onOpenChange={setBundleDialogOpen}
-        onBundleUpdate={onStockUpdate}
+        onBundleUpdate={handleBundleUpdate}
       />
     </div>
   );
