@@ -24,7 +24,6 @@ const Profitability = () => {
       // Ensure all required fields have default values
       return (data || []).map(sale => ({
         ...sale,
-        ad_costs: sale.ad_costs || 0,
         promoted: sale.promoted || false
       })) as ProfitabilityData[];
     }

@@ -14,7 +14,6 @@ export interface ProfitabilityData {
   total_costs: number;
   profit: number;
   profit_margin: number;
-  ad_costs: number;
   promoted: boolean;
   product_cost: number;
   platform_fee_percentage: number;
@@ -25,6 +24,10 @@ export interface ProfitabilityData {
   making_up_cost: number;
   promoted_listing_percentage: number;
   vat_status: string;
+  fba_fee_amount: number | null;
+  platform_flat_fee: number | null;
+  shipping_service_price: number | null;
+  amazon_fba_tier_id: number | null;
 }
 
 export interface ProfitabilityTableProps {
