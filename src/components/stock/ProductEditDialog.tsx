@@ -6,36 +6,13 @@ import {
   DialogHeader,
   DialogTitle,
 } from "@/components/ui/dialog";
-import { Input } from "@/components/ui/input";
-import { Label } from "@/components/ui/label";
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
-import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
-import { Product } from "@/types/database";
-import { useEffect, useState } from "react";
-import { Check } from "lucide-react";
-import { useQuery } from "@tanstack/react-query";
-import { supabase } from "@/integrations/supabase/client";
-
-interface ProductEditDialogProps {
-  product: Product | null;
-  open: boolean;
-  onOpenChange: (open: boolean) => void;
-  onStockUpdate: (sku: string, quantity: number) => void;
-  onSubmit: (event: React.FormEvent<HTMLFormElement>) => void;
-  updatedFields?: string[];
-}
-
-interface ShippingService {
-  id: number;
-  service_name: string;
-  courier: string;
-}
-
-interface PickingFee {
-  id: number;
-  fee_name: string;
-  fee_amount: number;
-}
+import { ProductEditDialogProps } from "./types/product-dialog";
+import { FieldCheckIndicator } from "./components/FieldCheckIndicator";
+import { ProductDetailsTab } from "./components/ProductDetailsTab";
+import { ProductInformationTab } from "./components/ProductInformationTab";
+import { ProductCostTab } from "./components/ProductCostTab";
+import { ProductSettingsTab } from "./components/ProductSettingsTab";
 
 export const ProductEditDialog = ({
   product,
@@ -45,51 +22,10 @@ export const ProductEditDialog = ({
   onSubmit,
   updatedFields = [],
 }: ProductEditDialogProps) => {
-  const [totalCost, setTotalCost] = useState<number>(0);
-
-  const { data: shippingServices = [] } = useQuery({
-    queryKey: ['shipping-services'],
-    queryFn: async () => {
-      const { data, error } = await supabase
-        .from('shipping_services')
-        .select('id, service_name, courier')
-        .order('courier, service_name');
-      
-      if (error) throw error;
-      return data as ShippingService[];
-    },
-  });
-
-  const { data: pickingFees = [] } = useQuery({
-    queryKey: ['picking-fees'],
-    queryFn: async () => {
-      const { data, error } = await supabase
-        .from('picking_fees')
-        .select('id, fee_name, fee_amount')
-        .order('fee_name');
-      
-      if (error) throw error;
-      return data as PickingFee[];
-    },
-  });
-
-  useEffect(() => {
-    if (product) {
-      const total = (product.product_cost || 0) +
-        (product.packaging_cost || 0) +
-        (product.making_up_cost || 0) +
-        (product.additional_costs || 0);
-      setTotalCost(total);
-    }
-  }, [product]);
-
   const renderFieldWithCheck = (fieldName: string, children: React.ReactNode) => (
-    <div className="relative">
+    <FieldCheckIndicator fieldName={fieldName} updatedFields={updatedFields}>
       {children}
-      {updatedFields.includes(fieldName) && (
-        <Check className="absolute right-2 top-1/2 -translate-y-1/2 h-4 w-4 text-green-500" />
-      )}
-    </div>
+    </FieldCheckIndicator>
   );
 
   if (!product) return null;
@@ -109,250 +45,37 @@ export const ProductEditDialog = ({
               <TabsTrigger value="settings">Settings</TabsTrigger>
             </TabsList>
 
-            <TabsContent value="details" className="space-y-4">
-              <div>
-                <Label htmlFor="listing_title">Title</Label>
-                {renderFieldWithCheck("listing_title",
-                  <Input
-                    id="listing_title"
-                    name="listing_title"
-                    defaultValue={product.listing_title}
-                  />
-                )}
-              </div>
-              <div>
-                <Label htmlFor="stock_quantity">Current Stock</Label>
-                {renderFieldWithCheck("stock_quantity",
-                  <Input
-                    id="stock_quantity"
-                    name="stock_quantity"
-                    type="number"
-                    defaultValue={product.current_stock ?? 0}
-                    onChange={(e) => {
-                      const quantity = parseInt(e.target.value);
-                      if (!isNaN(quantity)) {
-                        onStockUpdate(product.sku, quantity);
-                      }
-                    }}
-                  />
-                )}
-              </div>
-              <div>
-                <Label htmlFor="low_stock_threshold">Low Stock Threshold</Label>
-                {renderFieldWithCheck("low_stock_threshold",
-                  <Input
-                    id="low_stock_threshold"
-                    name="low_stock_threshold"
-                    type="number"
-                    defaultValue={product.low_stock_threshold ?? 20}
-                  />
-                )}
-              </div>
-              <div>
-                <Label htmlFor="supplier">Supplier</Label>
-                {renderFieldWithCheck("supplier",
-                  <Input
-                    id="supplier"
-                    name="supplier"
-                    defaultValue={product.supplier}
-                  />
-                )}
-              </div>
-              <div>
-                <Label htmlFor="product_status">Product Status</Label>
-                {renderFieldWithCheck("product_status",
-                  <Select name="product_status" defaultValue={product.product_status || "active"}>
-                    <SelectTrigger>
-                      <SelectValue placeholder="Select status" />
-                    </SelectTrigger>
-                    <SelectContent>
-                      <SelectItem value="active">Active</SelectItem>
-                      <SelectItem value="discontinued">Discontinued</SelectItem>
-                      <SelectItem value="out_of_stock">Out of Stock</SelectItem>
-                    </SelectContent>
-                  </Select>
-                )}
-              </div>
+            <TabsContent value="details">
+              <ProductDetailsTab
+                product={product}
+                updatedFields={updatedFields}
+                renderFieldWithCheck={renderFieldWithCheck}
+                onStockUpdate={onStockUpdate}
+              />
             </TabsContent>
 
-            <TabsContent value="information" className="space-y-4">
-              <div className="grid grid-cols-3 gap-4">
-                {renderFieldWithCheck("dimensions_height",
-                  <div>
-                    <Label htmlFor="dimensions_height">Height (mm)</Label>
-                    <Input
-                      id="dimensions_height"
-                      name="dimensions_height"
-                      type="number"
-                      defaultValue={product.dimensions_height}
-                    />
-                  </div>
-                )}
-                {renderFieldWithCheck("dimensions_width",
-                  <div>
-                    <Label htmlFor="dimensions_width">Width (mm)</Label>
-                    <Input
-                      id="dimensions_width"
-                      name="dimensions_width"
-                      type="number"
-                      defaultValue={product.dimensions_width}
-                    />
-                  </div>
-                )}
-                {renderFieldWithCheck("dimensions_length",
-                  <div>
-                    <Label htmlFor="dimensions_length">Length (mm)</Label>
-                    <Input
-                      id="dimensions_length"
-                      name="dimensions_length"
-                      type="number"
-                      defaultValue={product.dimensions_length}
-                    />
-                  </div>
-                )}
-              </div>
-              {renderFieldWithCheck("weight",
-                <div>
-                  <Label htmlFor="weight">Weight (g)</Label>
-                  <Input
-                    id="weight"
-                    name="weight"
-                    type="number"
-                    defaultValue={product.weight}
-                  />
-                </div>
-              )}
-              {renderFieldWithCheck("warehouse_location",
-                <div>
-                  <Label htmlFor="warehouse_location">Warehouse Location</Label>
-                  <Input
-                    id="warehouse_location"
-                    name="warehouse_location"
-                    defaultValue={product.warehouse_location}
-                  />
-                </div>
-              )}
+            <TabsContent value="information">
+              <ProductInformationTab
+                product={product}
+                updatedFields={updatedFields}
+                renderFieldWithCheck={renderFieldWithCheck}
+              />
             </TabsContent>
 
-            <TabsContent value="cost" className="space-y-4">
-              <div>
-                <Label>Total Product Cost</Label>
-                <Input
-                  type="number"
-                  value={totalCost.toFixed(2)}
-                  disabled
-                  className="bg-gray-100"
-                />
-              </div>
-              {renderFieldWithCheck("product_cost",
-                <div>
-                  <Label htmlFor="product_cost">Product Cost</Label>
-                  <Input
-                    id="product_cost"
-                    name="product_cost"
-                    type="number"
-                    step="0.01"
-                    defaultValue={product.product_cost}
-                  />
-                </div>
-              )}
-              {renderFieldWithCheck("packaging_cost",
-                <div>
-                  <Label htmlFor="packaging_cost">Packaging Cost</Label>
-                  <Input
-                    id="packaging_cost"
-                    name="packaging_cost"
-                    type="number"
-                    step="0.01"
-                    defaultValue={product.packaging_cost}
-                  />
-                </div>
-              )}
-              {renderFieldWithCheck("making_up_cost",
-                <div>
-                  <Label htmlFor="making_up_cost">Making Up Cost</Label>
-                  <Input
-                    id="making_up_cost"
-                    name="making_up_cost"
-                    type="number"
-                    step="0.01"
-                    defaultValue={product.making_up_cost}
-                  />
-                </div>
-              )}
-              {renderFieldWithCheck("additional_costs",
-                <div>
-                  <Label htmlFor="additional_costs">Additional Costs</Label>
-                  <Input
-                    id="additional_costs"
-                    name="additional_costs"
-                    type="number"
-                    step="0.01"
-                    defaultValue={product.additional_costs}
-                  />
-                </div>
-              )}
+            <TabsContent value="cost">
+              <ProductCostTab
+                product={product}
+                updatedFields={updatedFields}
+                renderFieldWithCheck={renderFieldWithCheck}
+              />
             </TabsContent>
 
-            <TabsContent value="settings" className="space-y-4">
-              <div>
-                <Label htmlFor="default_shipping_service_id">Default Shipping Service</Label>
-                {renderFieldWithCheck("default_shipping_service_id",
-                  <Select 
-                    name="default_shipping_service_id" 
-                    defaultValue={product.default_shipping_service_id?.toString() || ""}
-                  >
-                    <SelectTrigger>
-                      <SelectValue placeholder="Select shipping service" />
-                    </SelectTrigger>
-                    <SelectContent>
-                      <SelectItem value="">None</SelectItem>
-                      {shippingServices.map((service) => (
-                        <SelectItem key={service.id} value={service.id.toString()}>
-                          {service.courier} - {service.service_name}
-                        </SelectItem>
-                      ))}
-                    </SelectContent>
-                  </Select>
-                )}
-              </div>
-              <div>
-                <Label htmlFor="default_picking_fee_id">Default Picking Fee</Label>
-                {renderFieldWithCheck("default_picking_fee_id",
-                  <Select 
-                    name="default_picking_fee_id" 
-                    defaultValue={product.default_picking_fee_id?.toString() || ""}
-                  >
-                    <SelectTrigger>
-                      <SelectValue placeholder="Select picking fee" />
-                    </SelectTrigger>
-                    <SelectContent>
-                      <SelectItem value="">None</SelectItem>
-                      {pickingFees.map((fee) => (
-                        <SelectItem key={fee.id} value={fee.id.toString()}>
-                          {fee.fee_name} (£{fee.fee_amount.toFixed(2)})
-                        </SelectItem>
-                      ))}
-                    </SelectContent>
-                  </Select>
-                )}
-              </div>
-              <div>
-                <Label htmlFor="vat_status">VAT Status</Label>
-                {renderFieldWithCheck("vat_status",
-                  <Select name="vat_status" defaultValue={product.vat_status || "standard"}>
-                    <SelectTrigger>
-                      <SelectValue placeholder="Select VAT status" />
-                    </SelectTrigger>
-                    <SelectContent>
-                      <SelectItem value="standard">Standard Rate</SelectItem>
-                      <SelectItem value="reduced">Reduced Rate</SelectItem>
-                      <SelectItem value="zero">Zero Rate</SelectItem>
-                      <SelectItem value="exempt">Exempt</SelectItem>
-                    </SelectContent>
-                  </Select>
-                )}
-              </div>
+            <TabsContent value="settings">
+              <ProductSettingsTab
+                product={product}
+                updatedFields={updatedFields}
+                renderFieldWithCheck={renderFieldWithCheck}
+              />
             </TabsContent>
           </Tabs>
 

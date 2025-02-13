@@ -1,0 +1,75 @@
+
+import { Label } from "@/components/ui/label";
+import { Input } from "@/components/ui/input";
+import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
+import { TabContentProps } from "../types/product-dialog";
+
+export const ProductDetailsTab = ({ product, renderFieldWithCheck, onStockUpdate }: TabContentProps) => {
+  return (
+    <div className="space-y-4">
+      <div>
+        <Label htmlFor="listing_title">Title</Label>
+        {renderFieldWithCheck("listing_title",
+          <Input
+            id="listing_title"
+            name="listing_title"
+            defaultValue={product.listing_title}
+          />
+        )}
+      </div>
+      <div>
+        <Label htmlFor="stock_quantity">Current Stock</Label>
+        {renderFieldWithCheck("stock_quantity",
+          <Input
+            id="stock_quantity"
+            name="stock_quantity"
+            type="number"
+            defaultValue={product.current_stock ?? 0}
+            onChange={(e) => {
+              const quantity = parseInt(e.target.value);
+              if (!isNaN(quantity) && onStockUpdate) {
+                onStockUpdate(product.sku, quantity);
+              }
+            }}
+          />
+        )}
+      </div>
+      <div>
+        <Label htmlFor="low_stock_threshold">Low Stock Threshold</Label>
+        {renderFieldWithCheck("low_stock_threshold",
+          <Input
+            id="low_stock_threshold"
+            name="low_stock_threshold"
+            type="number"
+            defaultValue={product.low_stock_threshold ?? 20}
+          />
+        )}
+      </div>
+      <div>
+        <Label htmlFor="supplier">Supplier</Label>
+        {renderFieldWithCheck("supplier",
+          <Input
+            id="supplier"
+            name="supplier"
+            defaultValue={product.supplier}
+          />
+        )}
+      </div>
+      <div>
+        <Label htmlFor="product_status">Product Status</Label>
+        {renderFieldWithCheck("product_status",
+          <Select name="product_status" defaultValue={product.product_status || "active"}>
+            <SelectTrigger>
+              <SelectValue placeholder="Select status" />
+            </SelectTrigger>
+            <SelectContent>
+              <SelectItem value="active">Active</SelectItem>
+              <SelectItem value="discontinued">Discontinued</SelectItem>
+              <SelectItem value="out_of_stock">Out of Stock</SelectItem>
+            </SelectContent>
+          </Select>
+        )}
+      </div>
+    </div>
+  );
+};
