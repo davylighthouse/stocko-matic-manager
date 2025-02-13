@@ -82,7 +82,7 @@ export const updateProductDetails = async (sku: string, data: Partial<Product>) 
       existingProduct.default_picking_fee_id,
     // Handle Amazon FBA tier ID
     amazon_fba_tier_id: 
-      data.amazon_fba_tier_id === 'none' ? null :
+      data.amazon_fba_tier_id === null || String(data.amazon_fba_tier_id) === 'none' ? null :
       data.amazon_fba_tier_id !== undefined ?
       parseInt(String(data.amazon_fba_tier_id)) :
       existingProduct.amazon_fba_tier_id,

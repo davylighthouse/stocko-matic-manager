@@ -42,14 +42,17 @@ const StockManagement = () => {
   });
 
   const updateProductMutation = useMutation({
-    mutationFn: ({ sku, data }: { sku: string; data: Partial<Product> }) =>
-      updateProductDetails(sku, {
+    mutationFn: ({ sku, data }: { sku: string; data: Partial<Product> }) => {
+      // Create a new object with only the valid properties from Product type
+      const updatedData: Partial<Product> = {
         ...data,
         amazon_fba_tier_id: data.amazon_fba_tier_id ? 
           parseInt(data.amazon_fba_tier_id.toString()) : null,
         promoted_listing_percentage: data.promoted_listing_percentage ? 
           parseFloat(data.promoted_listing_percentage.toString()) : null
-      }),
+      };
+      return updateProductDetails(sku, updatedData);
+    },
     onSuccess: () => {
       queryClient.invalidateQueries({ queryKey: ['products'] });
       setSelectedProduct(null);
