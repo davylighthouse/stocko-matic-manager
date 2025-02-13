@@ -1,5 +1,7 @@
+
 import { supabase } from '@/integrations/supabase/client';
 import type { SaleWithProduct, SalesTotals } from '@/types/sales';
+import type { ProfitabilityData } from '@/components/profitability/types';
 
 const parsePrice = (value: string | number | null | undefined): number => {
   if (value === null || value === undefined || value === '') return 0;
@@ -102,7 +104,7 @@ export const updateSale = async (id: number, data: Partial<SaleWithProduct>) => 
   return true;
 };
 
-export const updateSaleProfitability = async (id: number, data: any) => {
+export const updateSaleProfitability = async (id: number, data: Partial<ProfitabilityData>) => {
   console.log('Updating sale profitability:', { id, data });
   
   const { error } = await supabase
