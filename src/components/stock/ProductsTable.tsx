@@ -1,4 +1,3 @@
-
 import { Button } from "@/components/ui/button";
 import { Product } from "@/types/database";
 import { format } from "date-fns";
@@ -13,7 +12,6 @@ interface ProductsTableProps {
   onProductSelect: (product: Product) => void;
   onStockUpdate: (sku: string, quantity: number) => void;
   onProductUpdate: (event: React.FormEvent<HTMLFormElement>) => void;
-  updatedFields?: string[];
 }
 
 const calculateCompleteness = (product: Product): { percentage: number; missingFields: string[] } => {
@@ -52,7 +50,6 @@ export const ProductsTable = ({
   onProductSelect,
   onStockUpdate,
   onProductUpdate,
-  updatedFields = [],
 }: ProductsTableProps) => {
   return (
     <div className="overflow-x-auto">
@@ -175,7 +172,6 @@ export const ProductsTable = ({
         onOpenChange={(open) => !open && onProductSelect(null)}
         onStockUpdate={onStockUpdate}
         onSubmit={onProductUpdate}
-        updatedFields={updatedFields}
       />
     </div>
   );
