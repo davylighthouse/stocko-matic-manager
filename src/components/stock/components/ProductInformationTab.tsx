@@ -1,25 +1,9 @@
 
 import { Label } from "@/components/ui/label";
 import { Input } from "@/components/ui/input";
-import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
 import { TabContentProps } from "../types/product-dialog";
-import { useQuery } from "@tanstack/react-query";
-import { supabase } from "@/integrations/supabase/client";
 
 export const ProductInformationTab = ({ product, renderFieldWithCheck }: TabContentProps) => {
-  const { data: fbaTiers = [] } = useQuery({
-    queryKey: ['amazon-fba-tiers'],
-    queryFn: async () => {
-      const { data, error } = await supabase
-        .from('amazon_fba_tiers')
-        .select('*')
-        .order('tier_name');
-      
-      if (error) throw error;
-      return data;
-    },
-  });
-
   return (
     <div className="space-y-4">
       <div className="grid grid-cols-3 gap-4">
@@ -76,24 +60,6 @@ export const ProductInformationTab = ({ product, renderFieldWithCheck }: TabCont
             name="warehouse_location"
             defaultValue={product.warehouse_location}
           />
-        </div>
-      )}
-      {renderFieldWithCheck("amazon_fba_tier_id",
-        <div>
-          <Label htmlFor="amazon_fba_tier_id">Amazon FBA Tier</Label>
-          <Select name="amazon_fba_tier_id" defaultValue={product.amazon_fba_tier_id?.toString() || "null"}>
-            <SelectTrigger>
-              <SelectValue placeholder="Select FBA tier" />
-            </SelectTrigger>
-            <SelectContent>
-              <SelectItem value="null">None</SelectItem>
-              {fbaTiers.map((tier) => (
-                <SelectItem key={tier.id} value={tier.id.toString()}>
-                  {tier.tier_name} - {tier.size_category} - £{tier.fee_amount.toFixed(2)}
-                </SelectItem>
-              ))}
-            </SelectContent>
-          </Select>
         </div>
       )}
     </div>

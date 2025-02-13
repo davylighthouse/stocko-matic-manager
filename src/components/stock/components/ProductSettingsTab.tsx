@@ -1,4 +1,3 @@
-
 import { Label } from "@/components/ui/label";
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
 import { Input } from "@/components/ui/input";
@@ -112,7 +111,7 @@ export const ProductSettingsTab = ({ product, renderFieldWithCheck }: TabContent
       </div>
 
       <div>
-        <Label htmlFor="promoted_listing_percentage">eBay Promoted Listing Percentage</Label>
+        <Label htmlFor="promoted_listing_percentage">eBay Promoted Listing Percentage (%)</Label>
         {renderFieldWithCheck("promoted_listing_percentage",
           <Input
             type="number"
