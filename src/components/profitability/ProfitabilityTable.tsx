@@ -1,4 +1,3 @@
-
 import { format } from "date-fns";
 import {
   Table,
@@ -63,15 +62,15 @@ export const ProfitabilityTable = ({ sales }: ProfitabilityTableProps) => {
   };
 
   const getProfitColor = (profit: number) => {
-    if (profit >= 3) return "text-[#8B5CF6]"; // Good - Vivid Purple
-    if (profit >= 2) return "text-[#F97316]"; // OK - Bright Orange
-    return "text-[#ea384c]"; // Bad - Red
+    if (profit >= 3) return "bg-purple-100 text-purple-900"; // Good
+    if (profit >= 2) return "bg-orange-100 text-orange-900"; // OK
+    return "bg-red-100 text-red-900"; // Bad
   };
 
   const getMarginColor = (margin: number) => {
-    if (margin >= 20) return "text-[#8B5CF6]"; // Good - Vivid Purple
-    if (margin >= 15) return "text-[#F97316]"; // OK - Bright Orange
-    return "text-[#ea384c]"; // Bad - Red
+    if (margin >= 20) return "bg-purple-100 text-purple-900"; // Good
+    if (margin >= 15) return "bg-orange-100 text-orange-900"; // OK
+    return "bg-red-100 text-red-900"; // Bad
   };
 
   const handleResize = (column: string, width: number) => {
@@ -198,13 +197,13 @@ export const ProfitabilityTable = ({ sales }: ProfitabilityTableProps) => {
                 {formatCurrency(sale.total_costs)}
               </TableCell>
               <TableCell 
-                className={`text-right font-medium ${getProfitColor(sale.profit)}`}
+                className={`text-right font-medium rounded-sm ${getProfitColor(sale.profit)}`}
                 style={{ width: columnWidths.profit }}
               >
                 {formatCurrency(sale.profit)}
               </TableCell>
               <TableCell 
-                className={`text-right ${getMarginColor(sale.profit_margin)}`}
+                className={`text-right rounded-sm ${getMarginColor(sale.profit_margin)}`}
                 style={{ width: columnWidths.margin }}
               >
                 {formatPercentage(sale.profit_margin)}
