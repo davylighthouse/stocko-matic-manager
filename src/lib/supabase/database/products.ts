@@ -36,7 +36,7 @@ export const getStockLevels = async () => {
 
   // Then, get bundle information from the view for any products that are bundles
   const bundleSkus = products
-    .filter(p => p.bundle_products?.length > 0)
+    .filter(p => p.bundle_products !== null)  // Changed this line to check for null
     .map(p => p.sku);
 
   let bundleData = [];
@@ -71,7 +71,7 @@ export const getStockLevels = async () => {
     return {
       ...product,
       current_stock: product.stock_quantity ?? 0,
-      bundle_products: product.bundle_products?.[0] || null,
+      bundle_products: product.bundle_products || null,  // Changed this line to handle single object
       bundle_components,
       // If it's a bundle, use the calculated values from the view
       ...(bundleInfo && {
