@@ -15,6 +15,7 @@ import StockChecks from "./pages/StockChecks";
 import Sales from "./pages/Sales";
 import RawData from "./pages/RawData";
 import Settings from "./pages/Settings";
+import Profitability from "./pages/Profitability";
 
 const queryClient = new QueryClient();
 
@@ -33,6 +34,7 @@ const App = () => (
               <Route path="stock-checks" element={<StockChecks />} />
               <Route path="sales" element={<Sales />} />
               <Route path="raw-data" element={<RawData />} />
+              <Route path="profitability" element={<Profitability />} />
               <Route path="upload" element={<Upload />} />
               <Route path="settings" element={<Settings />} />
               <Route path="*" element={<NotFound />} />

@@ -499,6 +499,64 @@ export type Database = {
           },
         ]
       }
+      sales_profitability: {
+        Row: {
+          default_picking_fee_id: number | null
+          default_shipping_service_id: number | null
+          gross_profit: number | null
+          id: number | null
+          listing_title: string | null
+          making_up_cost: number | null
+          packaging_cost: number | null
+          picking_fee: number | null
+          platform: string | null
+          platform_fee_percentage: number | null
+          platform_fees: number | null
+          product_cost: number | null
+          profit: number | null
+          profit_margin: number | null
+          promoted: boolean | null
+          quantity: number | null
+          sale_date: string | null
+          shipping_cost: number | null
+          sku: string | null
+          total_costs: number | null
+          total_price: number | null
+          total_product_cost: number | null
+          vat_cost: number | null
+          vat_status: string | null
+        }
+        Relationships: [
+          {
+            foreignKeyName: "products_default_picking_fee_id_fkey"
+            columns: ["default_picking_fee_id"]
+            isOneToOne: false
+            referencedRelation: "picking_fees"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "products_default_shipping_service_id_fkey"
+            columns: ["default_shipping_service_id"]
+            isOneToOne: false
+            referencedRelation: "shipping_services"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "sales_sku_fkey"
+            columns: ["sku"]
+            isOneToOne: false
+            referencedRelation: "current_stock_levels"
+            referencedColumns: ["sku"]
+          },
+          {
+            foreignKeyName: "sales_sku_fkey"
+            columns: ["sku"]
+            isOneToOne: false
+            referencedRelation: "products"
+            referencedColumns: ["sku"]
+          },
+        ]
+      }
       sales_totals: {
         Row: {
           earliest_sale: string | null
