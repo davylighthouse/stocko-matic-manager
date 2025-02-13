@@ -7,8 +7,14 @@ export interface ShippingService {
   id: number;
   service_name: string;
   courier: string;
-  surcharge_percentage: number;
+  price: number;
   max_weight: number;
+}
+
+export interface CourierSettings {
+  id: number;
+  courier: string;
+  surcharge_percentage: number;
 }
 
 export const VALID_COURIERS = ["Royal Mail", "Evri", "APC Overnight"];
@@ -31,9 +37,23 @@ export const useShippingServices = () => {
         id: service.id,
         service_name: service.service_name,
         courier: service.courier,
-        surcharge_percentage: service.surcharge_percentage,
+        price: service.price || 0,
         max_weight: service.max_weight || 0
       })) as ShippingService[];
+    },
+  });
+
+  const { data: courierSettings = [] } = useQuery({
+    queryKey: ['courier-settings'],
+    queryFn: async () => {
+      const { data, error } = await supabase
+        .from('courier_settings')
+        .select('*')
+        .order('courier');
+      
+      if (error) throw error;
+      
+      return data as CourierSettings[];
     },
   });
 
@@ -66,6 +86,21 @@ export const useShippingServices = () => {
     },
   });
 
+  const updateCourierSettingsMutation = useMutation({
+    mutationFn: async ({ id, ...settings }: CourierSettings) => {
+      const { error } = await supabase
+        .from('courier_settings')
+        .update(settings)
+        .eq('id', id);
+      
+      if (error) throw error;
+    },
+    onSuccess: () => {
+      queryClient.invalidateQueries({ queryKey: ['courier-settings'] });
+      toast({ title: "Success", description: "Courier settings updated successfully" });
+    },
+  });
+
   const deleteServiceMutation = useMutation({
     mutationFn: async (id: number) => {
       const { error } = await supabase
@@ -83,8 +118,10 @@ export const useShippingServices = () => {
 
   return {
     services,
+    courierSettings,
     addServiceMutation,
     updateServiceMutation,
+    updateCourierSettingsMutation,
     deleteServiceMutation,
   };
 };

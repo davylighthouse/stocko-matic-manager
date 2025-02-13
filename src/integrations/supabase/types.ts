@@ -9,6 +9,30 @@ export type Json =
 export type Database = {
   public: {
     Tables: {
+      courier_settings: {
+        Row: {
+          courier: string
+          created_at: string | null
+          id: number
+          surcharge_percentage: number
+          updated_at: string | null
+        }
+        Insert: {
+          courier: string
+          created_at?: string | null
+          id?: number
+          surcharge_percentage?: number
+          updated_at?: string | null
+        }
+        Update: {
+          courier?: string
+          created_at?: string | null
+          id?: number
+          surcharge_percentage?: number
+          updated_at?: string | null
+        }
+        Relationships: []
+      }
       initial_stock: {
         Row: {
           created_at: string | null
@@ -283,8 +307,8 @@ export type Database = {
           created_at: string | null
           id: number
           max_weight: number
+          price: number
           service_name: string
-          surcharge_percentage: number
           updated_at: string | null
         }
         Insert: {
@@ -292,8 +316,8 @@ export type Database = {
           created_at?: string | null
           id?: number
           max_weight?: number
+          price?: number
           service_name: string
-          surcharge_percentage?: number
           updated_at?: string | null
         }
         Update: {
@@ -301,8 +325,8 @@ export type Database = {
           created_at?: string | null
           id?: number
           max_weight?: number
+          price?: number
           service_name?: string
-          surcharge_percentage?: number
           updated_at?: string | null
         }
         Relationships: []

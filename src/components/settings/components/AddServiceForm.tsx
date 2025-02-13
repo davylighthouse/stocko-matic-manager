@@ -2,7 +2,6 @@
 import { useState } from "react";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
-import { Plus } from "lucide-react";
 import { ShippingService, VALID_COURIERS } from "../hooks/useShippingServices";
 
 interface AddServiceFormProps {
@@ -14,7 +13,7 @@ export const AddServiceForm = ({ onAdd, onCancel }: AddServiceFormProps) => {
   const [newService, setNewService] = useState({
     service_name: "",
     courier: VALID_COURIERS[0],
-    surcharge_percentage: "0",
+    price: "0",
     max_weight: "0",
   });
 
@@ -23,7 +22,7 @@ export const AddServiceForm = ({ onAdd, onCancel }: AddServiceFormProps) => {
     onAdd({
       service_name: newService.service_name,
       courier: newService.courier,
-      surcharge_percentage: parseFloat(newService.surcharge_percentage),
+      price: parseFloat(newService.price),
       max_weight: parseInt(newService.max_weight),
     });
   };
@@ -54,18 +53,18 @@ export const AddServiceForm = ({ onAdd, onCancel }: AddServiceFormProps) => {
           </select>
         </div>
         <div className="space-y-2">
-          <label htmlFor="surcharge" className="text-sm font-medium">Surcharge Percentage</label>
+          <label htmlFor="price" className="text-sm font-medium">Price (£)</label>
           <Input
-            id="surcharge"
+            id="price"
             type="number"
             step="0.01"
-            placeholder="Surcharge %"
-            value={newService.surcharge_percentage}
-            onChange={(e) => setNewService({ ...newService, surcharge_percentage: e.target.value })}
+            placeholder="Price"
+            value={newService.price}
+            onChange={(e) => setNewService({ ...newService, price: e.target.value })}
           />
         </div>
         <div className="space-y-2">
-          <label htmlFor="max-weight" className="text-sm font-medium">Maximum Weight</label>
+          <label htmlFor="max-weight" className="text-sm font-medium">Maximum Weight (g)</label>
           <Input
             id="max-weight"
             type="number"

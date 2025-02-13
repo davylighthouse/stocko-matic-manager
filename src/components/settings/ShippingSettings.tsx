@@ -9,7 +9,14 @@ import { ServicesTable } from "./components/ServicesTable";
 
 export const ShippingSettings = () => {
   const [isAddingService, setIsAddingService] = useState(false);
-  const { services, addServiceMutation, updateServiceMutation, deleteServiceMutation } = useShippingServices();
+  const { 
+    services, 
+    courierSettings,
+    addServiceMutation, 
+    updateServiceMutation,
+    updateCourierSettingsMutation,
+    deleteServiceMutation 
+  } = useShippingServices();
 
   return (
     <Card className="p-6">
@@ -33,7 +40,9 @@ export const ShippingSettings = () => {
 
       <ServicesTable
         services={services}
+        courierSettings={courierSettings}
         onUpdate={updateServiceMutation.mutate}
+        onUpdateCourierSettings={updateCourierSettingsMutation.mutate}
         onDelete={deleteServiceMutation.mutate}
       />
     </Card>

@@ -3,15 +3,23 @@ import { useState } from "react";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Pencil, Save, Trash2 } from "lucide-react";
-import { ShippingService, VALID_COURIERS } from "../hooks/useShippingServices";
+import { ShippingService, CourierSettings, VALID_COURIERS } from "../hooks/useShippingServices";
 
 interface ServicesTableProps {
   services: ShippingService[];
+  courierSettings: CourierSettings[];
   onUpdate: (service: ShippingService) => void;
+  onUpdateCourierSettings: (settings: CourierSettings) => void;
   onDelete: (id: number) => void;
 }
 
-export const ServicesTable = ({ services, onUpdate, onDelete }: ServicesTableProps) => {
+export const ServicesTable = ({ 
+  services, 
+  courierSettings, 
+  onUpdate, 
+  onUpdateCourierSettings, 
+  onDelete 
+}: ServicesTableProps) => {
   const [editingServiceId, setEditingServiceId] = useState<number | null>(null);
 
   const groupedServices = services.reduce((acc, service) => {
@@ -24,16 +32,37 @@ export const ServicesTable = ({ services, onUpdate, onDelete }: ServicesTablePro
 
   return (
     <div className="overflow-x-auto">
-      {VALID_COURIERS.map((courier) => (
-        groupedServices[courier]?.length > 0 && (
+      {VALID_COURIERS.map((courier) => {
+        const courierSetting = courierSettings.find(cs => cs.courier === courier);
+        return groupedServices[courier]?.length > 0 && (
           <div key={courier} className="mb-8">
-            <h3 className="text-lg font-medium mb-4">{courier}</h3>
+            <div className="flex justify-between items-center mb-4">
+              <h3 className="text-lg font-medium">{courier}</h3>
+              <div className="flex items-center gap-2">
+                <span className="text-sm font-medium">Surcharge:</span>
+                <Input
+                  type="number"
+                  step="0.01"
+                  value={courierSetting?.surcharge_percentage || 0}
+                  onChange={(e) => {
+                    if (courierSetting) {
+                      onUpdateCourierSettings({
+                        ...courierSetting,
+                        surcharge_percentage: parseFloat(e.target.value)
+                      });
+                    }
+                  }}
+                  className="w-24"
+                />
+                <span className="text-sm">%</span>
+              </div>
+            </div>
             <table className="w-full">
               <thead>
                 <tr className="border-b">
                   <th className="px-4 py-2 text-left">Service Name</th>
+                  <th className="px-4 py-2 text-right">Price (£)</th>
                   <th className="px-4 py-2 text-right">Weight (g)</th>
-                  <th className="px-4 py-2 text-right">Surcharge %</th>
                   <th className="px-4 py-2"></th>
                 </tr>
               </thead>
@@ -57,6 +86,22 @@ export const ServicesTable = ({ services, onUpdate, onDelete }: ServicesTablePro
                       {editingServiceId === service.id ? (
                         <Input
                           type="number"
+                          step="0.01"
+                          value={service.price}
+                          onChange={(e) => {
+                            const updated = { ...service, price: parseFloat(e.target.value) };
+                            onUpdate(updated);
+                          }}
+                          className="w-32 ml-auto"
+                        />
+                      ) : (
+                        `£${service.price.toFixed(2)}`
+                      )}
+                    </td>
+                    <td className="px-4 py-2 text-right">
+                      {editingServiceId === service.id ? (
+                        <Input
+                          type="number"
                           value={service.max_weight}
                           onChange={(e) => {
                             const updated = { ...service, max_weight: parseInt(e.target.value) };
@@ -66,22 +111,6 @@ export const ServicesTable = ({ services, onUpdate, onDelete }: ServicesTablePro
                         />
                       ) : (
                         `${service.max_weight}g`
-                      )}
-                    </td>
-                    <td className="px-4 py-2 text-right">
-                      {editingServiceId === service.id ? (
-                        <Input
-                          type="number"
-                          step="0.01"
-                          value={service.surcharge_percentage}
-                          onChange={(e) => {
-                            const updated = { ...service, surcharge_percentage: parseFloat(e.target.value) };
-                            onUpdate(updated);
-                          }}
-                          className="w-32 ml-auto"
-                        />
-                      ) : (
-                        `${service.surcharge_percentage}%`
                       )}
                     </td>
                     <td className="px-4 py-2">
@@ -115,8 +144,8 @@ export const ServicesTable = ({ services, onUpdate, onDelete }: ServicesTablePro
               </tbody>
             </table>
           </div>
-        )
-      ))}
+        );
+      })}
     </div>
   );
 };
