@@ -1,4 +1,3 @@
-
 import { Button } from "@/components/ui/button";
 import { Product } from "@/types/database";
 import { format } from "date-fns";
@@ -76,15 +75,14 @@ export const ProductsTable = ({
               completeness.percentage >= 70 ? "text-yellow-500" :
               "text-red-500";
 
-            // Handle current_stock display
+            // Enhanced stock display with configurable threshold
             const stockValue = product.current_stock ?? 0;
+            const lowStockThreshold = product.low_stock_threshold ?? 20; // Default threshold
             const stockClass = cn(
-              "inline-flex items-center px-2.5 py-0.5 rounded-full text-xs font-medium",
-              stockValue > 50
-                ? "bg-green-100 text-green-800"
-                : stockValue > 20
-                ? "bg-yellow-100 text-yellow-800"
-                : "bg-red-100 text-red-800"
+              "px-3 py-1 rounded-full text-sm font-medium",
+              stockValue <= lowStockThreshold
+                ? "bg-red-100 text-red-800"
+                : "bg-green-100 text-green-800"
             );
             
             return (
@@ -116,9 +114,22 @@ export const ProductsTable = ({
                   {product.sku}
                 </td>
                 <td className="px-6 py-4 whitespace-nowrap">
-                  <span className={stockClass}>
-                    {stockValue}
-                  </span>
+                  <TooltipProvider>
+                    <Tooltip>
+                      <TooltipTrigger>
+                        <div className={stockClass}>
+                          {stockValue}
+                          {stockValue <= lowStockThreshold && (
+                            <span className="ml-1 text-xs">Low Stock</span>
+                          )}
+                        </div>
+                      </TooltipTrigger>
+                      <TooltipContent>
+                        <p>Low stock threshold: {lowStockThreshold}</p>
+                        <p>Click to update stock level</p>
+                      </TooltipContent>
+                    </Tooltip>
+                  </TooltipProvider>
                 </td>
                 <td className="px-6 py-4 whitespace-nowrap text-sm text-gray-500">
                   {product.listing_title}
