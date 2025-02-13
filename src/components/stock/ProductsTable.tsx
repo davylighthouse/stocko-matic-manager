@@ -75,6 +75,17 @@ export const ProductsTable = ({
               completeness.percentage === 100 ? "text-green-500" :
               completeness.percentage >= 70 ? "text-yellow-500" :
               "text-red-500";
+
+            // Handle current_stock display
+            const stockValue = product.current_stock ?? 0;
+            const stockClass = cn(
+              "inline-flex items-center px-2.5 py-0.5 rounded-full text-xs font-medium",
+              stockValue > 50
+                ? "bg-green-100 text-green-800"
+                : stockValue > 20
+                ? "bg-yellow-100 text-yellow-800"
+                : "bg-red-100 text-red-800"
+            );
             
             return (
               <tr
@@ -105,17 +116,8 @@ export const ProductsTable = ({
                   {product.sku}
                 </td>
                 <td className="px-6 py-4 whitespace-nowrap">
-                  <span
-                    className={cn(
-                      "inline-flex items-center px-2.5 py-0.5 rounded-full text-xs font-medium",
-                      (product.current_stock ?? 0) > 50
-                        ? "bg-green-100 text-green-800"
-                        : (product.current_stock ?? 0) > 20
-                        ? "bg-yellow-100 text-yellow-800"
-                        : "bg-red-100 text-red-800"
-                    )}
-                  >
-                    {product.current_stock ?? 0}
+                  <span className={stockClass}>
+                    {stockValue}
                   </span>
                 </td>
                 <td className="px-6 py-4 whitespace-nowrap text-sm text-gray-500">
@@ -146,7 +148,7 @@ export const ProductsTable = ({
                     size="sm"
                     onClick={(e) => {
                       e.stopPropagation();
-                      const newQuantity = prompt("Enter new stock quantity:", String(product.current_stock ?? 0));
+                      const newQuantity = prompt("Enter new stock quantity:", String(stockValue));
                       if (newQuantity !== null) {
                         const quantity = parseInt(newQuantity);
                         if (!isNaN(quantity)) {
