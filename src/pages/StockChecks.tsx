@@ -1,4 +1,3 @@
-
 import { useQuery } from "@tanstack/react-query";
 import { useToast } from "@/components/ui/use-toast";
 import { getStockLevels } from "@/lib/supabase/database";
@@ -64,16 +63,11 @@ const StockChecks = () => {
     });
   };
 
-  const handleStockAdjustment = async (sku: string) => {
-    const quantity = prompt("Enter quantity (positive for addition, negative for reduction):");
-    if (quantity === null) return;
-
-    const notes = prompt("Enter notes for this adjustment:");
-    
+  const handleStockAdjustment = async (sku: string, quantity: number, notes?: string) => {
     await addStockAdjustment({
       sku,
-      quantity: parseInt(quantity),
-      notes: notes || undefined,
+      quantity,
+      notes,
     });
   };
 
@@ -124,6 +118,7 @@ const StockChecks = () => {
 
       <StockAdjustmentsTable
         currentStock={currentStock}
+        products={products}
         searchTerm={searchTerm}
         onSearchChange={setSearchTerm}
         onAdjustStock={handleStockAdjustment}

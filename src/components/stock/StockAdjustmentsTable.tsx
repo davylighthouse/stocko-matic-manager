@@ -5,16 +5,20 @@ import { Input } from "@/components/ui/input";
 import { Card } from "@/components/ui/card";
 import { Search, Check, Edit2 } from "lucide-react";
 import { CurrentStockLevel } from "@/types/stock-checks";
+import { ManualStockAdjustment } from "./ManualStockAdjustment";
+import { Product } from "@/types/database";
 
 interface StockAdjustmentsTableProps {
   currentStock: CurrentStockLevel[];
+  products: Product[];
   searchTerm: string;
   onSearchChange: (value: string) => void;
-  onAdjustStock: (sku: string) => void;
+  onAdjustStock: (sku: string, quantity: number, notes?: string) => void;
 }
 
 export const StockAdjustmentsTable = ({
   currentStock,
+  products,
   searchTerm,
   onSearchChange,
   onAdjustStock,
@@ -32,7 +36,7 @@ export const StockAdjustmentsTable = ({
     if (editingSku === item.sku) {
       // Confirm the edit
       if (editedCurrentStock !== null) {
-        onAdjustStock(item.sku);
+        onAdjustStock(item.sku, editedCurrentStock - item.current_stock);
       }
       setEditingSku(null);
       setEditedCurrentStock(null);
@@ -47,7 +51,10 @@ export const StockAdjustmentsTable = ({
 
   return (
     <Card className="p-6">
-      <h2 className="text-lg font-semibold mb-4">Stock Adjustments</h2>
+      <div className="flex justify-between items-center mb-4">
+        <h2 className="text-lg font-semibold">Stock Adjustments</h2>
+        <ManualStockAdjustment products={products} onAdjustStock={onAdjustStock} />
+      </div>
       <div className="space-y-4">
         <div className="flex gap-4">
           <div className="relative flex-1">
