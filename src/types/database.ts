@@ -17,6 +17,7 @@ export interface Product {
   packaging_cost?: number;
   making_up_cost?: number;
   additional_costs?: number;
+  low_stock_threshold?: number;
   latest_stock_check_quantities?: Array<{
     last_check_quantity: number;
     check_date: string;

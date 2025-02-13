@@ -62,6 +62,7 @@ export const updateProductDetails = async (sku: string, data: {
   warehouse_location?: string;
   supplier?: string;
   stock_quantity?: number;
+  low_stock_threshold?: number;
 }) => {
   console.log("Updating product:", sku, data);
 
@@ -75,7 +76,6 @@ export const updateProductDetails = async (sku: string, data: {
     throw error;
   }
 
-  // If stock quantity was updated, our trigger will handle the stock check items update
   console.log("Product updated successfully:", sku);
   return true;
 };

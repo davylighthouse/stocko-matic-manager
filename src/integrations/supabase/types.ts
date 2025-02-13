@@ -56,6 +56,7 @@ export type Database = {
           dimensions_length: number | null
           dimensions_width: number | null
           listing_title: string
+          low_stock_threshold: number | null
           making_up_cost: number | null
           packaging_cost: number | null
           product_cost: number | null
@@ -74,6 +75,7 @@ export type Database = {
           dimensions_length?: number | null
           dimensions_width?: number | null
           listing_title: string
+          low_stock_threshold?: number | null
           making_up_cost?: number | null
           packaging_cost?: number | null
           product_cost?: number | null
@@ -92,6 +94,7 @@ export type Database = {
           dimensions_length?: number | null
           dimensions_width?: number | null
           listing_title?: string
+          low_stock_threshold?: number | null
           making_up_cost?: number | null
           packaging_cost?: number | null
           product_cost?: number | null

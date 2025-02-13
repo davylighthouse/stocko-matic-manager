@@ -1,4 +1,3 @@
-
 import { Button } from "@/components/ui/button";
 import {
   Dialog,
@@ -78,6 +77,15 @@ export const ProductEditDialog = ({
                       onStockUpdate(product.sku, quantity);
                     }
                   }}
+                />
+              </div>
+              <div>
+                <Label htmlFor="low_stock_threshold">Low Stock Threshold</Label>
+                <Input
+                  id="low_stock_threshold"
+                  name="low_stock_threshold"
+                  type="number"
+                  defaultValue={product.low_stock_threshold ?? 20}
                 />
               </div>
               <div>
