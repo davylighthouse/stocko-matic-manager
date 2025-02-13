@@ -300,7 +300,6 @@ export type Database = {
           adjustments: number | null
           current_stock: number | null
           initial_stock: number | null
-          listing_title: string | null
           quantity_sold: number | null
           sku: string | null
         }

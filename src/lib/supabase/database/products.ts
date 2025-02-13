@@ -1,3 +1,4 @@
+
 import { supabase } from '@/integrations/supabase/client';
 import type { Product } from '@/types/database';
 
@@ -60,8 +61,9 @@ export const updateProductDetails = async (sku: string, data: {
   product_cost?: number;
   warehouse_location?: string;
   supplier?: string;
+  stock_quantity?: number;
 }) => {
-  console.log("Updating product:", sku, data); // Debugging
+  console.log("Updating product:", sku, data);
 
   const { error } = await supabase
     .from('products')
@@ -73,6 +75,7 @@ export const updateProductDetails = async (sku: string, data: {
     throw error;
   }
 
+  // If stock quantity was updated, our trigger will handle the stock check items update
   console.log("Product updated successfully:", sku);
   return true;
 };
@@ -87,7 +90,7 @@ export const createProduct = async (product: {
   // Create the product data object with defaults
   const productData = {
     sku: product.sku,
-    listing_title: product.listing_title || product.sku, // Fallback to SKU
+    listing_title: product.listing_title || product.sku,
     stock_quantity: product.stock_quantity || 0
   };
 
@@ -108,7 +111,7 @@ export const createProduct = async (product: {
   // Insert the new product
   const { data, error } = await supabase
     .from('products')
-    .insert([productData]) // Wrap in array to ensure correct format
+    .insert([productData])
     .select()
     .single();
 
@@ -128,7 +131,7 @@ export const updateStockLevel = async (sku: string, quantity: number) => {
     // First try to get the product
     const { data: existingProduct, error: checkError } = await supabase
       .from('products')
-      .select('*')
+      .select('stock_quantity')
       .eq('sku', sku)
       .maybeSingle();
 
@@ -143,15 +146,17 @@ export const updateStockLevel = async (sku: string, quantity: number) => {
       const newProduct = await createProduct({
         sku,
         listing_title: sku,
-        stock_quantity: 0
+        stock_quantity: quantity
       });
 
       if (!newProduct) {
         throw new Error('Failed to create new product');
       }
+      return true;
     }
 
     // Update the stock quantity directly in the products table
+    // This will trigger our database trigger to update stock_check_items
     const { error: updateError } = await supabase
       .from('products')
       .update({ stock_quantity: quantity })
