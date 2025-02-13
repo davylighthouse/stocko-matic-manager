@@ -75,26 +75,35 @@ const StockManagement = () => {
     if (!selectedProduct) return;
 
     const formData = new FormData(event.currentTarget);
-    const data = {
-      listing_title: formData.get('listing_title') as string,
-      product_cost: formData.get('product_cost') ? parseFloat(formData.get('product_cost') as string) : null,
-      warehouse_location: formData.get('warehouse_location') as string || null,
-      supplier: formData.get('supplier') as string || null,
-      stock_quantity: formData.get('stock_quantity') ? parseInt(formData.get('stock_quantity') as string) : null,
-      low_stock_threshold: formData.get('low_stock_threshold') ? parseInt(formData.get('low_stock_threshold') as string) : null,
-      product_status: formData.get('product_status') as string || null,
-      default_shipping_service: formData.get('default_shipping_service') as string || null,
-      vat_status: formData.get('vat_status') as string || null,
-      dimensions_height: formData.get('dimensions_height') ? parseFloat(formData.get('dimensions_height') as string) : null,
-      dimensions_width: formData.get('dimensions_width') ? parseFloat(formData.get('dimensions_width') as string) : null,
-      dimensions_length: formData.get('dimensions_length') ? parseFloat(formData.get('dimensions_length') as string) : null,
-      weight: formData.get('weight') ? parseFloat(formData.get('weight') as string) : null,
-      packaging_cost: formData.get('packaging_cost') ? parseFloat(formData.get('packaging_cost') as string) : null,
-      making_up_cost: formData.get('making_up_cost') ? parseFloat(formData.get('making_up_cost') as string) : null,
-      additional_costs: formData.get('additional_costs') ? parseFloat(formData.get('additional_costs') as string) : null,
-    };
+    const updates: Partial<Product> = {};
 
-    updateProductMutation.mutate({ sku: selectedProduct.sku, data });
+    // Only include fields that have been filled in
+    if (formData.get('listing_title')) updates.listing_title = formData.get('listing_title') as string;
+    if (formData.get('product_cost')) updates.product_cost = parseFloat(formData.get('product_cost') as string);
+    if (formData.get('warehouse_location')) updates.warehouse_location = formData.get('warehouse_location') as string;
+    if (formData.get('supplier')) updates.supplier = formData.get('supplier') as string;
+    if (formData.get('stock_quantity')) updates.stock_quantity = parseInt(formData.get('stock_quantity') as string);
+    if (formData.get('low_stock_threshold')) updates.low_stock_threshold = parseInt(formData.get('low_stock_threshold') as string);
+    if (formData.get('product_status')) updates.product_status = formData.get('product_status') as string;
+    if (formData.get('default_shipping_service')) updates.default_shipping_service = formData.get('default_shipping_service') as string;
+    if (formData.get('vat_status')) updates.vat_status = formData.get('vat_status') as string;
+    if (formData.get('dimensions_height')) updates.dimensions_height = parseFloat(formData.get('dimensions_height') as string);
+    if (formData.get('dimensions_width')) updates.dimensions_width = parseFloat(formData.get('dimensions_width') as string);
+    if (formData.get('dimensions_length')) updates.dimensions_length = parseFloat(formData.get('dimensions_length') as string);
+    if (formData.get('weight')) updates.weight = parseFloat(formData.get('weight') as string);
+    if (formData.get('packaging_cost')) updates.packaging_cost = parseFloat(formData.get('packaging_cost') as string);
+    if (formData.get('making_up_cost')) updates.making_up_cost = parseFloat(formData.get('making_up_cost') as string);
+    if (formData.get('additional_costs')) updates.additional_costs = parseFloat(formData.get('additional_costs') as string);
+
+    // Only proceed with update if there are actual changes
+    if (Object.keys(updates).length > 0) {
+      updateProductMutation.mutate({ sku: selectedProduct.sku, data: updates });
+    } else {
+      toast({
+        title: "No changes",
+        description: "No fields were modified",
+      });
+    }
   };
 
   if (isLoading) {
