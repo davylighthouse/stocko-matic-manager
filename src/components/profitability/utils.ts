@@ -23,18 +23,18 @@ export const getCalculationTooltip = (sale: any, type: string, formatCurrency: (
   switch (type) {
     case 'total_costs':
       return `Product Cost: ${formatCurrency(sale.total_product_cost)}
-              Platform Fees: ${formatCurrency(sale.platform_fees)}
-              Shipping Cost: ${formatCurrency(sale.shipping_cost)}
-              VAT: ${formatCurrency(sale.vat_cost)}
-              = ${formatCurrency(sale.total_costs)}`;
+Platform Fees: ${formatCurrency(sale.platform_fees)}
+Shipping Cost: ${formatCurrency(sale.shipping_cost)}
+VAT: ${formatCurrency(sale.vat_cost)}
+= ${formatCurrency(sale.total_costs)}`;
     case 'profit':
       return `Sale Price: ${formatCurrency(sale.total_price)}
-              - Total Costs: ${formatCurrency(sale.total_costs)}
-              = ${formatCurrency(sale.profit)}`;
+- Total Costs: ${formatCurrency(sale.total_costs)}
+= ${formatCurrency(sale.profit)}`;
     case 'profit_margin':
       return `Profit: ${formatCurrency(sale.profit)}
-              ÷ Sale Price: ${formatCurrency(sale.total_price)}
-              × 100 = ${formatPercentage(sale.profit_margin)}`;
+÷ Sale Price: ${formatCurrency(sale.total_price)}
+× 100 = ${formatPercentage(sale.profit_margin)}`;
     default:
       return '';
   }
