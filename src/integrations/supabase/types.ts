@@ -804,6 +804,12 @@ export type Database = {
           grand_total: number
         }[]
       }
+      is_bundle_component: {
+        Args: {
+          p_sku: string
+        }
+        Returns: boolean
+      }
       process_product_updates: {
         Args: {
           p_sku: string
