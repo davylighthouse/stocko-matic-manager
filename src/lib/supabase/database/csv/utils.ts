@@ -2,6 +2,11 @@
 import { supabase } from '@/integrations/supabase/client';
 import Papa from 'papaparse';
 
+interface ProductRow {
+  sku: string;
+  [key: string]: string | number | undefined;
+}
+
 export const parsePrice = (value: string | undefined): number => {
   if (!value || value.trim() === '') return 0;
   const cleanValue = value.trim().replace('£', '');
@@ -54,7 +59,7 @@ export const downloadProductTemplate = async () => {
 
 export const processCSV = async (file: File): Promise<{ success: boolean; message?: string }> => {
   return new Promise((resolve, reject) => {
-    Papa.parse(file, {
+    Papa.parse<ProductRow>(file, {
       header: true,
       skipEmptyLines: true,
       complete: async (results) => {
