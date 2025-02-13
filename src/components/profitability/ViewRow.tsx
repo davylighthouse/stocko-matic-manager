@@ -1,3 +1,4 @@
+
 import { TableCell, TableRow } from "@/components/ui/table";
 import { format } from "date-fns";
 import { Button } from "@/components/ui/button";
@@ -76,15 +77,26 @@ export const ViewRow = ({ sale, columnWidths, onEdit }: ViewRowProps) => {
   };
 
   const TooltipWrapper = ({ value, tooltipContent, className = "" }: { value: React.ReactNode, tooltipContent: string, className?: string }) => (
-    <Tooltip delayDuration={0}>
+    <Tooltip>
       <TooltipTrigger asChild>
         <div className={`group inline-flex items-center gap-1 cursor-help ${className}`}>
           {value}
-          <Calculator className="h-3 w-3 opacity-0 group-hover:opacity-100 transition-opacity" />
+          <Calculator className="h-3.5 w-3.5 opacity-50 group-hover:opacity-100 transition-opacity" />
         </div>
       </TooltipTrigger>
-      <TooltipContent className="max-w-[300px] whitespace-pre-wrap bg-slate-900 text-slate-50 p-3 rounded-md shadow-lg">
-        <pre className="text-sm">{tooltipContent}</pre>
+      <TooltipContent 
+        side="top" 
+        align="start"
+        className="max-w-[400px] w-fit bg-slate-900 text-slate-50 p-4 rounded-lg shadow-lg border border-slate-800"
+      >
+        <div className="space-y-2">
+          <div className="font-medium text-slate-200 border-b border-slate-700 pb-2 mb-2">
+            Calculation Breakdown
+          </div>
+          <pre className="text-sm whitespace-pre-wrap font-mono bg-slate-800 p-2 rounded">
+            {tooltipContent}
+          </pre>
+        </div>
       </TooltipContent>
     </Tooltip>
   );
