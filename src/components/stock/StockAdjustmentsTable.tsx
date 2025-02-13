@@ -20,7 +20,8 @@ export const StockAdjustmentsTable = ({
   onAdjustStock,
 }: StockAdjustmentsTableProps) => {
   const [editingSku, setEditingSku] = useState<string | null>(null);
-  const [editedQuantity, setEditedQuantity] = useState<number | null>(null);
+  const [editedCurrentStock, setEditedCurrentStock] = useState<number | null>(null);
+  const [editedInitialStock, setEditedInitialStock] = useState<number | null>(null);
 
   const filteredStock = currentStock?.filter(item =>
     item.sku.toLowerCase().includes(searchTerm.toLowerCase()) ||
@@ -30,16 +31,17 @@ export const StockAdjustmentsTable = ({
   const handleAdjustClick = (item: CurrentStockLevel) => {
     if (editingSku === item.sku) {
       // Confirm the edit
-      if (editedQuantity !== null) {
-        const adjustment = editedQuantity - item.current_stock;
+      if (editedCurrentStock !== null) {
         onAdjustStock(item.sku);
       }
       setEditingSku(null);
-      setEditedQuantity(null);
+      setEditedCurrentStock(null);
+      setEditedInitialStock(null);
     } else {
       // Start editing
       setEditingSku(item.sku);
-      setEditedQuantity(item.current_stock);
+      setEditedCurrentStock(item.current_stock);
+      setEditedInitialStock(item.initial_stock);
     }
   };
 
@@ -81,8 +83,8 @@ export const StockAdjustmentsTable = ({
                     {editingSku === item.sku ? (
                       <Input
                         type="number"
-                        value={editedQuantity ?? ""}
-                        onChange={(e) => setEditedQuantity(parseInt(e.target.value))}
+                        value={editedCurrentStock ?? ""}
+                        onChange={(e) => setEditedCurrentStock(parseInt(e.target.value))}
                         className="w-24 text-right inline-block"
                       />
                     ) : (
@@ -91,7 +93,18 @@ export const StockAdjustmentsTable = ({
                   </td>
                   <td className="px-4 py-2 text-right">{item.quantity_sold}</td>
                   <td className="px-4 py-2 text-right">{item.adjustments}</td>
-                  <td className="px-4 py-2 text-right">{item.initial_stock}</td>
+                  <td className="px-4 py-2 text-right">
+                    {editingSku === item.sku ? (
+                      <Input
+                        type="number"
+                        value={editedInitialStock ?? ""}
+                        onChange={(e) => setEditedInitialStock(parseInt(e.target.value))}
+                        className="w-24 text-right inline-block"
+                      />
+                    ) : (
+                      item.initial_stock
+                    )}
+                  </td>
                   <td className="px-4 py-2">
                     <Button
                       variant={editingSku === item.sku ? "default" : "ghost"}
