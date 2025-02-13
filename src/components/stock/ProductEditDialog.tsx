@@ -13,6 +13,7 @@ import { ProductDetailsTab } from "./components/ProductDetailsTab";
 import { ProductInformationTab } from "./components/ProductInformationTab";
 import { ProductCostTab } from "./components/ProductCostTab";
 import { ProductSettingsTab } from "./components/ProductSettingsTab";
+import { BundleTab } from "./components/BundleTab";
 
 export const ProductEditDialog = ({
   product,
@@ -38,11 +39,12 @@ export const ProductEditDialog = ({
         </DialogHeader>
         <form onSubmit={onSubmit} className="space-y-4">
           <Tabs defaultValue="details" className="w-full">
-            <TabsList className="grid w-full grid-cols-4">
+            <TabsList className="grid w-full grid-cols-5">
               <TabsTrigger value="details">Product Details</TabsTrigger>
               <TabsTrigger value="information">Product Information</TabsTrigger>
               <TabsTrigger value="cost">Product Cost</TabsTrigger>
               <TabsTrigger value="settings">Settings</TabsTrigger>
+              <TabsTrigger value="bundle">Bundle</TabsTrigger>
             </TabsList>
 
             <TabsContent value="details">
@@ -75,6 +77,15 @@ export const ProductEditDialog = ({
                 product={product}
                 updatedFields={updatedFields}
                 renderFieldWithCheck={renderFieldWithCheck}
+              />
+            </TabsContent>
+
+            <TabsContent value="bundle">
+              <BundleTab
+                product={product}
+                updatedFields={updatedFields}
+                renderFieldWithCheck={renderFieldWithCheck}
+                onStockUpdate={onStockUpdate}
               />
             </TabsContent>
           </Tabs>

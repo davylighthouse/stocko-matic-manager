@@ -21,6 +21,7 @@ interface AvailableProduct {
   sku: string;
   listing_title: string;
   stock_quantity: number;
+  product_cost: number;
 }
 
 export const BundleProductDialog = ({
@@ -50,7 +51,8 @@ export const BundleProductDialog = ({
         quantity,
         products:component_sku (
           listing_title,
-          stock_quantity
+          stock_quantity,
+          product_cost
         )
       `)
       .eq('bundle_sku', product.sku);
@@ -64,14 +66,15 @@ export const BundleProductDialog = ({
       component_sku: item.component_sku,
       quantity: item.quantity,
       listing_title: item.products?.listing_title,
-      stock_quantity: item.products?.stock_quantity
+      stock_quantity: item.products?.stock_quantity,
+      product_cost: item.products?.product_cost
     })));
   };
 
   const fetchAvailableProducts = async () => {
     const { data, error } = await supabase
       .from('products')
-      .select('sku, listing_title, stock_quantity')
+      .select('sku, listing_title, stock_quantity, product_cost')
       .order('listing_title');
 
     if (error) {
@@ -99,6 +102,26 @@ export const BundleProductDialog = ({
     setComponents(newComponents);
   };
 
+  const calculateBundleStock = (components: BundleComponent[]) => {
+    return Math.min(
+      ...components
+        .filter(c => c.component_sku && c.quantity > 0)
+        .map(c => {
+          const component = availableProducts.find(p => p.sku === c.component_sku);
+          return component ? Math.floor(component.stock_quantity / c.quantity) : 0;
+        })
+    );
+  };
+
+  const calculateBundleCost = (components: BundleComponent[]) => {
+    return components
+      .filter(c => c.component_sku && c.quantity > 0)
+      .reduce((total, c) => {
+        const component = availableProducts.find(p => p.sku === c.component_sku);
+        return total + (component?.product_cost || 0) * c.quantity;
+      }, 0);
+  };
+
   const handleSave = async () => {
     if (!product) return;
 
@@ -111,10 +134,12 @@ export const BundleProductDialog = ({
       if (bundleError) throw bundleError;
 
       // Remove existing components
-      await supabase
+      const { error: deleteError } = await supabase
         .from('bundle_components')
         .delete()
         .eq('bundle_sku', product.sku);
+
+      if (deleteError) throw deleteError;
 
       // Add new components
       const { error: componentsError } = await supabase
@@ -148,6 +173,10 @@ export const BundleProductDialog = ({
     }
   };
 
+  const validComponents = components.filter(c => c.component_sku && c.quantity > 0);
+  const expectedStock = validComponents.length > 0 ? calculateBundleStock(validComponents) : 0;
+  const expectedCost = validComponents.length > 0 ? calculateBundleCost(validComponents) : 0;
+
   return (
     <Dialog open={open} onOpenChange={onOpenChange}>
       <DialogContent className="max-w-2xl">
@@ -156,6 +185,12 @@ export const BundleProductDialog = ({
         </DialogHeader>
 
         <div className="space-y-4">
+          <div className="bg-gray-50 p-4 rounded-md">
+            <h3 className="font-semibold mb-2">Bundle Summary</h3>
+            <p>Expected Stock: {expectedStock}</p>
+            <p>Expected Cost: £{expectedCost.toFixed(2)}</p>
+          </div>
+
           <div className="space-y-4">
             {components.map((component, index) => (
               <div key={index} className="flex gap-4 items-start">
@@ -169,7 +204,7 @@ export const BundleProductDialog = ({
                     <option value="">Select a product</option>
                     {availableProducts.map((p) => (
                       <option key={p.sku} value={p.sku}>
-                        {p.sku} - {p.listing_title}
+                        {p.sku} - {p.listing_title} (Stock: {p.stock_quantity})
                       </option>
                     ))}
                   </select>
