@@ -70,15 +70,16 @@ export const updateProductDetails = async (sku: string, data: Partial<Product>) 
     ...data,
     // Handle shipping service ID
     default_shipping_service_id: 
-      data.default_shipping_service_id === "not_set" ? 
+      data.default_shipping_service_id === null || 
+      (typeof data.default_shipping_service_id === 'string' && data.default_shipping_service_id === "not_set") ? 
         defaultShippingService.id : 
         data.default_shipping_service_id ? 
-          parseInt(data.default_shipping_service_id.toString()) : 
+          parseInt(String(data.default_shipping_service_id)) : 
           existingProduct.default_shipping_service_id,
     // Handle picking fee ID
     default_picking_fee_id: 
       data.default_picking_fee_id ? 
-        parseInt(data.default_picking_fee_id.toString()) : 
+        parseInt(String(data.default_picking_fee_id)) : 
         existingProduct.default_picking_fee_id || defaultPickingFee.id,
     // Triple check the listing_title is set
     listing_title: data.listing_title || existingProduct?.listing_title || sku
@@ -118,6 +119,10 @@ export const createProduct = async (product: {
     supabase.from('picking_fees').select('id').limit(1).single(),
     supabase.from('shipping_services').select('id').limit(1).single()
   ]);
+
+  if (!defaultPickingFee || !defaultShippingService) {
+    throw new Error('Default picking fee or shipping service not found');
+  }
   
   // Always ensure listing_title is set, using SKU as fallback
   const productData = {

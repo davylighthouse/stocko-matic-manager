@@ -10,6 +10,16 @@ export const processCSV = async (file: File): Promise<{ success: boolean; messag
 
     console.log('CSV Headers:', headers);
 
+    // Get default IDs
+    const [{ data: defaultPickingFee }, { data: defaultShippingService }] = await Promise.all([
+      supabase.from('picking_fees').select('id').limit(1).single(),
+      supabase.from('shipping_services').select('id').limit(1).single()
+    ]);
+
+    if (!defaultPickingFee || !defaultShippingService) {
+      throw new Error('Default picking fee or shipping service not found');
+    }
+
     // Find the correct column indices
     const findColumnIndex = (possibleNames: string[]): number => {
       const index = headers.findIndex(header => 
@@ -109,7 +119,10 @@ export const processCSV = async (file: File): Promise<{ success: boolean; messag
       const product = {
         sku,
         listing_title: row[listingTitleIndex] || sku,
-        product_cost: productCostIndex !== -1 ? parsePrice(row[productCostIndex]) : null
+        product_cost: productCostIndex !== -1 ? parsePrice(row[productCostIndex]) : null,
+        default_picking_fee_id: defaultPickingFee.id,
+        default_shipping_service_id: defaultShippingService.id,
+        stock_quantity: 0 // Default value
       };
 
       console.log('Upserting product:', product);
