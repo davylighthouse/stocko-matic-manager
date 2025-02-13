@@ -7,6 +7,7 @@ import { Search, Check, Edit2 } from "lucide-react";
 import { CurrentStockLevel } from "@/types/stock-checks";
 import { ManualStockAdjustment } from "./ManualStockAdjustment";
 import { Product } from "@/types/database";
+import { AdjustmentsHistoryDialog } from "./AdjustmentsHistoryDialog";
 
 interface StockAdjustmentsTableProps {
   currentStock: CurrentStockLevel[];
@@ -26,6 +27,8 @@ export const StockAdjustmentsTable = ({
   const [editingSku, setEditingSku] = useState<string | null>(null);
   const [editedCurrentStock, setEditedCurrentStock] = useState<number | null>(null);
   const [editedInitialStock, setEditedInitialStock] = useState<number | null>(null);
+  const [selectedSku, setSelectedSku] = useState<string | null>(null);
+  const [isHistoryOpen, setIsHistoryOpen] = useState(false);
 
   const filteredStock = currentStock?.filter(item =>
     item.sku.toLowerCase().includes(searchTerm.toLowerCase()) ||
@@ -47,6 +50,11 @@ export const StockAdjustmentsTable = ({
       setEditedCurrentStock(item.current_stock);
       setEditedInitialStock(item.initial_stock);
     }
+  };
+
+  const handleShowHistory = (sku: string) => {
+    setSelectedSku(sku);
+    setIsHistoryOpen(true);
   };
 
   return (
@@ -99,7 +107,15 @@ export const StockAdjustmentsTable = ({
                     )}
                   </td>
                   <td className="px-4 py-2 text-right">{item.quantity_sold}</td>
-                  <td className="px-4 py-2 text-right">{item.adjustments}</td>
+                  <td className="px-4 py-2 text-right">
+                    <Button
+                      variant="link"
+                      className="px-2"
+                      onClick={() => handleShowHistory(item.sku)}
+                    >
+                      {item.adjustments}
+                    </Button>
+                  </td>
                   <td className="px-4 py-2 text-right">
                     {editingSku === item.sku ? (
                       <Input
@@ -137,6 +153,14 @@ export const StockAdjustmentsTable = ({
           </table>
         </div>
       </div>
+
+      {selectedSku && (
+        <AdjustmentsHistoryDialog
+          sku={selectedSku}
+          open={isHistoryOpen}
+          onOpenChange={setIsHistoryOpen}
+        />
+      )}
     </Card>
   );
 };
