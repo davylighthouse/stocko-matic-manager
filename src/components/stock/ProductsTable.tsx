@@ -1,13 +1,13 @@
+
 import { Button } from "@/components/ui/button";
 import { Product } from "@/types/database";
 import { format } from "date-fns";
-import { cn } from "@/lib/utils";
 import { ProductEditDialog } from "./ProductEditDialog";
-import { Circle } from "lucide-react";
-import { Tooltip, TooltipContent, TooltipProvider, TooltipTrigger } from "@/components/ui/tooltip";
 import { useState } from "react";
-import { Switch } from "@/components/ui/switch";
-import { Label } from "@/components/ui/label";
+import { calculateCompleteness } from "./utils/calculateCompleteness";
+import { ProductsTableHeader } from "./ProductsTableHeader";
+import { ProductStatusIndicator } from "./ProductStatusIndicator";
+import { StockLevelIndicator } from "./StockLevelIndicator";
 
 interface ProductsTableProps {
   products: Product[];
@@ -17,36 +17,6 @@ interface ProductsTableProps {
   onProductUpdate: (event: React.FormEvent<HTMLFormElement>) => void;
   updatedFields?: string[];
 }
-
-const calculateCompleteness = (product: Product): { percentage: number; missingFields: string[] } => {
-  const requiredFields = [
-    { name: 'listing_title', label: 'Title', defaultValue: product.sku },
-    { name: 'product_cost', label: 'Product Cost', defaultValue: null },
-    { name: 'supplier', label: 'Supplier', defaultValue: null },
-    { name: 'warehouse_location', label: 'Warehouse Location', defaultValue: null },
-    { name: 'product_status', label: 'Product Status', defaultValue: null },
-    { name: 'default_shipping_service', label: 'Shipping Service', defaultValue: null },
-    { name: 'vat_status', label: 'VAT Status', defaultValue: null },
-    { name: 'dimensions_height', label: 'Height', defaultValue: null },
-    { name: 'dimensions_width', label: 'Width', defaultValue: null },
-    { name: 'dimensions_length', label: 'Length', defaultValue: null },
-    { name: 'weight', label: 'Weight', defaultValue: null },
-    { name: 'packaging_cost', label: 'Packaging Cost', defaultValue: null },
-    { name: 'making_up_cost', label: 'Making Up Cost', defaultValue: null }
-  ];
-
-  const missingFields = requiredFields.filter(field => {
-    const value = product[field.name as keyof Product];
-    return value !== field.defaultValue && (value === null || value === undefined || value === '');
-  });
-
-  const percentage = ((requiredFields.length - missingFields.length) / requiredFields.length) * 100;
-
-  return {
-    percentage,
-    missingFields: missingFields.map(f => f.label)
-  };
-};
 
 export const ProductsTable = ({
   products,
@@ -60,25 +30,10 @@ export const ProductsTable = ({
 
   return (
     <div className="overflow-x-auto">
-      <div className="flex justify-between items-center mb-6">
-        <div className="flex items-center gap-6">
-          <div className="flex items-center space-x-2">
-            <Switch
-              id="status-toggle"
-              checked={showStatus}
-              onCheckedChange={setShowStatus}
-              className="data-[state=checked]:bg-[#9b87f5] data-[state=unchecked]:bg-gray-200"
-            />
-            <Label htmlFor="status-toggle" className="text-sm font-medium leading-none peer-disabled:cursor-not-allowed peer-disabled:opacity-70">
-              Show Status
-            </Label>
-          </div>
-        </div>
-        <Button className="flex items-center gap-2">
-          <Plus className="h-4 w-4" />
-          Add Product
-        </Button>
-      </div>
+      <ProductsTableHeader 
+        showStatus={showStatus}
+        onShowStatusChange={setShowStatus}
+      />
 
       <table className="w-full">
         <thead>
@@ -99,11 +54,6 @@ export const ProductsTable = ({
         <tbody className="bg-white divide-y divide-gray-200">
           {products.map((product: Product) => {
             const completeness = calculateCompleteness(product);
-            const completenessColor = 
-              completeness.percentage === 100 ? "text-green-500" :
-              completeness.percentage >= 70 ? "text-yellow-500" :
-              "text-red-500";
-
             const stockLevel = product.stock_quantity;
             const threshold = product.low_stock_threshold ?? 20;
             
@@ -115,42 +65,20 @@ export const ProductsTable = ({
               >
                 {showStatus && (
                   <td className="px-6 py-4 whitespace-nowrap">
-                    <TooltipProvider>
-                      <Tooltip>
-                        <TooltipTrigger>
-                          <div className="flex items-center">
-                            <Circle className={cn("h-4 w-4 fill-current", completenessColor)} />
-                            <span className="ml-2 text-sm text-gray-500">
-                              {completeness.percentage.toFixed(0)}%
-                            </span>
-                          </div>
-                        </TooltipTrigger>
-                        <TooltipContent>
-                          {completeness.missingFields.length > 0
-                            ? `Missing information: ${completeness.missingFields.join(', ')}`
-                            : 'All information complete'}
-                        </TooltipContent>
-                      </Tooltip>
-                    </TooltipProvider>
+                    <ProductStatusIndicator 
+                      percentage={completeness.percentage}
+                      missingFields={completeness.missingFields}
+                    />
                   </td>
                 )}
                 <td className="px-6 py-4 whitespace-nowrap text-sm font-medium text-gray-900">
                   {product.sku}
                 </td>
                 <td className="px-6 py-4 whitespace-nowrap">
-                  <div 
-                    className={cn(
-                      "px-3 py-1 rounded-full inline-flex items-center",
-                      stockLevel <= threshold 
-                        ? "bg-red-100 text-red-800" 
-                        : "bg-green-100 text-green-800"
-                    )}
-                  >
-                    <span className="text-sm font-medium">{stockLevel}</span>
-                    {stockLevel <= threshold && (
-                      <span className="ml-1 text-xs">Low Stock</span>
-                    )}
-                  </div>
+                  <StockLevelIndicator 
+                    stockLevel={stockLevel}
+                    threshold={threshold}
+                  />
                 </td>
                 <td className="px-6 py-4 whitespace-nowrap text-sm text-gray-500">
                   {product.listing_title}
