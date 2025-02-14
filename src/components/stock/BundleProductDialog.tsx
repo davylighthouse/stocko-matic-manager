@@ -49,10 +49,10 @@ export const BundleProductDialog = ({
       .select(`
         component_sku,
         quantity,
-        products:component_sku (
-          listing_title:listing_title,
-          stock_quantity:stock_quantity,
-          product_cost:product_cost
+        component:products!bundle_components_component_sku_fkey (
+          listing_title,
+          stock_quantity,
+          product_cost
         )
       `)
       .eq('bundle_sku', product.sku);
@@ -65,9 +65,9 @@ export const BundleProductDialog = ({
     setComponents(data.map(item => ({
       component_sku: item.component_sku,
       quantity: item.quantity,
-      listing_title: item.products?.listing_title,
-      stock_quantity: item.products?.stock_quantity,
-      product_cost: item.products?.product_cost
+      listing_title: item.component?.listing_title,
+      stock_quantity: item.component?.stock_quantity,
+      product_cost: item.component?.product_cost
     })));
   };
 
