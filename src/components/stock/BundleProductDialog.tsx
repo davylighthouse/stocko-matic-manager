@@ -50,9 +50,9 @@ export const BundleProductDialog = ({
         component_sku,
         quantity,
         products:component_sku (
-          listing_title,
-          stock_quantity,
-          product_cost
+          listing_title:listing_title,
+          stock_quantity:stock_quantity,
+          product_cost:product_cost
         )
       `)
       .eq('bundle_sku', product.sku);
