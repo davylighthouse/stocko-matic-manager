@@ -70,6 +70,13 @@ export type Database = {
             referencedColumns: ["bundle_sku"]
           },
           {
+            foreignKeyName: "bundle_components_bundle_sku_fkey"
+            columns: ["bundle_sku"]
+            isOneToOne: false
+            referencedRelation: "bundle_stock_levels"
+            referencedColumns: ["sku"]
+          },
+          {
             foreignKeyName: "bundle_components_component_sku_fkey"
             columns: ["component_sku"]
             isOneToOne: false
@@ -600,11 +607,18 @@ export type Database = {
         }
         Relationships: [
           {
-            foreignKeyName: "bundle_components_bundle_sku_fkey"
+            foreignKeyName: "bundle_products_bundle_sku_fkey"
             columns: ["sku"]
-            isOneToOne: false
-            referencedRelation: "bundle_products"
-            referencedColumns: ["bundle_sku"]
+            isOneToOne: true
+            referencedRelation: "current_stock_levels"
+            referencedColumns: ["sku"]
+          },
+          {
+            foreignKeyName: "bundle_products_bundle_sku_fkey"
+            columns: ["sku"]
+            isOneToOne: true
+            referencedRelation: "products"
+            referencedColumns: ["sku"]
           },
         ]
       }
