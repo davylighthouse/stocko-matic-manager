@@ -616,20 +616,6 @@ export type Database = {
           quantity_sold: number | null
           sku: string | null
         }
-        Insert: {
-          adjustments?: never
-          current_stock?: never
-          initial_stock?: never
-          quantity_sold?: never
-          sku?: string | null
-        }
-        Update: {
-          adjustments?: never
-          current_stock?: never
-          initial_stock?: never
-          quantity_sold?: never
-          sku?: string | null
-        }
         Relationships: []
       }
       latest_stock_check_quantities: {

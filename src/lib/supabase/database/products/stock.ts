@@ -43,7 +43,7 @@ export const getStockLevels = async () => {
     bundleData = bundles || [];
   }
 
-  // Get current stock levels for all products
+  // Get current stock levels from the materialized view
   const { data: stockLevels, error: stockError } = await supabase
     .from('current_stock_levels')
     .select('*');
@@ -130,7 +130,7 @@ export const updateStockLevel = async (sku: string, quantity: number) => {
 
     console.log('Recording stock adjustment of:', adjustmentQuantity);
 
-    // Record the stock adjustment
+    // Record the stock adjustment which will trigger the view refresh
     const { error: adjustmentError } = await supabase
       .from('stock_adjustments')
       .insert({
@@ -145,7 +145,8 @@ export const updateStockLevel = async (sku: string, quantity: number) => {
       throw adjustmentError;
     }
 
-    // Update the product's stock quantity
+    // The stock quantity in products table will be updated by the trigger
+    // but we'll also update it here for immediate consistency
     const { error: updateError } = await supabase
       .from('products')
       .update({ 
