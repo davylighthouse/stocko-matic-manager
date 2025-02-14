@@ -1,4 +1,3 @@
-
 import { useState, useEffect } from "react";
 import { Dialog, DialogContent, DialogHeader, DialogTitle } from "@/components/ui/dialog";
 import { Button } from "@/components/ui/button";
@@ -16,7 +15,6 @@ interface BundleProductDialogProps {
   onBundleUpdate: () => void;
 }
 
-// Create a simpler type for available products
 interface AvailableProduct {
   sku: string;
   listing_title: string;
