@@ -601,22 +601,20 @@ export type Database = {
         Row: {
           bundle_cost: number | null
           bundle_stock: number | null
-          components_details: Json | null
-          listing_title: string | null
           sku: string | null
         }
         Relationships: [
           {
-            foreignKeyName: "bundle_products_bundle_sku_fkey"
+            foreignKeyName: "bundle_components_bundle_sku_fkey"
             columns: ["sku"]
-            isOneToOne: true
+            isOneToOne: false
             referencedRelation: "current_stock_levels"
             referencedColumns: ["sku"]
           },
           {
-            foreignKeyName: "bundle_products_bundle_sku_fkey"
+            foreignKeyName: "bundle_components_bundle_sku_fkey"
             columns: ["sku"]
-            isOneToOne: true
+            isOneToOne: false
             referencedRelation: "products"
             referencedColumns: ["sku"]
           },
