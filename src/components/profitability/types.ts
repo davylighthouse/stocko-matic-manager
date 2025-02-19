@@ -43,8 +43,6 @@ export interface EditableCellProps {
   type?: string;
 }
 
-export type ColumnWidth = string;
-
 export interface ColumnWidths {
   date: string;
   platform: string;
@@ -60,4 +58,5 @@ export interface ColumnWidths {
   totalCosts: string;
   profit: string;
   margin: string;
+  [key: string]: string; // Add index signature to make it assignable to Record<string, string>
 }
