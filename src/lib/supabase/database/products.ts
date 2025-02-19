@@ -6,33 +6,15 @@ export const getProductDetails = async (sku: string): Promise<Product | null> =>
   const { data, error } = await supabase
     .from('products')
     .select(`
-      sku,
-      listing_title,
-      stock_quantity,
-      product_cost,
-      warehouse_location,
-      supplier,
-      product_status,
-      default_shipping_service,
-      default_shipping_service_id,
-      default_picking_fee_id,
-      vat_status,
-      dimensions_height,
-      dimensions_width,
-      dimensions_length,
-      weight,
-      packaging_cost,
-      making_up_cost,
-      additional_costs,
-      low_stock_threshold,
-      amazon_fba_tier_id,
-      promoted_listing_percentage,
+      *,
       bundle_products (bundle_sku),
       bundle_components!bundle_components_bundle_sku_fkey (
         component_sku,
         quantity,
         component:products!bundle_components_component_sku_fkey (
-          stock_quantity
+          listing_title,
+          stock_quantity,
+          product_cost
         )
       ),
       latest_stock_check_quantities (
@@ -57,10 +39,10 @@ export const getProductDetails = async (sku: string): Promise<Product | null> =>
     throw error;
   }
 
-  return data;
+  return data as Product | null;
 };
 
-export const updateProductDetails = async (sku: string, updates: Record<string, unknown>) => {
+export const updateProductDetails = async (sku: string, updates: Partial<Record<keyof Product, unknown>>) => {
   const { error } = await supabase.rpc('process_product_updates', {
     p_sku: sku,
     p_updates: updates
