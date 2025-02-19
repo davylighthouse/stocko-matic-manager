@@ -36,23 +36,38 @@ const SortableTableRow = ({
     setNodeRef,
     transform,
     transition,
+    isDragging,
   } = useSortable({ id: product.sku });
 
   const style = {
     transform: CSS.Transform.toString(transform),
-    transition,
-  };
+    transition: transition || 'transform 200ms cubic-bezier(0.2, 0, 0, 1)',
+    zIndex: isDragging ? 100 : 1,
+    position: isDragging ? 'relative' : 'static',
+    backgroundColor: isDragging ? 'var(--background)' : undefined,
+    boxShadow: isDragging ? 'var(--shadow-lg)' : undefined,
+  } as React.CSSProperties;
 
   return (
     <tr 
       ref={setNodeRef} 
       style={style}
-      className="cursor-pointer hover:bg-gray-50"
+      className={`
+        cursor-pointer 
+        hover:bg-gray-50 
+        transition-colors 
+        duration-200
+        ${isDragging ? 'opacity-90' : 'opacity-100'}
+      `}
       onClick={onRowClick}
     >
       <td className="px-6 py-4 whitespace-nowrap" onClick={(e) => e.stopPropagation()}>
-        <button className="cursor-grab focus:cursor-grabbing" {...attributes} {...listeners}>
-          <GripVertical className="h-4 w-4 text-gray-400" />
+        <button 
+          className="cursor-grab active:cursor-grabbing focus:outline-none group"
+          {...attributes} 
+          {...listeners}
+        >
+          <GripVertical className="h-4 w-4 text-gray-400 transition-colors group-hover:text-gray-600" />
         </button>
       </td>
       {children}

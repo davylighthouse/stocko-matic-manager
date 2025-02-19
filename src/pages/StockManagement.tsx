@@ -33,7 +33,11 @@ const StockManagement = () => {
   const queryClient = useQueryClient();
 
   const sensors = useSensors(
-    useSensor(PointerSensor),
+    useSensor(PointerSensor, {
+      activationConstraint: {
+        distance: 8, // Adds a small drag threshold to prevent accidental drags
+      },
+    }),
     useSensor(KeyboardSensor, {
       coordinateGetter: sortableKeyboardCoordinates,
     })
@@ -97,7 +101,11 @@ const StockManagement = () => {
       const oldIndex = filteredProducts.findIndex((item) => item.sku === active.id);
       const newIndex = filteredProducts.findIndex((item) => item.sku === over.id);
       
+      // Optimistically update the UI
       const newOrder = arrayMove(filteredProducts, oldIndex, newIndex);
+      queryClient.setQueryData(['products'], (old: Product[]) => 
+        old ? arrayMove([...old], oldIndex, newIndex) : old
+      );
       
       // Prepare updates with new order indices
       const updates = newOrder.map((product, index) => ({
@@ -252,6 +260,7 @@ const StockManagement = () => {
           sensors={sensors}
           collisionDetection={closestCenter}
           onDragEnd={handleDragEnd}
+          modifiers={[]}
         >
           <SortableContext
             items={filteredProducts.map(p => p.sku)}
