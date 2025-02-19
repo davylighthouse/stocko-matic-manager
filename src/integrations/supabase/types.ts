@@ -39,6 +39,8 @@ export type Database = {
       bundle_components: {
         Row: {
           bundle_sku: string | null
+          calculated_cost_price: number | null
+          calculated_stock_quantity: number | null
           component_sku: string | null
           created_at: string | null
           id: number
@@ -47,6 +49,8 @@ export type Database = {
         }
         Insert: {
           bundle_sku?: string | null
+          calculated_cost_price?: number | null
+          calculated_stock_quantity?: number | null
           component_sku?: string | null
           created_at?: string | null
           id?: number
@@ -55,6 +59,8 @@ export type Database = {
         }
         Update: {
           bundle_sku?: string | null
+          calculated_cost_price?: number | null
+          calculated_stock_quantity?: number | null
           component_sku?: string | null
           created_at?: string | null
           id?: number

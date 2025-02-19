@@ -48,6 +48,8 @@ export const BundleProductDialog = ({
       .select(`
         component_sku,
         quantity,
+        calculated_stock_quantity,
+        calculated_cost_price,
         component:products!bundle_components_component_sku_fkey (
           listing_title,
           stock_quantity,
@@ -65,8 +67,8 @@ export const BundleProductDialog = ({
       component_sku: item.component_sku,
       quantity: item.quantity,
       listing_title: item.component?.listing_title,
-      stock_quantity: item.component?.stock_quantity,
-      product_cost: item.component?.product_cost
+      stock_quantity: item.calculated_stock_quantity,
+      product_cost: item.calculated_cost_price
     })));
   };
 
@@ -272,3 +274,4 @@ export const BundleProductDialog = ({
     </Dialog>
   );
 };
+
