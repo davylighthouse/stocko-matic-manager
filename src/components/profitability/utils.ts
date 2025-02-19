@@ -46,23 +46,25 @@ Profit = ${formatCurrency(sale.profit)}`;
 Margin = ${formatPercentage(sale.profit_margin)}`;
 
     case 'shipping':
-      return `Base Shipping Cost: ${formatCurrency(sale.shipping_cost)}
+      const pickingFee = sale.picking_fee || 0;
+      return `Base Shipping Cost: ${formatCurrency(sale.shipping_cost - pickingFee)}
+Picking Fee: ${formatCurrency(pickingFee)}
 ----------------------------------
-Total Shipping = ${formatCurrency(sale.shipping_cost)}
-(Historical rate applied)`;
+Total Shipping = ${formatCurrency(sale.shipping_cost)}`;
 
     case 'product_cost':
       return `Base Product Cost: ${formatCurrency(sale.product_cost)}
 Packaging Cost: ${formatCurrency(sale.packaging_cost)}
 Making Up Cost: ${formatCurrency(sale.making_up_cost)}
 ----------------------------------
-Total Product Cost = ${formatCurrency(sale.total_product_cost)}
-(Historical costs applied)`;
+Total Product Cost = ${formatCurrency(sale.total_product_cost)}`;
 
     case 'vat':
+      if (sale.vat_status !== 'standard') {
+        return 'No VAT applicable for this product';
+      }
       return `Sale Price: ${formatCurrency(sale.total_price)}
-VAT Amount = ${formatCurrency(sale.total_price / 6)}
-----------------------------------
+VAT Rate: 20%
 VAT Amount = ${formatCurrency(sale.vat_cost)}`;
 
     case 'platform_fees':
@@ -74,8 +76,7 @@ VAT Amount = ${formatCurrency(sale.vat_cost)}`;
 
       return `${feeBreakdown}
 ----------------------------------
-Total Platform Fees = ${formatCurrency(sale.platform_fees)}
-(Historical rates applied)`;
+Total Platform Fees = ${formatCurrency(sale.platform_fees)}`;
 
     case 'advertising':
       if (!sale.promoted) {

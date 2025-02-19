@@ -26,62 +26,35 @@ const Profitability = () => {
         throw error;
       }
 
-      // Log specific PRED6 data
-      const pred6Sales = data?.filter(sale => sale.sku === 'PRED6');
-      if (pred6Sales && pred6Sales.length > 0) {
-        console.log('PRED6 Sales Data:', pred6Sales);
-        
-        // Log each PRED6 sale with JSON.stringify to ensure all data is visible
-        pred6Sales.forEach((sale, index) => {
-          console.log(`PRED6 Sale #${index + 1} of ${pred6Sales.length}:`, JSON.stringify({
-            id: sale.id,
-            date: sale.sale_date,
-            platform: sale.platform,
-            quantity: sale.quantity,
-            total_price: sale.total_price,
-            product_cost: sale.product_cost,
-            total_product_cost: sale.total_product_cost,
-            platform_fees: sale.platform_fees,
-            shipping_cost: sale.shipping_cost,
-            vat_cost: sale.vat_cost,
-            total_costs: sale.total_costs,
-            profit: sale.profit,
-            profit_margin: sale.profit_margin,
-            platform_fee_percentage: sale.platform_fee_percentage,
-            platform_flat_fee: sale.platform_flat_fee,
-            promoted: sale.promoted,
-            promoted_listing_percentage: sale.promoted_listing_percentage,
-            making_up_cost: sale.making_up_cost,
-            packaging_cost: sale.packaging_cost,
-            picking_fee: sale.picking_fee,
-            fba_fee_amount: sale.fba_fee_amount
-          }, null, 2));
+      // Process VAT and shipping costs
+      const processedData = data?.map(sale => {
+        // Calculate VAT if applicable
+        let vatCost = 0;
+        if (sale.vat_status === 'standard') {
+          vatCost = sale.total_price / 6; // 20% VAT calculation
+        }
 
-          // Calculate expected platform fees for verification
-          const expectedPlatformFees = sale.promoted 
-            ? (sale.total_price * (sale.platform_fee_percentage || 0) / 100) + 
-              (sale.platform_flat_fee || 0) +
-              (sale.total_price * (sale.promoted_listing_percentage || 0) / 100)
-            : (sale.total_price * (sale.platform_fee_percentage || 0) / 100) + 
-              (sale.platform_flat_fee || 0);
+        // Add VAT cost to total costs
+        const totalCosts = (sale.total_costs || 0) + vatCost;
+        const profit = sale.total_price - totalCosts;
+        const profitMargin = (profit / sale.total_price) * 100;
 
-          console.log(`PRED6 Sale #${index + 1} Fee Calculation:`, {
-            total_price: sale.total_price,
-            platform_fee_percentage: sale.platform_fee_percentage,
-            platform_flat_fee: sale.platform_flat_fee,
-            promoted: sale.promoted,
-            promoted_percentage: sale.promoted_listing_percentage,
-            expected_platform_fees: expectedPlatformFees,
-            actual_platform_fees: sale.platform_fees,
-            fba_fee_amount: sale.fba_fee_amount
-          });
-        });
-      } else {
-        console.log('No PRED6 sales found in the data');
-      }
-      
-      return data as ProfitabilityData[];
-    }
+        return {
+          ...sale,
+          vat_cost: vatCost,
+          total_costs: totalCosts,
+          profit: profit,
+          profit_margin: profitMargin
+        };
+      });
+
+      console.log('Processed sales data:', processedData);
+      return processedData as ProfitabilityData[];
+    },
+    // Add dependencies to trigger refresh when related data changes
+    refetchOnWindowFocus: true,
+    refetchOnMount: true,
+    cacheTime: 0 // Disable caching to ensure fresh data
   });
 
   const filteredSales = salesData.filter(
