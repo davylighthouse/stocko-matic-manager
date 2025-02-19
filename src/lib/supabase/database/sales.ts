@@ -33,6 +33,10 @@ export const getSalesWithProducts = async () => {
       promoted,
       quantity,
       total_price,
+      base_product_cost,
+      packaging_cost,
+      making_up_cost,
+      additional_costs,
       total_product_cost,
       platform_fees,
       shipping_cost,
@@ -70,6 +74,15 @@ export const getSalesWithProducts = async () => {
       promoted: sale.promoted,
       quantity: sale.quantity,
       total_price: sale.total_price || 0,
+      base_product_cost: sale.base_product_cost || 0,
+      packaging_cost: sale.packaging_cost || 0,
+      making_up_cost: sale.making_up_cost || 0,
+      additional_costs: sale.additional_costs || 0,
+      total_product_cost: sale.total_product_cost || 0,
+      platform_fees: sale.platform_fees || 0,
+      shipping_cost: sale.shipping_cost || 0,
+      advertising_cost: sale.advertising_cost || 0,
+      vat_cost: vatCost,
       gross_profit: grossProfit
     };
   });

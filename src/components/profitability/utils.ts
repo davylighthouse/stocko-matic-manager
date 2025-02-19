@@ -1,4 +1,5 @@
 
+
 export const formatCurrency = (value: number | null | undefined) => {
   if (value === null || value === undefined) return '£0.00';
   return `£${value.toFixed(2)}`;
@@ -53,12 +54,23 @@ Picking Fee: ${formatCurrency(pickingFee)}
 Total Shipping = ${formatCurrency(sale.shipping_cost)}`;
 
     case 'product_cost':
-      return `Base Product Cost: ${formatCurrency(sale.base_product_cost)}
+      const totalCost = (sale.base_product_cost || 0) +
+                       (sale.packaging_cost || 0) +
+                       (sale.making_up_cost || 0) +
+                       (sale.additional_costs || 0);
+      const perUnit = `Per Unit:
+Base Product Cost: ${formatCurrency(sale.base_product_cost)}
 Packaging Cost: ${formatCurrency(sale.packaging_cost)}
 Making Up Cost: ${formatCurrency(sale.making_up_cost)}
 Additional Costs: ${formatCurrency(sale.additional_costs)}
 ----------------------------------
-Total Product Cost = ${formatCurrency(sale.total_product_cost)}`;
+Total Per Unit = ${formatCurrency(totalCost)}`;
+      
+      const withQuantity = sale.quantity > 1 ? `\n\nQuantity: ${sale.quantity}
+----------------------------------
+Total Product Cost = ${formatCurrency(sale.total_product_cost)}` : '';
+
+      return perUnit + withQuantity;
 
     case 'vat':
       if (sale.vat_status !== 'standard') {
@@ -92,3 +104,4 @@ Advertising Cost = ${formatCurrency(sale.advertising_cost)}`;
       return '';
   }
 };
+

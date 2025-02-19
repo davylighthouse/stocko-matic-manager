@@ -822,8 +822,10 @@ export type Database = {
       }
       sales_profitability: {
         Row: {
+          additional_costs: number | null
           advertising_cost: number | null
           amazon_fba_tier_id: number | null
+          base_product_cost: number | null
           base_shipping_rate: number | null
           default_picking_fee_id: number | null
           default_shipping_service_id: number | null
@@ -836,7 +838,6 @@ export type Database = {
           platform_fee_percentage: number | null
           platform_fees: number | null
           platform_flat_fee: number | null
-          product_cost: number | null
           promoted: boolean | null
           promoted_listing_percentage: number | null
           quantity: number | null
