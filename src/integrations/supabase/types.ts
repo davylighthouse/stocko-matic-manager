@@ -194,6 +194,39 @@ export type Database = {
           },
         ]
       }
+      picking_fee_history: {
+        Row: {
+          created_at: string | null
+          created_by: string | null
+          effective_from: string
+          effective_to: string | null
+          fee_amount: number
+          fee_name: string
+          id: number
+          notes: string | null
+        }
+        Insert: {
+          created_at?: string | null
+          created_by?: string | null
+          effective_from: string
+          effective_to?: string | null
+          fee_amount: number
+          fee_name: string
+          id?: number
+          notes?: string | null
+        }
+        Update: {
+          created_at?: string | null
+          created_by?: string | null
+          effective_from?: string
+          effective_to?: string | null
+          fee_amount?: number
+          fee_name?: string
+          id?: number
+          notes?: string | null
+        }
+        Relationships: []
+      }
       picking_fees: {
         Row: {
           created_at: string | null
@@ -215,6 +248,42 @@ export type Database = {
           fee_name?: string
           id?: number
           updated_at?: string | null
+        }
+        Relationships: []
+      }
+      platform_fee_history: {
+        Row: {
+          created_at: string | null
+          created_by: string | null
+          effective_from: string
+          effective_to: string | null
+          flat_fee: number
+          id: number
+          notes: string | null
+          percentage_fee: number
+          platform_name: string
+        }
+        Insert: {
+          created_at?: string | null
+          created_by?: string | null
+          effective_from: string
+          effective_to?: string | null
+          flat_fee?: number
+          id?: number
+          notes?: string | null
+          percentage_fee?: number
+          platform_name: string
+        }
+        Update: {
+          created_at?: string | null
+          created_by?: string | null
+          effective_from?: string
+          effective_to?: string | null
+          flat_fee?: number
+          id?: number
+          notes?: string | null
+          percentage_fee?: number
+          platform_name?: string
         }
         Relationships: []
       }
@@ -242,6 +311,45 @@ export type Database = {
           percentage_fee?: number
           platform_name?: string
           updated_at?: string | null
+        }
+        Relationships: []
+      }
+      product_cost_history: {
+        Row: {
+          created_at: string | null
+          created_by: string | null
+          effective_from: string
+          effective_to: string | null
+          id: number
+          making_up_cost: number | null
+          notes: string | null
+          packaging_cost: number | null
+          product_cost: number
+          sku: string
+        }
+        Insert: {
+          created_at?: string | null
+          created_by?: string | null
+          effective_from: string
+          effective_to?: string | null
+          id?: number
+          making_up_cost?: number | null
+          notes?: string | null
+          packaging_cost?: number | null
+          product_cost: number
+          sku: string
+        }
+        Update: {
+          created_at?: string | null
+          created_by?: string | null
+          effective_from?: string
+          effective_to?: string | null
+          id?: number
+          making_up_cost?: number | null
+          notes?: string | null
+          packaging_cost?: number | null
+          product_cost?: number
+          sku?: string
         }
         Relationships: []
       }
@@ -436,6 +544,53 @@ export type Database = {
             isOneToOne: false
             referencedRelation: "products"
             referencedColumns: ["sku"]
+          },
+        ]
+      }
+      shipping_rate_history: {
+        Row: {
+          created_at: string | null
+          created_by: string | null
+          effective_from: string
+          effective_to: string | null
+          id: number
+          notes: string | null
+          price: number
+          service_id: number | null
+          weight_from: number
+          weight_to: number
+        }
+        Insert: {
+          created_at?: string | null
+          created_by?: string | null
+          effective_from: string
+          effective_to?: string | null
+          id?: number
+          notes?: string | null
+          price?: number
+          service_id?: number | null
+          weight_from: number
+          weight_to: number
+        }
+        Update: {
+          created_at?: string | null
+          created_by?: string | null
+          effective_from?: string
+          effective_to?: string | null
+          id?: number
+          notes?: string | null
+          price?: number
+          service_id?: number | null
+          weight_from?: number
+          weight_to?: number
+        }
+        Relationships: [
+          {
+            foreignKeyName: "shipping_rate_history_service_id_fkey"
+            columns: ["service_id"]
+            isOneToOne: false
+            referencedRelation: "shipping_services"
+            referencedColumns: ["id"]
           },
         ]
       }
@@ -689,7 +844,6 @@ export type Database = {
           quantity: number | null
           sale_date: string | null
           shipping_cost: number | null
-          shipping_service_id: number | null
           sku: string | null
           total_costs: number | null
           total_price: number | null
@@ -716,13 +870,6 @@ export type Database = {
           {
             foreignKeyName: "products_default_shipping_service_id_fkey"
             columns: ["default_shipping_service_id"]
-            isOneToOne: false
-            referencedRelation: "shipping_services"
-            referencedColumns: ["id"]
-          },
-          {
-            foreignKeyName: "sales_shipping_service_id_fkey"
-            columns: ["shipping_service_id"]
             isOneToOne: false
             referencedRelation: "shipping_services"
             referencedColumns: ["id"]
@@ -810,6 +957,42 @@ export type Database = {
       calculate_stock_for_sku: {
         Args: {
           p_sku: string
+        }
+        Returns: number
+      }
+      get_picking_fee_at_date: {
+        Args: {
+          p_fee_name: string
+          p_date: string
+        }
+        Returns: number
+      }
+      get_platform_fee_at_date: {
+        Args: {
+          p_platform_name: string
+          p_date: string
+        }
+        Returns: {
+          percentage_fee: number
+          flat_fee: number
+        }[]
+      }
+      get_product_cost_at_date: {
+        Args: {
+          p_sku: string
+          p_date: string
+        }
+        Returns: {
+          product_cost: number
+          packaging_cost: number
+          making_up_cost: number
+        }[]
+      }
+      get_shipping_rate_at_date: {
+        Args: {
+          p_service_id: number
+          p_weight: number
+          p_date: string
         }
         Returns: number
       }

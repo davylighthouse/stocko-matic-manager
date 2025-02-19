@@ -28,6 +28,8 @@ export const ViewRow = ({ sale, columnWidths, onEdit }: ViewRowProps) => {
 
   const currentProduct = products.find(p => p.sku === sale.sku);
 
+  const historicalIndicator = "text-xs text-muted-foreground ml-1 italic";
+
   return (
     <>
       <TableCell className="p-4 whitespace-nowrap" style={{ width: columnWidths.date }}>
@@ -60,25 +62,34 @@ export const ViewRow = ({ sale, columnWidths, onEdit }: ViewRowProps) => {
         />
       </TableCell>
       <TableCell className="p-4 text-right whitespace-nowrap" style={{ width: columnWidths.productCost }}>
-        <CalculationDialog 
-          title="Product Cost"
-          value={formatCurrency(sale.total_product_cost)}
-          tooltipContent={`Product Cost per Unit (${formatCurrency(sale.product_cost)}) × Quantity (${sale.quantity}) = ${formatCurrency(sale.total_product_cost)}`}
-        />
+        <div className="flex items-center justify-end">
+          <CalculationDialog 
+            title="Product Cost"
+            value={formatCurrency(sale.total_product_cost)}
+            tooltipContent={getCalculationTooltip(sale, 'product_cost', formatCurrency, formatPercentage)}
+          />
+          <span className={historicalIndicator}>(hist)</span>
+        </div>
       </TableCell>
       <TableCell className="p-4 text-right whitespace-nowrap" style={{ width: columnWidths.platformFees }}>
-        <CalculationDialog 
-          title="Platform Fees"
-          value={formatCurrency(sale.platform_fees)}
-          tooltipContent={getCalculationTooltip(sale, 'platform_fees', formatCurrency, formatPercentage)}
-        />
+        <div className="flex items-center justify-end">
+          <CalculationDialog 
+            title="Platform Fees"
+            value={formatCurrency(sale.platform_fees)}
+            tooltipContent={getCalculationTooltip(sale, 'platform_fees', formatCurrency, formatPercentage)}
+          />
+          <span className={historicalIndicator}>(hist)</span>
+        </div>
       </TableCell>
       <TableCell className="p-4 text-right whitespace-nowrap" style={{ width: columnWidths.shipping }}>
-        <CalculationDialog 
-          title="Shipping Costs"
-          value={formatCurrency(sale.shipping_cost)}
-          tooltipContent={getCalculationTooltip(sale, 'shipping', formatCurrency, formatPercentage)}
-        />
+        <div className="flex items-center justify-end">
+          <CalculationDialog 
+            title="Shipping Costs"
+            value={formatCurrency(sale.shipping_cost)}
+            tooltipContent={getCalculationTooltip(sale, 'shipping', formatCurrency, formatPercentage)}
+          />
+          <span className={historicalIndicator}>(hist)</span>
+        </div>
       </TableCell>
       <TableCell className="p-4 text-right whitespace-nowrap" style={{ width: columnWidths.vat }}>
         <CalculationDialog 
@@ -135,3 +146,4 @@ export const ViewRow = ({ sale, columnWidths, onEdit }: ViewRowProps) => {
     </>
   );
 };
+

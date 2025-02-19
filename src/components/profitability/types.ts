@@ -1,3 +1,4 @@
+
 export interface ProfitabilityData {
   id: number;
   sale_date: string;
@@ -58,3 +59,4 @@ export interface EditableCellProps {
   type?: string;
   onChange: (field: keyof ProfitabilityData, value: string | number) => void;
 }
+
