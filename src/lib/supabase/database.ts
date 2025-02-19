@@ -1,4 +1,3 @@
-
 import { supabase } from '@/integrations/supabase/client';
 import { Product, Sale } from '@/types/database';
 import type { SaleWithProduct, SalesTotals } from '@/types/sales';
@@ -161,7 +160,7 @@ export const getStockLevels = async () => {
         total_sold
       )
     `)
-    .order('listing_title');
+    .order('order_index');
 
   if (error) throw error;
   return data;
@@ -189,6 +188,18 @@ export const updateStockLevel = async (sku: string, quantity: number) => {
     .eq('sku', sku);
 
   if (error) throw error;
+  return true;
+};
+
+export const updateProductOrder = async (updates: { sku: string; order_index: number }[]) => {
+  for (const update of updates) {
+    const { error } = await supabase
+      .from('products')
+      .update({ order_index: update.order_index })
+      .eq('sku', update.sku);
+
+    if (error) throw error;
+  }
   return true;
 };
 
