@@ -3,7 +3,7 @@ import { Button } from "@/components/ui/button";
 import { Card } from "@/components/ui/card";
 import { Input } from "@/components/ui/input";
 import { Download } from "lucide-react";
-import { generateStockCheckTemplate } from "@/lib/supabase/database/csv";
+import { generateStockCheckTemplate } from "@/lib/supabase/database/csv/initial-stock-csv";
 
 interface InitialStockUploadProps {
   onFileUpload: (event: React.ChangeEvent<HTMLInputElement>) => void;
