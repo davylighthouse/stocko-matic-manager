@@ -182,8 +182,16 @@ export const processSalesCSV = async (file: File): Promise<{ success: boolean; m
               continue;
             }
 
-            // Parse date from DD-MM-YYYY to YYYY-MM-DD
-            const saleDate = parse(row['Sale Date'], 'dd-MM-yyyy', new Date());
+            // Parse date handling DD/MM/YYYY format
+            const [day, month, year] = row['Sale Date'].split(/[-/]/);
+            const saleDate = new Date(Number(year), Number(month) - 1, Number(day));
+            
+            // Validate the date
+            if (isNaN(saleDate.getTime())) {
+              console.error('Invalid date format:', row['Sale Date']);
+              continue;
+            }
+
             const formattedDate = format(saleDate, 'yyyy-MM-dd');
 
             // Create sale record
@@ -232,7 +240,7 @@ export const downloadSalesTemplate = async () => {
   // Create CSV content with the new format
   const csvContent = [
     ['Sale Date', 'Platform', 'Listing Title', 'SKU', 'Promoted Listing', 'Quantity', 'Total Price'].join(','),
-    ['01-01-2024', 'Amazon', 'Example Product', 'ABC123', 'Yes', '1', '19.99'].join(','), // Example row
+    ['04/01/2024', 'Amazon', 'Example Product', 'ABC123', 'Yes', '1', '19.99'].join(','), // Example row with correct date format
   ].join('\n');
 
   // Create and download the file
