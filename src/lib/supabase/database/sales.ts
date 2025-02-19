@@ -1,4 +1,3 @@
-
 import { supabase } from '@/integrations/supabase/client';
 import type { SaleWithProduct, SalesTotals } from '@/types/sales';
 import type { ProfitabilityData } from '@/components/profitability/types';
@@ -51,8 +50,25 @@ export const getSalesTotals = async () => {
     .select('*')
     .single();
 
-  if (error) throw error;
-  return data as SalesTotals;
+  if (error) {
+    console.error('Error fetching sales totals:', error);
+    throw error;
+  }
+
+  // Get active SKUs count from products table
+  const { count: activeSkus, error: skuError } = await supabase
+    .from('products')
+    .select('sku', { count: 'exact' });
+
+  if (skuError) {
+    console.error('Error fetching active SKUs:', skuError);
+    throw skuError;
+  }
+
+  return {
+    ...data,
+    unique_products: activeSkus,
+  } as SalesTotals;
 };
 
 export const deleteSale = async (id: number) => {
