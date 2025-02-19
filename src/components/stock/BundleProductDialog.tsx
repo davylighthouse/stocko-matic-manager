@@ -1,4 +1,3 @@
-
 import { useState, useEffect } from "react";
 import { Dialog, DialogContent, DialogHeader, DialogTitle } from "@/components/ui/dialog";
 import { Button } from "@/components/ui/button";
@@ -131,16 +130,7 @@ export const BundleProductDialog = ({
     if (!product) return;
 
     try {
-      const totalCost = calculateBundleCost(components.filter(c => c.component_sku && c.quantity > 0));
-
-      // First, ensure this product is marked as a bundle and update its cost
-      const { error: productError } = await supabase
-        .from('products')
-        .update({ product_cost: totalCost })
-        .eq('sku', product.sku);
-
-      if (productError) throw productError;
-
+      // First, ensure this product is marked as a bundle
       const { error: bundleError } = await supabase
         .from('bundle_products')
         .upsert({ 
@@ -176,7 +166,7 @@ export const BundleProductDialog = ({
 
       if (componentsError) throw componentsError;
 
-      // Call the update_stock_quantities function
+      // Call the update_stock_quantities function to update both stock and costs
       const { error: updateError } = await supabase.rpc('update_stock_quantities');
       
       if (updateError) throw updateError;
