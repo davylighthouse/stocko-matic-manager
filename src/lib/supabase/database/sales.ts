@@ -1,6 +1,8 @@
 import { supabase } from '@/integrations/supabase/client';
 import type { SaleWithProduct, SalesTotals } from '@/types/sales';
 import type { ProfitabilityData } from '@/components/profitability/types';
+import { format, parse } from 'date-fns';
+import Papa from 'papaparse';
 
 const parsePrice = (value: string | number | null | undefined): number => {
   if (value === null || value === undefined || value === '') return 0;
@@ -155,11 +157,70 @@ export const updateSaleProfitability = async (id: number, data: Partial<Profitab
   return true;
 };
 
+export const processCSV = async (file: File): Promise<{ success: boolean; message?: string }> => {
+  return new Promise((resolve, reject) => {
+    Papa.parse(file, {
+      header: true,
+      skipEmptyLines: true,
+      complete: async (results) => {
+        try {
+          console.log('Parsing sales CSV file:', results.data);
+          
+          for (const row of results.data) {
+            if (!row.SKU || !row['Sale Date']) {
+              console.error('Row missing required fields:', row);
+              continue;
+            }
+
+            // Parse date from DD-MM-YYYY to YYYY-MM-DD
+            const saleDate = parse(row['Sale Date'], 'dd-MM-yyyy', new Date());
+            const formattedDate = format(saleDate, 'yyyy-MM-dd');
+
+            // Create sale record
+            const saleData = {
+              sale_date: formattedDate,
+              platform: row.Platform,
+              sku: row.SKU,
+              quantity: parseInt(row.Quantity) || 0,
+              total_price: parsePrice(row['Total Price']),
+              promoted: row['Promoted Listing']?.toLowerCase() === 'yes',
+            };
+
+            const { error } = await supabase
+              .from('sales')
+              .insert([saleData]);
+
+            if (error) {
+              console.error('Error creating sale:', error);
+              throw error;
+            }
+          }
+
+          resolve({ success: true });
+        } catch (error) {
+          console.error('Error processing CSV:', error);
+          resolve({ 
+            success: false, 
+            message: error instanceof Error ? error.message : 'Failed to process CSV file' 
+          });
+        }
+      },
+      error: (error) => {
+        console.error('Error parsing CSV:', error);
+        resolve({ 
+          success: false, 
+          message: 'Failed to parse CSV file' 
+        });
+      }
+    });
+  });
+};
+
 export const downloadSalesTemplate = async () => {
-  // Create CSV content
+  // Create CSV content with the new format
   const csvContent = [
-    ['Sale Date', 'Platform', 'SKU', 'Quantity', 'Total Price', 'Promoted Listing'].join(','),
-    ['2024-01-01', 'Amazon', 'ABC123', '1', '19.99', 'Yes'].join(','), // Example row
+    ['Sale Date', 'Platform', 'Listing Title', 'SKU', 'Promoted Listing', 'Quantity', 'Total Price'].join(','),
+    ['01-01-2024', 'Amazon', 'Example Product', 'ABC123', 'Yes', '1', '19.99'].join(','), // Example row
   ].join('\n');
 
   // Create and download the file
