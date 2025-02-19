@@ -53,9 +53,10 @@ Picking Fee: ${formatCurrency(pickingFee)}
 Total Shipping = ${formatCurrency(sale.shipping_cost)}`;
 
     case 'product_cost':
-      return `Base Product Cost: ${formatCurrency(sale.product_cost)}
+      return `Base Product Cost: ${formatCurrency(sale.base_product_cost)}
 Packaging Cost: ${formatCurrency(sale.packaging_cost)}
 Making Up Cost: ${formatCurrency(sale.making_up_cost)}
+Additional Costs: ${formatCurrency(sale.additional_costs)}
 ----------------------------------
 Total Product Cost = ${formatCurrency(sale.total_product_cost)}`;
 
