@@ -25,7 +25,7 @@ export const getSalesWithProducts = async () => {
   const { data, error } = await supabase
     .from('sales_profitability')
     .select(`
-      id,
+      sale_id,
       sale_date,
       platform,
       sku,
@@ -62,7 +62,13 @@ export const getSalesWithProducts = async () => {
     const grossProfit = (sale.total_price || 0) - totalCosts;
 
     return {
-      ...sale,
+      id: sale.sale_id, // Map sale_id to id for compatibility
+      sale_date: sale.sale_date,
+      platform: sale.platform,
+      sku: sale.sku,
+      listing_title: sale.listing_title,
+      promoted: sale.promoted,
+      quantity: sale.quantity,
       total_price: sale.total_price || 0,
       gross_profit: grossProfit
     };
