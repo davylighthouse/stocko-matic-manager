@@ -18,6 +18,7 @@ export interface ProfitabilityData {
   product_cost: number;
   platform_fee_percentage: number;
   default_shipping_service_id: number;
+  shipping_service_id: number | null;
   default_picking_fee_id: number;
   picking_fee: number;
   packaging_cost: number;
