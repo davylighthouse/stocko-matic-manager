@@ -32,7 +32,7 @@ export const SalesMetricsChart = () => {
   const chartData = Object.values(dailyMetrics)
     .map((day: any) => ({
       ...day,
-      profitMargin: (day.grossProfit / day.sales) * 100,
+      profitMargin: day.sales > 0 ? ((day.grossProfit / day.sales) * 100) : 0,
     }))
     .sort((a: any, b: any) => new Date(a.date).getTime() - new Date(b.date).getTime());
 
