@@ -1,10 +1,8 @@
-
 import { useState } from "react";
 import {
   Table,
   TableBody,
   TableCell,
-  TableRow,
 } from "@/components/ui/table";
 import { TooltipProvider } from "@/components/ui/tooltip";
 import { ProfitabilityTableProps, ProfitabilityData } from "./types";
@@ -122,34 +120,30 @@ export const ProfitabilityTable = ({ sales }: ProfitabilityTableProps) => {
           <ProfitabilityTableHeader columnWidths={columnWidths} />
           <TableBody>
             {sales.map((sale) => (
-              <TableRow 
+              <RowContextMenu
                 key={sale.id}
+                onVerify={() => handleVerify(sale.id)}
+                onUnverify={() => handleUnverify(sale.id)}
+                verified={sale.verified || false}
                 className={`border-b transition-colors hover:bg-gray-50/50 ${sale.verified ? "bg-green-50/50" : ""}`}
               >
-                <RowContextMenu
-                  key={sale.id}
-                  onVerify={() => handleVerify(sale.id)}
-                  onUnverify={() => handleUnverify(sale.id)}
-                  verified={sale.verified || false}
-                >
-                  {editingId === sale.id ? (
-                    <EditableRow
-                      sale={sale}
-                      editedData={editedData}
-                      columnWidths={columnWidths}
-                      onSave={handleSave}
-                      onCancel={handleCancel}
-                      onChange={handleChange}
-                    />
-                  ) : (
-                    <ViewRow
-                      sale={sale}
-                      columnWidths={columnWidths}
-                      onEdit={() => handleEdit(sale)}
-                    />
-                  )}
-                </RowContextMenu>
-              </TableRow>
+                {editingId === sale.id ? (
+                  <EditableRow
+                    sale={sale}
+                    editedData={editedData}
+                    columnWidths={columnWidths}
+                    onSave={handleSave}
+                    onCancel={handleCancel}
+                    onChange={handleChange}
+                  />
+                ) : (
+                  <ViewRow
+                    sale={sale}
+                    columnWidths={columnWidths}
+                    onEdit={() => handleEdit(sale)}
+                  />
+                )}
+              </RowContextMenu>
             ))}
           </TableBody>
         </Table>
