@@ -33,6 +33,27 @@ export const PlatformFeesHistory = () => {
     notes: "",
   });
 
+  // Initialize Amazon rate if it doesn't exist
+  const initializeAmazonRate = useMutation({
+    mutationFn: async () => {
+      const { error } = await supabase
+        .from('platform_fee_history')
+        .insert([{
+          platform_name: 'Amazon FBM',
+          percentage_fee: 15.3,
+          flat_fee: 0,
+          effective_from: format(new Date(), 'yyyy-MM-dd'),
+          notes: 'Initial Amazon FBM rate'
+        }]);
+      
+      if (error) throw error;
+    },
+    onSuccess: () => {
+      queryClient.invalidateQueries({ queryKey: ['platform-fee-history'] });
+      toast({ title: "Success", description: "Amazon rate initialized successfully" });
+    },
+  });
+
   const { data: history = [] } = useQuery({
     queryKey: ['platform-fee-history'],
     queryFn: async () => {
@@ -42,6 +63,13 @@ export const PlatformFeesHistory = () => {
         .order('platform_name, effective_from');
       
       if (error) throw error;
+
+      // Check if Amazon FBM rate exists
+      const amazonFbmExists = data.some(rate => rate.platform_name === 'Amazon FBM');
+      if (!amazonFbmExists) {
+        initializeAmazonRate.mutate();
+      }
+
       return data as PlatformFeeHistory[];
     },
   });
