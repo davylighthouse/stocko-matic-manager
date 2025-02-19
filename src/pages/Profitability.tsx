@@ -37,11 +37,18 @@ const Profitability = () => {
         // Use total_product_cost from the view
         const totalProductCost = sale.total_product_cost || 0;
         const shippingCost = sale.shipping_cost || 0;
+        const baseShippingRate = sale.base_shipping_rate || 0;
 
         console.log('Cost breakdown for SKU:', sale.sku, {
           totalProductCost,
           platformFees: sale.platform_fees || 0,
-          shippingCost,
+          shipping: {
+            total: shippingCost,
+            base: baseShippingRate,
+            effectiveServiceId: sale.effective_shipping_service_id,
+            defaultServiceId: sale.default_shipping_service_id,
+            saleServiceId: sale.shipping_service_id
+          },
           advertisingCost: sale.advertising_cost || 0,
           vatCost
         });
