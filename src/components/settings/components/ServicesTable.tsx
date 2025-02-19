@@ -21,6 +21,7 @@ export const ServicesTable = ({
   onDelete 
 }: ServicesTableProps) => {
   const [editingServiceId, setEditingServiceId] = useState<number | null>(null);
+  const [editedServices, setEditedServices] = useState<Record<number, ShippingService>>({});
 
   const groupedServices = services.reduce((acc, service) => {
     if (!acc[service.courier]) {
@@ -29,6 +30,39 @@ export const ServicesTable = ({
     acc[service.courier].push(service);
     return acc;
   }, {} as Record<string, ShippingService[]>);
+
+  const handleServiceEdit = (service: ShippingService) => {
+    if (editingServiceId === service.id) {
+      // Save changes
+      const editedService = editedServices[service.id];
+      if (editedService) {
+        onUpdate(editedService);
+      }
+      setEditingServiceId(null);
+      setEditedServices(prev => {
+        const updated = { ...prev };
+        delete updated[service.id];
+        return updated;
+      });
+    } else {
+      // Start editing
+      setEditingServiceId(service.id);
+      setEditedServices(prev => ({
+        ...prev,
+        [service.id]: { ...service }
+      }));
+    }
+  };
+
+  const handleServiceChange = (id: number, field: keyof ShippingService, value: any) => {
+    setEditedServices(prev => ({
+      ...prev,
+      [id]: {
+        ...prev[id],
+        [field]: value
+      }
+    }));
+  };
 
   return (
     <div className="overflow-x-auto">
@@ -67,80 +101,76 @@ export const ServicesTable = ({
                 </tr>
               </thead>
               <tbody>
-                {groupedServices[courier]?.map((service: ShippingService) => (
-                  <tr key={service.id} className="border-b">
-                    <td className="px-4 py-2">
-                      {editingServiceId === service.id ? (
-                        <Input
-                          value={service.service_name}
-                          onChange={(e) => {
-                            const updated = { ...service, service_name: e.target.value };
-                            onUpdate(updated);
-                          }}
-                        />
-                      ) : (
-                        service.service_name
-                      )}
-                    </td>
-                    <td className="px-4 py-2 text-right">
-                      {editingServiceId === service.id ? (
-                        <Input
-                          type="number"
-                          step="0.01"
-                          value={service.price}
-                          onChange={(e) => {
-                            const updated = { ...service, price: parseFloat(e.target.value) };
-                            onUpdate(updated);
-                          }}
-                          className="w-32 ml-auto"
-                        />
-                      ) : (
-                        `£${service.price.toFixed(2)}`
-                      )}
-                    </td>
-                    <td className="px-4 py-2 text-right">
-                      {editingServiceId === service.id ? (
-                        <Input
-                          type="number"
-                          value={service.max_weight}
-                          onChange={(e) => {
-                            const updated = { ...service, max_weight: parseInt(e.target.value) };
-                            onUpdate(updated);
-                          }}
-                          className="w-32 ml-auto"
-                        />
-                      ) : (
-                        `${service.max_weight}g`
-                      )}
-                    </td>
-                    <td className="px-4 py-2">
-                      <div className="flex justify-end gap-2">
-                        <Button
-                          variant="ghost"
-                          size="sm"
-                          onClick={() => setEditingServiceId(editingServiceId === service.id ? null : service.id)}
-                        >
-                          {editingServiceId === service.id ? (
-                            <Save className="h-4 w-4" />
-                          ) : (
-                            <Pencil className="h-4 w-4" />
-                          )}
-                        </Button>
-                        <Button
-                          variant="ghost"
-                          size="sm"
-                          onClick={() => {
-                            if (confirm('Are you sure you want to delete this service?')) {
-                              onDelete(service.id);
-                            }
-                          }}
-                        >
-                          <Trash2 className="h-4 w-4 text-red-500" />
-                        </Button>
-                      </div>
-                    </td>
-                  </tr>
-                ))}
+                {groupedServices[courier]?.map((service: ShippingService) => {
+                  const isEditing = editingServiceId === service.id;
+                  const currentService = isEditing ? editedServices[service.id] : service;
+
+                  return (
+                    <tr key={service.id} className="border-b">
+                      <td className="px-4 py-2">
+                        {isEditing ? (
+                          <Input
+                            value={currentService.service_name}
+                            onChange={(e) => handleServiceChange(service.id, 'service_name', e.target.value)}
+                          />
+                        ) : (
+                          service.service_name
+                        )}
+                      </td>
+                      <td className="px-4 py-2 text-right">
+                        {isEditing ? (
+                          <Input
+                            type="number"
+                            step="0.01"
+                            value={currentService.price}
+                            onChange={(e) => handleServiceChange(service.id, 'price', parseFloat(e.target.value))}
+                            className="w-32 ml-auto"
+                          />
+                        ) : (
+                          `£${service.price.toFixed(2)}`
+                        )}
+                      </td>
+                      <td className="px-4 py-2 text-right">
+                        {isEditing ? (
+                          <Input
+                            type="number"
+                            value={currentService.max_weight}
+                            onChange={(e) => handleServiceChange(service.id, 'max_weight', parseInt(e.target.value))}
+                            className="w-32 ml-auto"
+                          />
+                        ) : (
+                          `${service.max_weight}g`
+                        )}
+                      </td>
+                      <td className="px-4 py-2">
+                        <div className="flex justify-end gap-2">
+                          <Button
+                            variant="ghost"
+                            size="sm"
+                            onClick={() => handleServiceEdit(service)}
+                          >
+                            {isEditing ? (
+                              <Save className="h-4 w-4" />
+                            ) : (
+                              <Pencil className="h-4 w-4" />
+                            )}
+                          </Button>
+                          <Button
+                            variant="ghost"
+                            size="sm"
+                            onClick={() => {
+                              if (confirm('Are you sure you want to delete this service?')) {
+                                onDelete(service.id);
+                              }
+                            }}
+                          >
+                            <Trash2 className="h-4 w-4 text-red-500" />
+                          </Button>
+                        </div>
+                      </td>
+                    </tr>
+                  );
+                })}
               </tbody>
             </table>
           </div>
