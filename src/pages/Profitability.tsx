@@ -51,10 +51,9 @@ const Profitability = () => {
       console.log('Processed sales data:', processedData);
       return processedData as ProfitabilityData[];
     },
-    // Add dependencies to trigger refresh when related data changes
     refetchOnWindowFocus: true,
     refetchOnMount: true,
-    cacheTime: 0 // Disable caching to ensure fresh data
+    gcTime: 0 // Using gcTime instead of cacheTime in v5
   });
 
   const filteredSales = salesData.filter(
