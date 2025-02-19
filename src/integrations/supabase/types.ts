@@ -387,6 +387,7 @@ export type Database = {
           shipping_service_id: number | null
           sku: string | null
           total_price: number | null
+          verified: boolean | null
         }
         Insert: {
           advertising_cost?: number | null
@@ -399,6 +400,7 @@ export type Database = {
           shipping_service_id?: number | null
           sku?: string | null
           total_price?: number | null
+          verified?: boolean | null
         }
         Update: {
           advertising_cost?: number | null
@@ -411,6 +413,7 @@ export type Database = {
           shipping_service_id?: number | null
           sku?: string | null
           total_price?: number | null
+          verified?: boolean | null
         }
         Relationships: [
           {
@@ -693,6 +696,7 @@ export type Database = {
           total_product_cost: number | null
           vat_cost: number | null
           vat_status: string | null
+          verified: boolean | null
         }
         Relationships: [
           {
