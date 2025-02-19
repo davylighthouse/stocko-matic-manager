@@ -87,7 +87,7 @@ export const ServicesTable = ({
       ...prev,
       [id]: {
         ...prev[id],
-        [field]: value
+        [field]: field === 'max_weight' ? Math.round(value) : value
       }
     }));
   };
@@ -164,12 +164,13 @@ export const ServicesTable = ({
                         {isEditing ? (
                           <Input
                             type="number"
+                            step="1"
                             value={currentService.max_weight}
                             onChange={(e) => handleServiceChange(service.id, 'max_weight', parseInt(e.target.value))}
                             className="w-32 ml-auto"
                           />
                         ) : (
-                          `${service.max_weight}g`
+                          `${Math.round(service.max_weight)}g`
                         )}
                       </td>
                       <td className="px-4 py-2">
