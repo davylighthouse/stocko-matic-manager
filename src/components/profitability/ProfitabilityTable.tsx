@@ -1,3 +1,4 @@
+
 import { useState } from "react";
 import {
   Table,
@@ -125,7 +126,6 @@ export const ProfitabilityTable = ({ sales }: ProfitabilityTableProps) => {
                 onVerify={() => handleVerify(sale.id)}
                 onUnverify={() => handleUnverify(sale.id)}
                 verified={sale.verified || false}
-                className={`border-b transition-colors hover:bg-gray-50/50 ${sale.verified ? "bg-green-50/50" : ""}`}
               >
                 {editingId === sale.id ? (
                   <EditableRow
@@ -135,12 +135,14 @@ export const ProfitabilityTable = ({ sales }: ProfitabilityTableProps) => {
                     onSave={handleSave}
                     onCancel={handleCancel}
                     onChange={handleChange}
+                    className={`border-b transition-colors hover:bg-gray-50/50 ${sale.verified ? "bg-green-50/50" : ""}`}
                   />
                 ) : (
                   <ViewRow
                     sale={sale}
                     columnWidths={columnWidths}
                     onEdit={() => handleEdit(sale)}
+                    className={`border-b transition-colors hover:bg-gray-50/50 ${sale.verified ? "bg-green-50/50" : ""}`}
                   />
                 )}
               </RowContextMenu>

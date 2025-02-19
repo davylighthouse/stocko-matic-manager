@@ -1,111 +1,118 @@
 
-import { TableCell } from "@/components/ui/table";
-import { Button } from "@/components/ui/button";
-import { ProfitabilityData } from "./types";
-import { EditableCell } from "./EditableCell";
+import { TableCell, TableRow } from "@/components/ui/table"
+import { Button } from "@/components/ui/button"
+import { Check, X } from "lucide-react"
+import { EditableCell } from "./EditableCell"
+import { ColumnWidth, ProfitabilityData } from "./types"
+import { formatCurrency, formatDate, formatPercent } from "./utils"
 
 interface EditableRowProps {
-  sale: ProfitabilityData;
-  editedData: Partial<ProfitabilityData>;
-  columnWidths: { [key: string]: number };
-  onSave: () => void;
-  onCancel: () => void;
-  onChange: (field: keyof ProfitabilityData, value: string | number) => void;
+  sale: ProfitabilityData
+  editedData: Partial<ProfitabilityData>
+  columnWidths: Record<string, ColumnWidth>
+  onSave: () => void
+  onCancel: () => void
+  onChange: (field: keyof ProfitabilityData, value: any) => void
+  className?: string
 }
 
-export const EditableRow = ({ 
-  sale, 
-  editedData, 
-  columnWidths, 
-  onSave, 
-  onCancel, 
-  onChange 
+export const EditableRow = ({
+  sale,
+  editedData,
+  columnWidths,
+  onSave,
+  onCancel,
+  onChange,
+  className
 }: EditableRowProps) => {
+  const currentData = { ...sale, ...editedData }
+
   return (
-    <>
-      <TableCell className="p-4" style={{ width: columnWidths.date }}>
-        <EditableCell 
-          value={editedData.sale_date?.split('T')[0] || ''} 
-          field="sale_date" 
-          type="date" 
-          onChange={onChange} 
-        />
+    <TableRow className={className}>
+      <TableCell style={{ width: columnWidths.date }}>
+        {formatDate(currentData.sale_date)}
       </TableCell>
-      <TableCell className="p-4" style={{ width: columnWidths.platform }}>
-        <EditableCell 
-          value={editedData.platform || ''} 
-          field="platform" 
-          onChange={onChange} 
-        />
+      <TableCell style={{ width: columnWidths.platform }}>
+        {currentData.platform}
       </TableCell>
-      <TableCell className="p-4" style={{ width: columnWidths.sku }}>
-        <EditableCell 
-          value={editedData.sku || ''} 
-          field="sku" 
-          onChange={onChange} 
-        />
+      <TableCell style={{ width: columnWidths.sku }}>{currentData.sku}</TableCell>
+      <TableCell style={{ width: columnWidths.title }}>
+        {currentData.listing_title}
       </TableCell>
-      <TableCell className="p-4" style={{ width: columnWidths.title }}>
-        <EditableCell 
-          value={editedData.listing_title || ''} 
-          field="listing_title" 
-          onChange={onChange} 
-        />
+      <EditableCell
+        value={currentData.quantity}
+        onChange={(value) => onChange("quantity", value)}
+        width={columnWidths.quantity}
+      />
+      <EditableCell
+        value={currentData.total_price}
+        onChange={(value) => onChange("total_price", value)}
+        width={columnWidths.salePrice}
+        format={formatCurrency}
+      />
+      <EditableCell
+        value={currentData.total_product_cost}
+        onChange={(value) => onChange("total_product_cost", value)}
+        width={columnWidths.productCost}
+        format={formatCurrency}
+      />
+      <EditableCell
+        value={currentData.platform_fees}
+        onChange={(value) => onChange("platform_fees", value)}
+        width={columnWidths.platformFees}
+        format={formatCurrency}
+      />
+      <EditableCell
+        value={currentData.shipping_cost}
+        onChange={(value) => onChange("shipping_cost", value)}
+        width={columnWidths.shipping}
+        format={formatCurrency}
+      />
+      <EditableCell
+        value={currentData.vat_cost}
+        onChange={(value) => onChange("vat_cost", value)}
+        width={columnWidths.vat}
+        format={formatCurrency}
+      />
+      <EditableCell
+        value={currentData.advertising_cost || 0}
+        onChange={(value) => onChange("advertising_cost", value)}
+        width={columnWidths.advertising}
+        format={formatCurrency}
+      />
+      <TableCell style={{ width: columnWidths.totalCosts }}>
+        {formatCurrency(currentData.total_costs)}
       </TableCell>
-      <TableCell className="p-4" style={{ width: columnWidths.quantity }}>
-        <EditableCell 
-          value={editedData.quantity || 0} 
-          field="quantity" 
-          type="number" 
-          onChange={onChange} 
-        />
+      <TableCell style={{ width: columnWidths.profit }}>
+        {formatCurrency(currentData.profit)}
       </TableCell>
-      <TableCell className="p-4" style={{ width: columnWidths.salePrice }}>
-        <EditableCell 
-          value={editedData.total_price || 0} 
-          field="total_price" 
-          type="number" 
-          onChange={onChange} 
-        />
+      <TableCell style={{ width: columnWidths.margin }}>
+        {formatPercent(currentData.profit_margin)}
       </TableCell>
-      <TableCell className="p-4" style={{ width: columnWidths.productCost }}>
-        <EditableCell 
-          value={editedData.total_product_cost || 0} 
-          field="total_product_cost" 
-          type="number" 
-          onChange={onChange} 
-        />
-      </TableCell>
-      <TableCell className="p-4" style={{ width: columnWidths.platformFees }}>
-        <EditableCell 
-          value={editedData.platform_fees || 0} 
-          field="platform_fees" 
-          type="number" 
-          onChange={onChange} 
-        />
-      </TableCell>
-      <TableCell className="p-4" style={{ width: columnWidths.shipping }}>
-        <EditableCell 
-          value={editedData.shipping_cost || 0} 
-          field="shipping_cost" 
-          type="number" 
-          onChange={onChange} 
-        />
-      </TableCell>
-      <TableCell className="p-4" style={{ width: columnWidths.vat }}>
-        <EditableCell 
-          value={editedData.vat_cost || 0} 
-          field="vat_cost" 
-          type="number" 
-          onChange={onChange} 
-        />
-      </TableCell>
-      <TableCell className="p-4" style={{ width: columnWidths.totalCosts }}>
-        <div className="flex space-x-2">
-          <Button size="sm" onClick={onSave}>Save</Button>
-          <Button size="sm" variant="ghost" onClick={onCancel}>Cancel</Button>
+      <TableCell>
+        <div className="flex gap-1">
+          <Button
+            variant="ghost"
+            size="icon"
+            onClick={(e) => {
+              e.stopPropagation()
+              onSave()
+            }}
+          >
+            <Check className="h-4 w-4" />
+          </Button>
+          <Button
+            variant="ghost"
+            size="icon"
+            onClick={(e) => {
+              e.stopPropagation()
+              onCancel()
+            }}
+          >
+            <X className="h-4 w-4" />
+          </Button>
         </div>
       </TableCell>
-    </>
-  );
-};
+    </TableRow>
+  )
+}

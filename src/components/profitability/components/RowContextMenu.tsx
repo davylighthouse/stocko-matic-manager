@@ -6,7 +6,6 @@ import {
   ContextMenuTrigger,
 } from "@/components/ui/context-menu"
 import { Check, X } from "lucide-react"
-import { TableRow } from "@/components/ui/table";
 
 interface RowContextMenuProps {
   children: React.ReactNode;
@@ -16,13 +15,11 @@ interface RowContextMenuProps {
   className?: string;
 }
 
-export const RowContextMenu = ({ children, onVerify, onUnverify, verified, className }: RowContextMenuProps) => {
+export const RowContextMenu = ({ children, onVerify, onUnverify, verified }: RowContextMenuProps) => {
   return (
     <ContextMenu>
       <ContextMenuTrigger asChild>
-        <TableRow className={className}>
-          {children}
-        </TableRow>
+        {children}
       </ContextMenuTrigger>
       <ContextMenuContent>
         {!verified ? (
