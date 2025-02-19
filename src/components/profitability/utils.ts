@@ -1,5 +1,4 @@
 
-
 export const formatCurrency = (value: number | null | undefined) => {
   if (value === null || value === undefined) return '£0.00';
   return `£${value.toFixed(2)}`;
@@ -81,13 +80,27 @@ VAT Rate: 20%
 VAT Amount = ${formatCurrency(sale.vat_cost)}`;
 
     case 'platform_fees':
-      const feeBreakdown = [
-        `Percentage Fee (${sale.platform_fee_percentage}%): ${formatCurrency((sale.total_price * sale.platform_fee_percentage) / 100)}`,
-        sale.platform_flat_fee ? `Flat Fee: ${formatCurrency(sale.platform_flat_fee)}` : null,
-        sale.fba_fee_amount ? `FBA Fee: ${formatCurrency(sale.fba_fee_amount)}` : null,
-      ].filter(Boolean).join('\n');
+      let feeBreakdown = [];
+      
+      if (sale.platform === 'Amazon FBA') {
+        // For Amazon FBA, show both percentage fee and FBA fee
+        if (sale.platform_fee_percentage) {
+          feeBreakdown.push(`Percentage Fee (${formatPercentage(sale.platform_fee_percentage)}): ${formatCurrency((sale.total_price * sale.platform_fee_percentage) / 100)}`);
+        }
+        if (sale.fba_fee_amount) {
+          feeBreakdown.push(`FBA Fee: ${formatCurrency(sale.fba_fee_amount)}`);
+        }
+      } else {
+        // For other platforms, show percentage and flat fees
+        if (sale.platform_fee_percentage) {
+          feeBreakdown.push(`Percentage Fee (${formatPercentage(sale.platform_fee_percentage)}): ${formatCurrency((sale.total_price * sale.platform_fee_percentage) / 100)}`);
+        }
+        if (sale.platform_flat_fee) {
+          feeBreakdown.push(`Flat Fee: ${formatCurrency(sale.platform_flat_fee)}`);
+        }
+      }
 
-      return `${feeBreakdown}
+      return `${feeBreakdown.join('\n')}
 ----------------------------------
 Total Platform Fees = ${formatCurrency(sale.platform_fees)}`;
 
@@ -104,4 +117,3 @@ Advertising Cost = ${formatCurrency(sale.advertising_cost)}`;
       return '';
   }
 };
-
