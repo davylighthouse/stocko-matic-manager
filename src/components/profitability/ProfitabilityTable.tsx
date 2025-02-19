@@ -4,9 +4,10 @@ import {
   Table,
   TableBody,
   TableCell,
+  TableRow,
 } from "@/components/ui/table";
 import { TooltipProvider } from "@/components/ui/tooltip";
-import { ProfitabilityTableProps, ProfitabilityData, ColumnWidths } from "./types";
+import { ProfitabilityTableProps, ProfitabilityData } from "./types";
 import { EditableRow } from "./EditableRow";
 import { ViewRow } from "./ViewRow";
 import { ProfitabilityTableHeader } from "./TableHeader";
@@ -21,21 +22,21 @@ export const ProfitabilityTable = ({ sales }: ProfitabilityTableProps) => {
   const { toast } = useToast();
   const queryClient = useQueryClient();
 
-  const [columnWidths] = useState<ColumnWidths>({
-    date: '120px',
-    platform: '100px',
-    sku: '120px',
-    title: '250px',
-    quantity: '80px',
-    salePrice: '100px',
-    productCost: '100px',
-    platformFees: '100px',
-    shipping: '100px',
-    vat: '100px',
-    advertising: '100px',
-    totalCosts: '100px',
-    profit: '100px',
-    margin: '100px',
+  const [columnWidths] = useState({
+    date: 120,
+    platform: 100,
+    sku: 120,
+    title: 250,
+    quantity: 80,
+    salePrice: 100,
+    productCost: 100,
+    platformFees: 100,
+    shipping: 100,
+    vat: 100,
+    advertising: 100,
+    totalCosts: 100,
+    profit: 100,
+    margin: 100,
   });
 
   const handleEdit = (sale: ProfitabilityData) => {
@@ -121,31 +122,34 @@ export const ProfitabilityTable = ({ sales }: ProfitabilityTableProps) => {
           <ProfitabilityTableHeader columnWidths={columnWidths} />
           <TableBody>
             {sales.map((sale) => (
-              <RowContextMenu
+              <TableRow 
                 key={sale.id}
-                onVerify={() => handleVerify(sale.id)}
-                onUnverify={() => handleUnverify(sale.id)}
-                verified={sale.verified || false}
+                className={`border-b transition-colors hover:bg-gray-50/50 ${sale.verified ? "bg-green-50/50" : ""}`}
               >
-                {editingId === sale.id ? (
-                  <EditableRow
-                    sale={sale}
-                    editedData={editedData}
-                    columnWidths={columnWidths}
-                    onSave={handleSave}
-                    onCancel={handleCancel}
-                    onChange={handleChange}
-                    className={`border-b transition-colors hover:bg-gray-50/50 ${sale.verified ? "bg-green-50/50" : ""}`}
-                  />
-                ) : (
-                  <ViewRow
-                    sale={sale}
-                    columnWidths={columnWidths}
-                    onEdit={() => handleEdit(sale)}
-                    className={`border-b transition-colors hover:bg-gray-50/50 ${sale.verified ? "bg-green-50/50" : ""}`}
-                  />
-                )}
-              </RowContextMenu>
+                <RowContextMenu
+                  key={sale.id}
+                  onVerify={() => handleVerify(sale.id)}
+                  onUnverify={() => handleUnverify(sale.id)}
+                  verified={sale.verified || false}
+                >
+                  {editingId === sale.id ? (
+                    <EditableRow
+                      sale={sale}
+                      editedData={editedData}
+                      columnWidths={columnWidths}
+                      onSave={handleSave}
+                      onCancel={handleCancel}
+                      onChange={handleChange}
+                    />
+                  ) : (
+                    <ViewRow
+                      sale={sale}
+                      columnWidths={columnWidths}
+                      onEdit={() => handleEdit(sale)}
+                    />
+                  )}
+                </RowContextMenu>
+              </TableRow>
             ))}
           </TableBody>
         </Table>

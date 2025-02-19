@@ -1,9 +1,9 @@
 
 import { TableHead, TableHeader, TableRow } from "@/components/ui/table";
-import { ColumnWidths } from "./types";
+import { ColumnWidth } from "./types";
 
 interface TableHeaderProps {
-  columnWidths: ColumnWidths;
+  columnWidths: ColumnWidth;
 }
 
 export const ProfitabilityTableHeader = ({ columnWidths }: TableHeaderProps) => (
@@ -23,7 +23,7 @@ export const ProfitabilityTableHeader = ({ columnWidths }: TableHeaderProps) => 
       <TableHead className="text-right" style={{ width: columnWidths.totalCosts }}>Total Costs</TableHead>
       <TableHead className="text-right" style={{ width: columnWidths.profit }}>Profit</TableHead>
       <TableHead className="text-right" style={{ width: columnWidths.margin }}>Margin</TableHead>
-      <TableHead style={{ width: '100px' }}>Actions</TableHead>
+      <TableHead style={{ width: 100 }}>Actions</TableHead>
     </TableRow>
   </TableHeader>
 );

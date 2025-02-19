@@ -12,7 +12,6 @@ interface RowContextMenuProps {
   onVerify: () => void;
   onUnverify: () => void;
   verified: boolean;
-  className?: string;
 }
 
 export const RowContextMenu = ({ children, onVerify, onUnverify, verified }: RowContextMenuProps) => {
