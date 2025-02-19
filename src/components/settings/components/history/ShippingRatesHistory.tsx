@@ -98,6 +98,7 @@ export const ShippingRatesHistory = () => {
 
   const handleSubmit = (e: React.FormEvent) => {
     e.preventDefault();
+    e.stopPropagation(); // Prevent event bubbling
     addMutation.mutate({
       service_id: parseInt(newRate.service_id),
       weight_from: parseFloat(newRate.weight_from),
@@ -106,6 +107,17 @@ export const ShippingRatesHistory = () => {
       effective_from: format(newRate.effective_from, 'yyyy-MM-dd'),
       notes: newRate.notes || null,
     });
+  };
+
+  const handleFormClick = (e: React.MouseEvent) => {
+    e.stopPropagation(); // Prevent event bubbling
+  };
+
+  const handleInputChange = (field: string, value: string) => {
+    setNewRate(prev => ({
+      ...prev,
+      [field]: value
+    }));
   };
 
   const columns = [
@@ -146,14 +158,14 @@ export const ShippingRatesHistory = () => {
       </div>
 
       {isAdding && (
-        <form onSubmit={handleSubmit} className="mb-6 p-4 border rounded-lg space-y-4">
+        <form onSubmit={handleSubmit} onClick={handleFormClick} className="mb-6 p-4 border rounded-lg space-y-4">
           <div className="grid grid-cols-2 gap-4">
             <div className="space-y-2">
               <label className="text-sm font-medium">Shipping Service</label>
               <select 
                 className="w-full px-3 py-2 rounded-md border"
                 value={newRate.service_id}
-                onChange={(e) => setNewRate({ ...newRate, service_id: e.target.value })}
+                onChange={(e) => handleInputChange('service_id', e.target.value)}
                 required
               >
                 <option value="">Select a service</option>
@@ -167,12 +179,12 @@ export const ShippingRatesHistory = () => {
             <DatePickerField
               label="Effective From"
               date={newRate.effective_from}
-              onChange={(date) => setNewRate({ ...newRate, effective_from: date })}
+              onChange={(date) => date && handleInputChange('effective_from', date.toISOString())}
             />
             <FormField
               label="Weight From (kg)"
               value={newRate.weight_from}
-              onChange={(value) => setNewRate({ ...newRate, weight_from: value })}
+              onChange={(value) => handleInputChange('weight_from', value)}
               placeholder="Minimum weight"
               type="number"
               step="0.001"
@@ -181,7 +193,7 @@ export const ShippingRatesHistory = () => {
             <FormField
               label="Weight To (kg)"
               value={newRate.weight_to}
-              onChange={(value) => setNewRate({ ...newRate, weight_to: value })}
+              onChange={(value) => handleInputChange('weight_to', value)}
               placeholder="Maximum weight"
               type="number"
               step="0.001"
@@ -190,7 +202,7 @@ export const ShippingRatesHistory = () => {
             <FormField
               label="Price"
               value={newRate.price}
-              onChange={(value) => setNewRate({ ...newRate, price: value })}
+              onChange={(value) => handleInputChange('price', value)}
               placeholder="Rate price"
               type="number"
               step="0.01"
@@ -199,12 +211,15 @@ export const ShippingRatesHistory = () => {
             <FormField
               label="Notes"
               value={newRate.notes}
-              onChange={(value) => setNewRate({ ...newRate, notes: value })}
+              onChange={(value) => handleInputChange('notes', value)}
               placeholder="Add notes about this change"
             />
           </div>
           <div className="flex justify-end gap-2">
-            <Button type="button" variant="outline" onClick={() => setIsAdding(false)}>
+            <Button type="button" variant="outline" onClick={(e) => {
+              e.stopPropagation();
+              setIsAdding(false);
+            }}>
               Cancel
             </Button>
             <Button type="submit">Add Rate</Button>
