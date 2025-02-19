@@ -1,4 +1,3 @@
-
 import { supabase } from "@/integrations/supabase/client";
 import { Product } from "@/types/database";
 
@@ -49,5 +48,16 @@ export const updateStockLevel = async (sku: string, quantity: number) => {
   if (error) {
     console.error('Error updating stock level:', error);
     throw error;
+  }
+};
+
+export const updateProductOrder = async (updates: { sku: string; order_index: number }[]) => {
+  for (const update of updates) {
+    const { error } = await supabase
+      .from('products')
+      .update({ order_index: update.order_index })
+      .eq('sku', update.sku);
+
+    if (error) throw error;
   }
 };

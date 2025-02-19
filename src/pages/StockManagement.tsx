@@ -4,11 +4,26 @@ import { useQuery, useMutation, useQueryClient } from "@tanstack/react-query";
 import { Card } from "@/components/ui/card";
 import { Input } from "@/components/ui/input";
 import { Button } from "@/components/ui/button";
-import { Search, Plus } from "lucide-react";
-import { getStockLevels, updateStockLevel, updateProductDetails } from "@/lib/supabase/database";
+import { Search, Plus, GripVertical } from "lucide-react";
+import { getStockLevels, updateStockLevel, updateProductDetails, updateProductOrder } from "@/lib/supabase/database";
 import { Product } from "@/types/database";
 import { useToast } from "@/components/ui/use-toast";
 import { ProductsTable } from "@/components/stock/ProductsTable";
+import {
+  DndContext,
+  closestCenter,
+  KeyboardSensor,
+  PointerSensor,
+  useSensor,
+  useSensors,
+  DragEndEvent,
+} from "@dnd-kit/core";
+import {
+  arrayMove,
+  SortableContext,
+  sortableKeyboardCoordinates,
+  verticalListSortingStrategy,
+} from "@dnd-kit/sortable";
 
 const StockManagement = () => {
   const [search, setSearch] = useState("");
@@ -17,16 +32,25 @@ const StockManagement = () => {
   const { toast } = useToast();
   const queryClient = useQueryClient();
 
+  const sensors = useSensors(
+    useSensor(PointerSensor),
+    useSensor(KeyboardSensor, {
+      coordinateGetter: sortableKeyboardCoordinates,
+    })
+  );
+
   const { data: products = [], isLoading } = useQuery({
     queryKey: ['products'],
-    queryFn: getStockLevels
+    queryFn: getStockLevels,
   });
 
   // Filter products based on search
-  const filteredProducts = products.filter((product) =>
-    product.sku.toLowerCase().includes(search.toLowerCase()) ||
-    product.listing_title.toLowerCase().includes(search.toLowerCase())
-  );
+  const filteredProducts = products
+    .filter((product) =>
+      product.sku.toLowerCase().includes(search.toLowerCase()) ||
+      product.listing_title.toLowerCase().includes(search.toLowerCase())
+    )
+    .sort((a, b) => (a.order_index || 0) - (b.order_index || 0));
 
   const updateStockMutation = useMutation({
     mutationFn: ({ sku, quantity }: { sku: string; quantity: number }) =>
@@ -46,6 +70,44 @@ const StockManagement = () => {
       });
     },
   });
+
+  const updateOrderMutation = useMutation({
+    mutationFn: (updates: { sku: string; order_index: number }[]) =>
+      updateProductOrder(updates),
+    onSuccess: () => {
+      queryClient.invalidateQueries({ queryKey: ['products'] });
+      toast({
+        title: "Success",
+        description: "Product order updated successfully",
+      });
+    },
+    onError: (error) => {
+      toast({
+        title: "Error",
+        description: error instanceof Error ? error.message : "Failed to update product order",
+        variant: "destructive",
+      });
+    },
+  });
+
+  const handleDragEnd = (event: DragEndEvent) => {
+    const { active, over } = event;
+    
+    if (over && active.id !== over.id) {
+      const oldIndex = filteredProducts.findIndex((item) => item.sku === active.id);
+      const newIndex = filteredProducts.findIndex((item) => item.sku === over.id);
+      
+      const newOrder = arrayMove(filteredProducts, oldIndex, newIndex);
+      
+      // Prepare updates with new order indices
+      const updates = newOrder.map((product, index) => ({
+        sku: product.sku,
+        order_index: index,
+      }));
+      
+      updateOrderMutation.mutate(updates);
+    }
+  };
 
   const handleStockUpdate = (sku: string, quantity: number) => {
     updateStockMutation.mutate({ sku, quantity });
@@ -186,14 +248,25 @@ const StockManagement = () => {
           </div>
         </div>
 
-        <ProductsTable
-          products={filteredProducts}
-          selectedProduct={selectedProduct}
-          onProductSelect={setSelectedProduct}
-          onStockUpdate={handleStockUpdate}
-          onProductUpdate={handleProductUpdate}
-          updatedFields={updatedFields}
-        />
+        <DndContext
+          sensors={sensors}
+          collisionDetection={closestCenter}
+          onDragEnd={handleDragEnd}
+        >
+          <SortableContext
+            items={filteredProducts.map(p => p.sku)}
+            strategy={verticalListSortingStrategy}
+          >
+            <ProductsTable
+              products={filteredProducts}
+              selectedProduct={selectedProduct}
+              onProductSelect={setSelectedProduct}
+              onStockUpdate={handleStockUpdate}
+              onProductUpdate={handleProductUpdate}
+              updatedFields={updatedFields}
+            />
+          </SortableContext>
+        </DndContext>
       </Card>
     </div>
   );

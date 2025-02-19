@@ -258,6 +258,7 @@ export type Database = {
           listing_title: string
           low_stock_threshold: number | null
           making_up_cost: number | null
+          order_index: number | null
           packaging_cost: number | null
           product_cost: number | null
           product_status: string | null
@@ -281,6 +282,7 @@ export type Database = {
           listing_title: string
           low_stock_threshold?: number | null
           making_up_cost?: number | null
+          order_index?: number | null
           packaging_cost?: number | null
           product_cost?: number | null
           product_status?: string | null
@@ -304,6 +306,7 @@ export type Database = {
           listing_title?: string
           low_stock_threshold?: number | null
           making_up_cost?: number | null
+          order_index?: number | null
           packaging_cost?: number | null
           product_cost?: number | null
           product_status?: string | null

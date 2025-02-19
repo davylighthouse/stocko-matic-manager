@@ -8,7 +8,9 @@ import { calculateCompleteness } from "./utils/calculateCompleteness";
 import { ProductsTableHeader } from "./ProductsTableHeader";
 import { ProductStatusIndicator } from "./ProductStatusIndicator";
 import { StockLevelIndicator } from "./StockLevelIndicator";
-import { Package } from "lucide-react";
+import { Package, GripVertical } from "lucide-react";
+import { useSortable } from "@dnd-kit/sortable";
+import { CSS } from "@dnd-kit/utilities";
 
 interface ProductsTableProps {
   products: Product[];
@@ -18,6 +20,32 @@ interface ProductsTableProps {
   onProductUpdate: (event: React.FormEvent<HTMLFormElement>) => void;
   updatedFields?: string[];
 }
+
+const SortableTableRow = ({ product, children }: { product: Product; children: React.ReactNode }) => {
+  const {
+    attributes,
+    listeners,
+    setNodeRef,
+    transform,
+    transition,
+  } = useSortable({ id: product.sku });
+
+  const style = {
+    transform: CSS.Transform.toString(transform),
+    transition,
+  };
+
+  return (
+    <tr ref={setNodeRef} style={style}>
+      <td className="px-6 py-4 whitespace-nowrap">
+        <button className="cursor-grab focus:cursor-grabbing" {...attributes} {...listeners}>
+          <GripVertical className="h-4 w-4 text-gray-400" />
+        </button>
+      </td>
+      {children}
+    </tr>
+  );
+};
 
 export const ProductsTable = ({
   products,
@@ -39,6 +67,7 @@ export const ProductsTable = ({
       <table className="w-full">
         <thead>
           <tr className="bg-gray-50">
+            <th className="px-6 py-3 w-10"></th>
             <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">SKU</th>
             <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">Stock Level</th>
             <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">Title</th>
@@ -59,11 +88,7 @@ export const ProductsTable = ({
             const threshold = product.low_stock_threshold ?? 20;
             
             return (
-              <tr
-                key={product.sku}
-                onClick={() => onProductSelect(product)}
-                className="cursor-pointer hover:bg-gray-50"
-              >
+              <SortableTableRow key={product.sku} product={product}>
                 <td className="px-6 py-4 whitespace-nowrap text-sm font-medium text-gray-900 flex items-center gap-2">
                   {product.sku}
                   {product.bundle_products && (
@@ -124,7 +149,7 @@ export const ProductsTable = ({
                     />
                   </td>
                 )}
-              </tr>
+              </SortableTableRow>
             );
           })}
         </tbody>
