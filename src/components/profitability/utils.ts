@@ -1,3 +1,4 @@
+
 export const formatCurrency = (value: number | null | undefined) => {
   if (value === null || value === undefined) return '£0.00';
   return `£${value.toFixed(2)}`;
@@ -8,7 +9,7 @@ export const formatPercentage = (value: number | null | undefined) => {
   return `${value.toFixed(1)}%`;
 };
 
-export const formatPercent = formatPercentage; // Alias for backward compatibility
+export const formatPercent = formatPercentage;
 
 export const formatDate = (date: string) => {
   return new Date(date).toLocaleDateString('en-GB', {

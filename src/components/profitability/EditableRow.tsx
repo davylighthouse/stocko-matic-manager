@@ -41,44 +41,58 @@ export const EditableRow = ({
       </TableCell>
       <EditableCell
         value={currentData.quantity}
-        onChange={(value) => onChange("quantity", value)}
+        field="quantity"
+        onChange={onChange}
         width={columnWidths.quantity}
+        type="number"
       />
       <EditableCell
         value={currentData.total_price}
-        onChange={(value) => onChange("total_price", value)}
+        field="total_price"
+        onChange={onChange}
         width={columnWidths.salePrice}
         format={formatCurrency}
+        type="number"
       />
       <EditableCell
         value={currentData.total_product_cost}
-        onChange={(value) => onChange("total_product_cost", value)}
+        field="total_product_cost"
+        onChange={onChange}
         width={columnWidths.productCost}
         format={formatCurrency}
+        type="number"
       />
       <EditableCell
         value={currentData.platform_fees}
-        onChange={(value) => onChange("platform_fees", value)}
+        field="platform_fees"
+        onChange={onChange}
         width={columnWidths.platformFees}
         format={formatCurrency}
+        type="number"
       />
       <EditableCell
         value={currentData.shipping_cost}
-        onChange={(value) => onChange("shipping_cost", value)}
+        field="shipping_cost"
+        onChange={onChange}
         width={columnWidths.shipping}
         format={formatCurrency}
+        type="number"
       />
       <EditableCell
         value={currentData.vat_cost}
-        onChange={(value) => onChange("vat_cost", value)}
+        field="vat_cost"
+        onChange={onChange}
         width={columnWidths.vat}
         format={formatCurrency}
+        type="number"
       />
       <EditableCell
         value={currentData.advertising_cost || 0}
-        onChange={(value) => onChange("advertising_cost", value)}
+        field="advertising_cost"
+        onChange={onChange}
         width={columnWidths.advertising}
         format={formatCurrency}
+        type="number"
       />
       <TableCell style={{ width: columnWidths.totalCosts }}>
         {formatCurrency(currentData.total_costs)}
