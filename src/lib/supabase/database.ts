@@ -422,14 +422,61 @@ export const getSalesWithProducts = async () => {
   return data as SaleWithProduct[];
 };
 
-export const getSalesTotals = async () => {
+export const getSalesTotals = async (): Promise<SalesTotals> => {
   const { data, error } = await supabase
-    .from('sales_totals')
-    .select('*')
+    .from('sales_profitability')
+    .select(`
+      total_price,
+      quantity,
+      profit
+    `);
+
+  if (error) {
+    console.error('Error fetching sales totals:', error);
+    throw error;
+  }
+
+  // Calculate totals from the sales_profitability view
+  const totals = data.reduce((acc, sale) => {
+    return {
+      total_sales: (acc.total_sales || 0) + (sale.total_price || 0),
+      total_quantity: (acc.total_quantity || 0) + (sale.quantity || 0),
+      total_profit: (acc.total_profit || 0) + (sale.profit || 0),
+    };
+  }, {
+    total_sales: 0,
+    total_quantity: 0,
+    total_profit: 0,
+  });
+
+  // Get unique products count
+  const { data: uniqueProducts } = await supabase
+    .from('sales_profitability')
+    .select('sku')
+    .limit(1)
     .single();
 
-  if (error) throw error;
-  return data as SalesTotals;
+  // Get date range
+  const { data: dateRange } = await supabase
+    .from('sales_profitability')
+    .select('sale_date')
+    .order('sale_date', { ascending: true })
+    .limit(1)
+    .single();
+
+  const { data: latestDate } = await supabase
+    .from('sales_profitability')
+    .select('sale_date')
+    .order('sale_date', { ascending: false })
+    .limit(1)
+    .single();
+
+  return {
+    ...totals,
+    unique_products: uniqueProducts?.length || 0,
+    earliest_sale: dateRange?.sale_date || '',
+    latest_sale: latestDate?.sale_date || '',
+  };
 };
 
 export const deleteSale = async (id: number) => {
