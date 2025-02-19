@@ -41,7 +41,7 @@ export const ProductCostTab = ({ product, renderFieldWithCheck }: TabContentProp
           />
           {isBundle && (
             <p className="text-sm text-gray-500 mt-1">
-              Product cost is automatically calculated based on bundle components
+              Product cost is automatically calculated as the sum of (component cost × quantity) for all bundle components
             </p>
           )}
         </div>

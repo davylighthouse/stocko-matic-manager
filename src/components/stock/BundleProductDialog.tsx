@@ -1,3 +1,4 @@
+
 import { useState, useEffect } from "react";
 import { Dialog, DialogContent, DialogHeader, DialogTitle } from "@/components/ui/dialog";
 import { Button } from "@/components/ui/button";
@@ -115,17 +116,6 @@ export const BundleProductDialog = ({
     return stockLevels.length > 0 ? Math.min(...stockLevels) : 0;
   };
 
-  const calculateBundleCost = (components: BundleComponent[]) => {
-    if (!components.length) return 0;
-    
-    return components
-      .filter(c => c.component_sku && c.quantity > 0)
-      .reduce((total, c) => {
-        const component = availableProducts.find(p => p.sku === c.component_sku);
-        return total + ((component?.product_cost || 0) * (c.quantity || 1));
-      }, 0);
-  };
-
   const handleSave = async () => {
     if (!product) return;
 
@@ -190,7 +180,6 @@ export const BundleProductDialog = ({
 
   const validComponents = components.filter(c => c.component_sku && c.quantity > 0);
   const expectedStock = calculateBundleStock(validComponents);
-  const expectedCost = calculateBundleCost(validComponents);
 
   return (
     <Dialog open={open} onOpenChange={onOpenChange}>
@@ -202,7 +191,7 @@ export const BundleProductDialog = ({
         <div className="space-y-4">
           <BundleSummary 
             expectedStock={expectedStock}
-            expectedCost={expectedCost}
+            expectedCost={product?.product_cost || 0}
           />
 
           <div className="space-y-4">
