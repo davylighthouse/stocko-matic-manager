@@ -119,15 +119,13 @@ export const ProfitabilityTable = ({ sales }: ProfitabilityTableProps) => {
           <ProfitabilityTableHeader columnWidths={columnWidths} />
           <TableBody>
             {sales.map((sale) => (
-              <TableRow 
+              <RowContextMenu
                 key={sale.id}
-                className={sale.verified ? "bg-green-50" : undefined}
+                onVerify={() => handleVerify(sale.id)}
+                onUnverify={() => handleUnverify(sale.id)}
+                verified={sale.verified || false}
               >
-                <RowContextMenu
-                  onVerify={() => handleVerify(sale.id)}
-                  onUnverify={() => handleUnverify(sale.id)}
-                  verified={sale.verified || false}
-                >
+                <TableRow className={sale.verified ? "bg-green-50" : undefined}>
                   {editingId === sale.id ? (
                     <EditableRow
                       sale={sale}
@@ -144,8 +142,8 @@ export const ProfitabilityTable = ({ sales }: ProfitabilityTableProps) => {
                       onEdit={handleEdit}
                     />
                   )}
-                </RowContextMenu>
-              </TableRow>
+                </TableRow>
+              </RowContextMenu>
             ))}
           </TableBody>
         </Table>
