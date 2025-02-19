@@ -49,29 +49,21 @@ const Profitability = () => {
       
       const { data, error } = await supabase
         .from('sales_profitability')
-        .select('*')
+        .select(`
+          *,
+          products (
+            product_cost,
+            packaging_cost,
+            making_up_cost,
+            additional_costs
+          )
+        `)
         .order('sale_date', { ascending: false });
 
       if (error) {
         console.error('Error fetching profitability data:', error);
         throw error;
       }
-
-      // Log some sample calculations to verify rates are applied correctly
-      data?.slice(0, 5).forEach(sale => {
-        console.log('Platform fee calculation for:', sale.sku, {
-          platform: sale.platform,
-          salePrice: sale.total_price,
-          appliedPercentage: sale.platform_fee_percentage,
-          calculatedFee: sale.platform_fees,
-          saleDate: sale.sale_date,
-          historicalRate: historicalRates.find(
-            rate => rate.platform_name === sale.platform &&
-            new Date(rate.effective_from) <= new Date(sale.sale_date) &&
-            (!rate.effective_to || new Date(rate.effective_to) > new Date(sale.sale_date))
-          )
-        });
-      });
 
       // Process data and calculate derived fields
       const processedData = data?.map(sale => {
@@ -86,31 +78,6 @@ const Profitability = () => {
         const shippingCost = sale.shipping_cost || 0;
         const totalProductCost = sale.total_product_cost || 0;
         const advertisingCost = sale.advertising_cost || 0;
-
-        console.log('Cost breakdown for SKU:', sale.sku, {
-          totalProductCost,
-          platformFees,
-          shipping: {
-            total: shippingCost,
-            base: sale.base_shipping_rate,
-            picking: sale.picking_fee,
-            defaultServiceId: sale.default_shipping_service_id,
-            platform: sale.platform,
-            isFBA: sale.platform === 'Amazon FBA',
-            fbaFee: sale.fba_fee_amount
-          },
-          amazon: {
-            platformFeePercentage: sale.platform_fee_percentage,
-            flatFee: sale.platform_flat_fee,
-            fbaFee: sale.fba_fee_amount
-          },
-          advertising: {
-            cost: advertisingCost,
-            promoted: sale.promoted,
-            percentage: sale.promoted_listing_percentage
-          },
-          vatCost
-        });
 
         // Calculate total costs including VAT
         const totalCosts = platformFees + 
@@ -130,13 +97,16 @@ const Profitability = () => {
           total_costs: totalCosts,
           profit: profit,
           profit_margin: profitMargin,
-          product_cost: totalProductCost,
+          base_product_cost: sale.products?.product_cost || 0,
+          packaging_cost: sale.products?.packaging_cost || 0,
+          making_up_cost: sale.products?.making_up_cost || 0,
+          additional_costs: sale.products?.additional_costs || 0,
+          product_cost: sale.total_product_cost || 0,
           shipping_cost: shippingCost,
           advertising_cost: advertisingCost
         } as ProfitabilityData;
       });
 
-      console.log('Processed sales data:', processedData);
       return processedData;
     },
     refetchOnWindowFocus: true,
