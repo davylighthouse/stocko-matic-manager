@@ -467,7 +467,7 @@ export const getSalesTotals = async (): Promise<SalesTotals> => {
   });
 
   // Get unique products count
-  const { data: uniqueProducts, error: uniqueError } = await supabase
+  const { count: uniqueProducts, error: uniqueError } = await supabase
     .from('sales_profitability')
     .select('sku', { count: 'exact', head: true });
 
@@ -493,7 +493,7 @@ export const getSalesTotals = async (): Promise<SalesTotals> => {
 
   return {
     ...totals,
-    unique_products: uniqueProducts?.count || 0,
+    unique_products: uniqueProducts || 0,
     earliest_sale: dateRange?.sale_date || '',
     latest_sale: latestDate?.sale_date || '',
   };
