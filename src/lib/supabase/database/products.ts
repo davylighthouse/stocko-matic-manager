@@ -42,7 +42,7 @@ export const getProductDetails = async (sku: string): Promise<Product | null> =>
   return data as Product | null;
 };
 
-export const updateProductDetails = async (sku: string, updates: Partial<Record<keyof Product, unknown>>) => {
+export const updateProductDetails = async (sku: string, updates: Record<string, string | number | boolean | null>) => {
   const { error } = await supabase.rpc('process_product_updates', {
     p_sku: sku,
     p_updates: updates
