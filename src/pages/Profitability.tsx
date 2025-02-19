@@ -46,8 +46,7 @@ const Profitability = () => {
             total: shippingCost,
             base: baseShippingRate,
             effectiveServiceId: sale.effective_shipping_service_id,
-            defaultServiceId: sale.default_shipping_service_id,
-            saleServiceId: sale.shipping_service_id
+            defaultServiceId: sale.default_shipping_service_id
           },
           advertisingCost: sale.advertising_cost || 0,
           vatCost
