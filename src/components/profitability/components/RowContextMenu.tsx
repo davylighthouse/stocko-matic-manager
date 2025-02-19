@@ -17,7 +17,9 @@ interface RowContextMenuProps {
 export const RowContextMenu = ({ children, onVerify, onUnverify, verified }: RowContextMenuProps) => {
   return (
     <ContextMenu>
-      <ContextMenuTrigger>{children}</ContextMenuTrigger>
+      <ContextMenuTrigger asChild>
+        {children}
+      </ContextMenuTrigger>
       <ContextMenuContent>
         {!verified ? (
           <ContextMenuItem onClick={onVerify}>
