@@ -60,6 +60,7 @@ const Profitability = () => {
 
         return {
           ...sale,
+          id: sale.sale_id, // Map sale_id to id for the ProfitabilityData type
           vat_cost: vatCost,
           total_costs: totalCosts,
           profit: profit,
