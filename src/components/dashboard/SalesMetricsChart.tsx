@@ -46,9 +46,20 @@ export const SalesMetricsChart = () => {
             <XAxis 
               dataKey="date" 
               tickFormatter={(date) => format(new Date(date), 'dd/MM')}
+              height={60}
+              tick={(props) => {
+                const { x, y, payload } = props;
+                const date = format(new Date(payload.value), 'dd/MM');
+                const margin = chartData.find(d => d.date === payload.value)?.profitMargin.toFixed(1) || '0.0';
+                return (
+                  <g transform={`translate(${x},${y})`}>
+                    <text x={0} y={0} dy={16} textAnchor="middle">{date}</text>
+                    <text x={0} y={0} dy={35} textAnchor="middle" fill="#666">{margin}%</text>
+                  </g>
+                );
+              }}
             />
             <YAxis yAxisId="left" />
-            <YAxis yAxisId="right" orientation="right" />
             <Tooltip 
               formatter={(value: number) => `£${value.toFixed(2)}`}
               labelFormatter={(label) => format(new Date(label), 'dd MMM yyyy')}
@@ -65,12 +76,6 @@ export const SalesMetricsChart = () => {
               dataKey="grossProfit"
               fill="#82ca9d"
               name="Gross Profit"
-            />
-            <Bar
-              yAxisId="right"
-              dataKey="profitMargin"
-              fill="#ffc658"
-              name="Profit Margin %"
             />
           </BarChart>
         </ResponsiveContainer>
