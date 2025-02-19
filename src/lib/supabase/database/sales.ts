@@ -1,3 +1,4 @@
+
 import { supabase } from '@/integrations/supabase/client';
 import type { SaleWithProduct, SalesTotals } from '@/types/sales';
 import type { ProfitabilityData } from '@/components/profitability/types';
@@ -45,29 +46,36 @@ export const getSalesWithProducts = async () => {
 };
 
 export const getSalesTotals = async () => {
+  // Get aggregated data from sales_profitability view
   const { data, error } = await supabase
-    .from('sales_totals')
-    .select('*')
-    .single();
+    .from('sales_profitability')
+    .select('total_price, quantity, profit, sku')
+    .throwOnError();
 
   if (error) {
     console.error('Error fetching sales totals:', error);
     throw error;
   }
 
-  // Get active SKUs count from products table
-  const { count: activeSkus, error: skuError } = await supabase
-    .from('products')
-    .select('sku', { count: 'exact' });
+  // Calculate totals
+  const totals = (data || []).reduce((acc, sale) => ({
+    total_sales: acc.total_sales + (sale.total_price || 0),
+    total_quantity: acc.total_quantity + (sale.quantity || 0),
+    total_profit: acc.total_profit + (sale.profit || 0),
+  }), {
+    total_sales: 0,
+    total_quantity: 0,
+    total_profit: 0,
+  });
 
-  if (skuError) {
-    console.error('Error fetching active SKUs:', skuError);
-    throw skuError;
-  }
+  // Get unique SKUs count
+  const uniqueSkus = new Set(data?.map(sale => sale.sku)).size;
 
   return {
-    ...data,
-    unique_products: activeSkus,
+    ...totals,
+    unique_products: uniqueSkus,
+    earliest_sale: data?.[data.length - 1]?.sale_date,
+    latest_sale: data?.[0]?.sale_date,
   } as SalesTotals;
 };
 
