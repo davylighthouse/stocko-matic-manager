@@ -1,4 +1,3 @@
-
 export interface ProfitabilityData {
   id: number;
   sale_date: string;
@@ -28,6 +27,7 @@ export interface ProfitabilityData {
   vat_status: string;
   fba_fee_amount: number | null;
   platform_flat_fee: number | null;
+  verified?: boolean;
 }
 
 export interface ProfitabilityTableProps {

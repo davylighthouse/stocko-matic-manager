@@ -14,6 +14,7 @@ import { ProfitabilityTableHeader } from "./TableHeader";
 import { updateSaleProfitability } from "@/lib/supabase/database/sales";
 import { useToast } from "@/hooks/use-toast";
 import { useQueryClient } from "@tanstack/react-query";
+import { RowContextMenu } from "./components/RowContextMenu";
 
 export const ProfitabilityTable = ({ sales }: ProfitabilityTableProps) => {
   const [editingId, setEditingId] = useState<number | null>(null);
@@ -75,6 +76,42 @@ export const ProfitabilityTable = ({ sales }: ProfitabilityTableProps) => {
     }));
   };
 
+  const handleVerify = async (id: number) => {
+    try {
+      await updateSaleProfitability(id, { verified: true });
+      await queryClient.invalidateQueries({ queryKey: ['profitability'] });
+      toast({
+        title: "Sale Verified",
+        description: "The sale has been marked as verified.",
+      });
+    } catch (error) {
+      console.error('Error verifying sale:', error);
+      toast({
+        title: "Error",
+        description: "Failed to verify sale. Please try again.",
+        variant: "destructive",
+      });
+    }
+  };
+
+  const handleUnverify = async (id: number) => {
+    try {
+      await updateSaleProfitability(id, { verified: false });
+      await queryClient.invalidateQueries({ queryKey: ['profitability'] });
+      toast({
+        title: "Verification Removed",
+        description: "The verification status has been removed from the sale.",
+      });
+    } catch (error) {
+      console.error('Error removing verification:', error);
+      toast({
+        title: "Error",
+        description: "Failed to remove verification. Please try again.",
+        variant: "destructive",
+      });
+    }
+  };
+
   return (
     <TooltipProvider>
       <div className="overflow-x-auto">
@@ -82,24 +119,33 @@ export const ProfitabilityTable = ({ sales }: ProfitabilityTableProps) => {
           <ProfitabilityTableHeader columnWidths={columnWidths} />
           <TableBody>
             {sales.map((sale) => (
-              <TableRow key={sale.id}>
-                {editingId === sale.id ? (
-                  <EditableRow
-                    sale={sale}
-                    editedData={editedData}
-                    columnWidths={columnWidths}
-                    onSave={handleSave}
-                    onCancel={handleCancel}
-                    onChange={handleChange}
-                  />
-                ) : (
-                  <ViewRow
-                    sale={sale}
-                    columnWidths={columnWidths}
-                    onEdit={handleEdit}
-                  />
-                )}
-              </TableRow>
+              <RowContextMenu
+                key={sale.id}
+                onVerify={() => handleVerify(sale.id)}
+                onUnverify={() => handleUnverify(sale.id)}
+                verified={sale.verified || false}
+              >
+                <TableRow 
+                  className={sale.verified ? "bg-green-50" : undefined}
+                >
+                  {editingId === sale.id ? (
+                    <EditableRow
+                      sale={sale}
+                      editedData={editedData}
+                      columnWidths={columnWidths}
+                      onSave={handleSave}
+                      onCancel={handleCancel}
+                      onChange={handleChange}
+                    />
+                  ) : (
+                    <ViewRow
+                      sale={sale}
+                      columnWidths={columnWidths}
+                      onEdit={handleEdit}
+                    />
+                  )}
+                </TableRow>
+              </RowContextMenu>
             ))}
           </TableBody>
         </Table>
