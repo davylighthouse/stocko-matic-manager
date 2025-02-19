@@ -1,8 +1,19 @@
+
 import { supabase } from '@/integrations/supabase/client';
 import type { SaleWithProduct, SalesTotals } from '@/types/sales';
 import type { ProfitabilityData } from '@/components/profitability/types';
 import { format } from 'date-fns';
 import Papa from 'papaparse';
+
+interface SalesCSVRow {
+  'Sale Date': string;
+  Platform: string;
+  'Listing Title': string;
+  SKU: string;
+  'Promoted Listing': string;
+  Quantity: string;
+  'Total Price': string;
+}
 
 const parsePrice = (value: string | number | null | undefined): number => {
   if (value === null || value === undefined || value === '') return 0;
