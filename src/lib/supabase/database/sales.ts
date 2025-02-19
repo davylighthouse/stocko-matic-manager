@@ -1,4 +1,3 @@
-
 import { supabase } from '@/integrations/supabase/client';
 import type { SaleWithProduct, SalesTotals } from '@/types/sales';
 import type { ProfitabilityData } from '@/components/profitability/types';
@@ -49,7 +48,7 @@ export const getSalesTotals = async () => {
   // Get aggregated data from sales_profitability view
   const { data, error } = await supabase
     .from('sales_profitability')
-    .select('total_price, quantity, profit, sku')
+    .select('total_price, quantity, profit, sku, sale_date')
     .throwOnError();
 
   if (error) {
@@ -71,11 +70,16 @@ export const getSalesTotals = async () => {
   // Get unique SKUs count
   const uniqueSkus = new Set(data?.map(sale => sale.sku)).size;
 
+  // Sort data by sale_date to get earliest and latest
+  const sortedData = [...(data || [])].sort((a, b) => 
+    new Date(a.sale_date).getTime() - new Date(b.sale_date).getTime()
+  );
+
   return {
     ...totals,
     unique_products: uniqueSkus,
-    earliest_sale: data?.[data.length - 1]?.sale_date,
-    latest_sale: data?.[0]?.sale_date,
+    earliest_sale: sortedData[0]?.sale_date,
+    latest_sale: sortedData[sortedData.length - 1]?.sale_date,
   } as SalesTotals;
 };
 
@@ -149,4 +153,21 @@ export const updateSaleProfitability = async (id: number, data: Partial<Profitab
   }
 
   return true;
+};
+
+export const downloadSalesTemplate = async () => {
+  // Create CSV content
+  const csvContent = [
+    ['Sale Date', 'Platform', 'SKU', 'Quantity', 'Total Price', 'Promoted Listing'].join(','),
+    ['2024-01-01', 'Amazon', 'ABC123', '1', '19.99', 'Yes'].join(','), // Example row
+  ].join('\n');
+
+  // Create and download the file
+  const blob = new Blob([csvContent], { type: 'text/csv;charset=utf-8;' });
+  const link = document.createElement('a');
+  link.href = URL.createObjectURL(blob);
+  link.setAttribute('download', `sales_template_${new Date().toISOString().split('T')[0]}.csv`);
+  document.body.appendChild(link);
+  link.click();
+  document.body.removeChild(link);
 };

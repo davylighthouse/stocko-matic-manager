@@ -1,4 +1,3 @@
-
 import { useState } from "react";
 import { Card } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
@@ -6,6 +5,7 @@ import { useToast } from "@/components/ui/use-toast";
 import { Upload as UploadIcon, FileText, X, Download } from "lucide-react";
 import { cn } from "@/lib/utils";
 import { processCSV, downloadProductTemplate } from "@/lib/supabase/database/csv";
+import { downloadSalesTemplate } from "@/lib/supabase/database/sales";
 import { Separator } from "@/components/ui/separator";
 
 const Upload = () => {
@@ -133,6 +133,22 @@ const Upload = () => {
     }
   };
 
+  const handleDownloadSalesTemplate = async () => {
+    try {
+      await downloadSalesTemplate();
+      toast({
+        title: "Success",
+        description: "Sales template downloaded successfully",
+      });
+    } catch (error) {
+      toast({
+        title: "Error",
+        description: "Failed to download template",
+        variant: "destructive",
+      });
+    }
+  };
+
   const renderUploadZone = (type: 'sales' | 'products') => {
     const isDragging = type === 'sales' ? isDraggingSales : isDraggingProducts;
     const file = type === 'sales' ? salesFile : productsFile;
@@ -238,6 +254,14 @@ const Upload = () => {
           <div>
             <h2 className="text-lg font-semibold mb-4">Sales Data</h2>
             <div className="space-y-4">
+              <Button
+                onClick={handleDownloadSalesTemplate}
+                variant="outline"
+                className="w-full flex items-center justify-center gap-2"
+              >
+                <Download className="h-4 w-4" />
+                Download Sales Template
+              </Button>
               {renderUploadZone('sales')}
               <Button
                 onClick={() => handleUpload('sales')}
