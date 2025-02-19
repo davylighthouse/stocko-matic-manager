@@ -83,11 +83,6 @@ export const ProfitabilityTableHeader = ({ columnWidths, onResize }: TableHeader
           </ResizableColumn>
         </TableHead>
         <TableHead className="text-right">
-          <ResizableColumn width={columnWidths.advertising} onResize={(w) => onResize('advertising', w)}>
-            Advertising
-          </ResizableColumn>
-        </TableHead>
-        <TableHead className="text-right">
           <ResizableColumn width={columnWidths.totalCosts} onResize={(w) => onResize('totalCosts', w)}>
             Total Costs
           </ResizableColumn>
@@ -102,6 +97,7 @@ export const ProfitabilityTableHeader = ({ columnWidths, onResize }: TableHeader
             Margin
           </ResizableColumn>
         </TableHead>
+        <TableHead style={{ width: 50 }} />
       </TableRow>
     </TableHeader>
   );
