@@ -15,7 +15,7 @@ import { getPlatformColor } from "./utils/styles";
 interface ViewRowProps {
   sale: ProfitabilityData;
   columnWidths: { [key: string]: number };
-  onEdit: (sale: ProfitabilityData) => void;
+  onEdit: () => void;
 }
 
 export const ViewRow = ({ sale, columnWidths, onEdit }: ViewRowProps) => {
@@ -119,7 +119,7 @@ export const ViewRow = ({ sale, columnWidths, onEdit }: ViewRowProps) => {
         <Button 
           variant="ghost" 
           size="icon"
-          onClick={() => onEdit(sale)}
+          onClick={onEdit}
         >
           <Pencil className="h-4 w-4" />
         </Button>

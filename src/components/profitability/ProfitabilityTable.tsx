@@ -115,6 +115,9 @@ export const ProfitabilityTable = ({ sales }: ProfitabilityTableProps) => {
   return (
     <TooltipProvider>
       <div className="overflow-x-auto">
+        <div className="flex justify-end p-4 text-sm text-gray-500">
+          Total Rows: {sales.length}
+        </div>
         <Table>
           <ProfitabilityTableHeader columnWidths={columnWidths} />
           <TableBody>
@@ -125,7 +128,10 @@ export const ProfitabilityTable = ({ sales }: ProfitabilityTableProps) => {
                 onUnverify={() => handleUnverify(sale.id)}
                 verified={sale.verified || false}
               >
-                <TableRow className={sale.verified ? "bg-green-50" : undefined}>
+                <TableRow 
+                  key={sale.id}
+                  className={`transition-colors duration-200 ${sale.verified ? "bg-green-50" : ""}`}
+                >
                   {editingId === sale.id ? (
                     <EditableRow
                       sale={sale}
@@ -139,7 +145,7 @@ export const ProfitabilityTable = ({ sales }: ProfitabilityTableProps) => {
                     <ViewRow
                       sale={sale}
                       columnWidths={columnWidths}
-                      onEdit={handleEdit}
+                      onEdit={() => handleEdit(sale)}
                     />
                   )}
                 </TableRow>
