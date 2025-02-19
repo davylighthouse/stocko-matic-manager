@@ -16,6 +16,19 @@ const Profitability = () => {
     queryFn: async () => {
       console.log('Fetching profitability data...');
       
+      // First get historical rates for comparison
+      const { data: historicalRates, error: ratesError } = await supabase
+        .from('platform_fee_history')
+        .select('*')
+        .order('effective_from', { ascending: false });
+
+      if (ratesError) {
+        console.error('Error fetching historical rates:', ratesError);
+        throw ratesError;
+      }
+
+      console.log('Current historical rates:', historicalRates);
+      
       const { data, error } = await supabase
         .from('sales_profitability')
         .select('*')
@@ -25,6 +38,22 @@ const Profitability = () => {
         console.error('Error fetching profitability data:', error);
         throw error;
       }
+
+      // Log some sample calculations to verify rates are applied correctly
+      data?.slice(0, 5).forEach(sale => {
+        console.log('Platform fee calculation for:', sale.sku, {
+          platform: sale.platform,
+          salePrice: sale.total_price,
+          appliedPercentage: sale.platform_fee_percentage,
+          calculatedFee: sale.platform_fees,
+          saleDate: sale.sale_date,
+          historicalRate: historicalRates.find(
+            rate => rate.platform_name === sale.platform &&
+            new Date(rate.effective_from) <= new Date(sale.sale_date) &&
+            (!rate.effective_to || new Date(rate.effective_to) > new Date(sale.sale_date))
+          )
+        });
+      });
 
       // Process data and calculate derived fields
       const processedData = data?.map(sale => {
