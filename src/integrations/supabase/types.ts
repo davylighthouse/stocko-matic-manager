@@ -827,7 +827,6 @@ export type Database = {
           base_shipping_rate: number | null
           default_picking_fee_id: number | null
           default_shipping_service_id: number | null
-          effective_shipping_service_id: number | null
           fba_fee_amount: number | null
           listing_title: string | null
           making_up_cost: number | null
