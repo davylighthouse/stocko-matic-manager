@@ -19,8 +19,6 @@ export interface ProfitabilityData {
   product_cost: number;
   platform_fee_percentage: number;
   default_shipping_service_id: number;
-  shipping_service_id: number | null;
-  default_picking_fee_id: number;
   picking_fee: number;
   packaging_cost: number;
   making_up_cost: number;
@@ -29,6 +27,8 @@ export interface ProfitabilityData {
   fba_fee_amount: number | null;
   platform_flat_fee: number | null;
   verified?: boolean;
+  default_picking_fee_id: number;
+  amazon_fba_tier_id: number | null;
 }
 
 export interface ProfitabilityTableProps {
