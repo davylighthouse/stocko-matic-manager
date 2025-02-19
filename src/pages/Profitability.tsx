@@ -36,20 +36,19 @@ const Profitability = () => {
 
         // Use total_product_cost from the view
         const totalProductCost = sale.total_product_cost || 0;
+        const shippingCost = sale.shipping_cost || 0;
 
-        console.log('Product costs breakdown:', {
-          sku: sale.sku,
-          totalProductCost: totalProductCost,
-          components: {
-            base: sale.product_cost,
-            packaging: sale.packaging_cost,
-            makingUp: sale.making_up_cost
-          }
+        console.log('Cost breakdown for SKU:', sale.sku, {
+          totalProductCost,
+          platformFees: sale.platform_fees || 0,
+          shippingCost,
+          advertisingCost: sale.advertising_cost || 0,
+          vatCost
         });
 
         // Calculate total costs including VAT
         const totalCosts = (sale.platform_fees || 0) + 
-                         (sale.shipping_cost || 0) + 
+                         shippingCost + 
                          totalProductCost +
                          (sale.advertising_cost || 0) +
                          vatCost;
@@ -65,7 +64,8 @@ const Profitability = () => {
           total_costs: totalCosts,
           profit: profit,
           profit_margin: profitMargin,
-          product_cost: totalProductCost // Use the total_product_cost from the view
+          product_cost: totalProductCost, // Use the total_product_cost from the view
+          shipping_cost: shippingCost // Ensure shipping_cost is properly set
         } as ProfitabilityData;
       });
 
