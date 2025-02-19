@@ -4,6 +4,7 @@ import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Pencil, Save, Trash2 } from "lucide-react";
 import { ShippingService, CourierSettings, VALID_COURIERS } from "../hooks/useShippingServices";
+import { useToast } from "@/components/ui/use-toast";
 
 interface ServicesTableProps {
   services: ShippingService[];
@@ -20,8 +21,10 @@ export const ServicesTable = ({
   onUpdateCourierSettings, 
   onDelete 
 }: ServicesTableProps) => {
+  const { toast } = useToast();
   const [editingServiceId, setEditingServiceId] = useState<number | null>(null);
   const [editedServices, setEditedServices] = useState<Record<number, ShippingService>>({});
+  const [editedSurcharges, setEditedSurcharges] = useState<Record<string, number>>({});
 
   const groupedServices = services.reduce((acc, service) => {
     if (!acc[service.courier]) {
@@ -31,12 +34,37 @@ export const ServicesTable = ({
     return acc;
   }, {} as Record<string, ShippingService[]>);
 
+  const handleSurchargeChange = (courier: string, value: number) => {
+    setEditedSurcharges(prev => ({
+      ...prev,
+      [courier]: value
+    }));
+  };
+
+  const handleSurchargeSave = (courier: string) => {
+    const courierSetting = courierSettings.find(cs => cs.courier === courier);
+    if (courierSetting) {
+      onUpdateCourierSettings({
+        ...courierSetting,
+        surcharge_percentage: editedSurcharges[courier] ?? courierSetting.surcharge_percentage
+      });
+      toast({
+        title: "Success",
+        description: "Surcharge updated successfully"
+      });
+    }
+  };
+
   const handleServiceEdit = (service: ShippingService) => {
     if (editingServiceId === service.id) {
       // Save changes
       const editedService = editedServices[service.id];
       if (editedService) {
         onUpdate(editedService);
+        toast({
+          title: "Success",
+          description: "Service updated successfully"
+        });
       }
       setEditingServiceId(null);
       setEditedServices(prev => {
@@ -68,6 +96,8 @@ export const ServicesTable = ({
     <div className="overflow-x-auto">
       {VALID_COURIERS.map((courier) => {
         const courierSetting = courierSettings.find(cs => cs.courier === courier);
+        const currentSurcharge = editedSurcharges[courier] ?? courierSetting?.surcharge_percentage ?? 0;
+
         return groupedServices[courier]?.length > 0 && (
           <div key={courier} className="mb-8">
             <div className="flex justify-between items-center mb-4">
@@ -77,18 +107,18 @@ export const ServicesTable = ({
                 <Input
                   type="number"
                   step="0.01"
-                  value={courierSetting?.surcharge_percentage || 0}
-                  onChange={(e) => {
-                    if (courierSetting) {
-                      onUpdateCourierSettings({
-                        ...courierSetting,
-                        surcharge_percentage: parseFloat(e.target.value)
-                      });
-                    }
-                  }}
+                  value={currentSurcharge}
+                  onChange={(e) => handleSurchargeChange(courier, parseFloat(e.target.value))}
                   className="w-24"
                 />
                 <span className="text-sm">%</span>
+                <Button
+                  variant="outline"
+                  size="sm"
+                  onClick={() => handleSurchargeSave(courier)}
+                >
+                  <Save className="h-4 w-4" />
+                </Button>
               </div>
             </div>
             <table className="w-full">
@@ -161,6 +191,10 @@ export const ServicesTable = ({
                             onClick={() => {
                               if (confirm('Are you sure you want to delete this service?')) {
                                 onDelete(service.id);
+                                toast({
+                                  title: "Success",
+                                  description: "Service deleted successfully"
+                                });
                               }
                             }}
                           >
