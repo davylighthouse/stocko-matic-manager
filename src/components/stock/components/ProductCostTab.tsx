@@ -6,6 +6,7 @@ import { useEffect, useState } from "react";
 
 export const ProductCostTab = ({ product, renderFieldWithCheck }: TabContentProps) => {
   const [totalCost, setTotalCost] = useState<number>(0);
+  const isBundle = Boolean(product.bundle_products);
 
   useEffect(() => {
     const total = (product.product_cost || 0) +
@@ -35,7 +36,14 @@ export const ProductCostTab = ({ product, renderFieldWithCheck }: TabContentProp
             type="number"
             step="0.01"
             defaultValue={product.product_cost}
+            disabled={isBundle}
+            className={isBundle ? "bg-gray-100" : ""}
           />
+          {isBundle && (
+            <p className="text-sm text-gray-500 mt-1">
+              Product cost is automatically calculated for bundles
+            </p>
+          )}
         </div>
       )}
       {renderFieldWithCheck("packaging_cost",

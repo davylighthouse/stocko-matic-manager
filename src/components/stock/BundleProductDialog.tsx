@@ -2,12 +2,12 @@
 import { useState, useEffect } from "react";
 import { Dialog, DialogContent, DialogHeader, DialogTitle } from "@/components/ui/dialog";
 import { Button } from "@/components/ui/button";
-import { Input } from "@/components/ui/input";
-import { Label } from "@/components/ui/label";
 import { Product, BundleComponent } from "@/types/database";
-import { X, Plus } from "lucide-react";
+import { Plus } from "lucide-react";
 import { supabase } from "@/integrations/supabase/client";
 import { useToast } from "@/components/ui/use-toast";
+import { BundleComponentRow } from "./components/BundleComponentRow";
+import { BundleSummary } from "./components/BundleSummary";
 
 interface BundleProductDialogProps {
   product: Product | null;
@@ -131,7 +131,16 @@ export const BundleProductDialog = ({
     if (!product) return;
 
     try {
-      // First, ensure this product is marked as a bundle
+      const totalCost = calculateBundleCost(components.filter(c => c.component_sku && c.quantity > 0));
+
+      // First, ensure this product is marked as a bundle and update its cost
+      const { error: productError } = await supabase
+        .from('products')
+        .update({ product_cost: totalCost })
+        .eq('sku', product.sku);
+
+      if (productError) throw productError;
+
       const { error: bundleError } = await supabase
         .from('bundle_products')
         .upsert({ 
@@ -201,49 +210,21 @@ export const BundleProductDialog = ({
         </DialogHeader>
 
         <div className="space-y-4">
-          <div className="bg-gray-50 p-4 rounded-md">
-            <h3 className="font-semibold mb-2">Bundle Summary</h3>
-            <p>Expected Stock: {expectedStock}</p>
-            <p>Expected Cost: £{expectedCost.toFixed(2)}</p>
-          </div>
+          <BundleSummary 
+            expectedStock={expectedStock}
+            expectedCost={expectedCost}
+          />
 
           <div className="space-y-4">
             {components.map((component, index) => (
-              <div key={index} className="flex gap-4 items-start">
-                <div className="flex-1 space-y-2">
-                  <Label>Component SKU</Label>
-                  <select
-                    className="w-full p-2 border rounded-md"
-                    value={component.component_sku || ''}
-                    onChange={(e) => handleComponentChange(index, 'component_sku', e.target.value)}
-                  >
-                    <option value="">Select a product</option>
-                    {availableProducts.map((p) => (
-                      <option key={p.sku} value={p.sku}>
-                        {p.sku} - {p.listing_title} (Stock: {p.stock_quantity})
-                      </option>
-                    ))}
-                  </select>
-                </div>
-                <div className="w-32 space-y-2">
-                  <Label>Quantity</Label>
-                  <Input
-                    type="number"
-                    min="1"
-                    value={component.quantity || 1}
-                    onChange={(e) => handleComponentChange(index, 'quantity', parseInt(e.target.value) || 1)}
-                  />
-                </div>
-                <Button
-                  type="button"
-                  variant="ghost"
-                  size="icon"
-                  className="mt-8"
-                  onClick={() => handleRemoveComponent(index)}
-                >
-                  <X className="h-4 w-4" />
-                </Button>
-              </div>
+              <BundleComponentRow
+                key={index}
+                component={component}
+                index={index}
+                availableProducts={availableProducts}
+                onComponentChange={handleComponentChange}
+                onRemoveComponent={handleRemoveComponent}
+              />
             ))}
           </div>
 
@@ -274,4 +255,3 @@ export const BundleProductDialog = ({
     </Dialog>
   );
 };
-
