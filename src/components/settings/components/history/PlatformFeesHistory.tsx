@@ -42,7 +42,7 @@ export const PlatformFeesHistory = () => {
           platform_name: 'Amazon FBM',
           percentage_fee: 15.3,
           flat_fee: 0,
-          effective_from: format(new Date(), 'yyyy-MM-dd'),
+          effective_from: '2024-01-01', // Set to January 1st, 2024
           notes: 'Initial Amazon FBM rate'
         }]);
       

@@ -16,7 +16,25 @@ const Profitability = () => {
     queryFn: async () => {
       console.log('Fetching profitability data...');
       
-      // First get historical rates for comparison
+      // First update any existing Amazon FBM rate to use the correct date
+      const { data: existingRate } = await supabase
+        .from('platform_fee_history')
+        .select('*')
+        .eq('platform_name', 'Amazon FBM')
+        .single();
+
+      if (existingRate && existingRate.effective_from !== '2024-01-01') {
+        const { error: updateError } = await supabase
+          .from('platform_fee_history')
+          .update({ effective_from: '2024-01-01' })
+          .eq('id', existingRate.id);
+
+        if (updateError) {
+          console.error('Error updating Amazon FBM rate date:', updateError);
+        }
+      }
+
+      // Get historical rates for comparison
       const { data: historicalRates, error: ratesError } = await supabase
         .from('platform_fee_history')
         .select('*')
