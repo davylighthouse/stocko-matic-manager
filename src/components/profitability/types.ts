@@ -61,5 +61,4 @@ export interface ColumnWidths {
   totalCosts: ColumnWidth;
   profit: ColumnWidth;
   margin: ColumnWidth;
-  [key: string]: ColumnWidth; // Add index signature while keeping ColumnWidth type
 }
