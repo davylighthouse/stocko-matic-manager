@@ -72,12 +72,48 @@ export const processCSV = async (file: File): Promise<{ success: boolean; messag
               continue;
             }
 
-            // Filter out empty values and create updates object
+            // If stock quantity is being updated, we need to create a stock adjustment
+            const stockQuantity = row.stock_quantity !== undefined ? 
+              parseFloat(row.stock_quantity.toString()) : undefined;
+
+            if (stockQuantity !== undefined) {
+              // Get current stock level
+              const { data: currentStock } = await supabase
+                .from('current_stock_levels')
+                .select('current_stock')
+                .eq('sku', row.sku)
+                .single();
+
+              const currentStockLevel = currentStock?.current_stock || 0;
+              
+              // Calculate adjustment needed
+              const adjustment = stockQuantity - currentStockLevel;
+
+              if (adjustment !== 0) {
+                // Create stock adjustment
+                const { error: adjustmentError } = await supabase
+                  .from('stock_adjustments')
+                  .insert({
+                    sku: row.sku,
+                    quantity: adjustment,
+                    notes: 'Adjustment from CSV import'
+                  });
+
+                if (adjustmentError) {
+                  console.error('Error creating stock adjustment:', adjustmentError);
+                  throw adjustmentError;
+                }
+              }
+
+              // Remove stock_quantity from updates as it's handled by the adjustment
+              delete row.stock_quantity;
+            }
+
+            // Filter out empty values and create updates object for other fields
             const updates = Object.entries(row).reduce((acc: Record<string, any>, [key, value]) => {
               if (value !== undefined && value !== '' && key !== 'sku') {
                 // List of numeric fields
                 const numericFields = [
-                  'stock_quantity',
                   'product_cost',
                   'dimensions_height',
                   'dimensions_width',
