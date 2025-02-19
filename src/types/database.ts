@@ -5,6 +5,13 @@ export interface Product {
   stock_quantity: number;
   current_stock?: number | null;
   product_cost: number;
+  product_cost_notes?: string | null;
+  packaging_cost?: number;
+  packaging_cost_notes?: string | null;
+  making_up_cost?: number;
+  making_up_cost_notes?: string | null;
+  additional_costs?: number;
+  additional_costs_notes?: string | null;
   supplier?: string;
   warehouse_location?: string;
   product_status?: string;
@@ -16,9 +23,6 @@ export interface Product {
   dimensions_width?: number;
   dimensions_length?: number;
   weight?: number;
-  packaging_cost?: number;
-  making_up_cost?: number;
-  additional_costs?: number;
   low_stock_threshold?: number;
   amazon_fba_tier_id?: number | null;
   promoted_listing_percentage?: number;

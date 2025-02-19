@@ -248,6 +248,7 @@ export type Database = {
       products: {
         Row: {
           additional_costs: number | null
+          additional_costs_notes: string | null
           amazon_fba_tier_id: number | null
           default_picking_fee_id: number
           default_shipping_service: string | null
@@ -258,9 +259,12 @@ export type Database = {
           listing_title: string
           low_stock_threshold: number | null
           making_up_cost: number | null
+          making_up_cost_notes: string | null
           order_index: number | null
           packaging_cost: number | null
+          packaging_cost_notes: string | null
           product_cost: number | null
+          product_cost_notes: string | null
           product_status: string | null
           promoted_listing_percentage: number | null
           sku: string
@@ -272,6 +276,7 @@ export type Database = {
         }
         Insert: {
           additional_costs?: number | null
+          additional_costs_notes?: string | null
           amazon_fba_tier_id?: number | null
           default_picking_fee_id: number
           default_shipping_service?: string | null
@@ -282,9 +287,12 @@ export type Database = {
           listing_title: string
           low_stock_threshold?: number | null
           making_up_cost?: number | null
+          making_up_cost_notes?: string | null
           order_index?: number | null
           packaging_cost?: number | null
+          packaging_cost_notes?: string | null
           product_cost?: number | null
+          product_cost_notes?: string | null
           product_status?: string | null
           promoted_listing_percentage?: number | null
           sku: string
@@ -296,6 +304,7 @@ export type Database = {
         }
         Update: {
           additional_costs?: number | null
+          additional_costs_notes?: string | null
           amazon_fba_tier_id?: number | null
           default_picking_fee_id?: number
           default_shipping_service?: string | null
@@ -306,9 +315,12 @@ export type Database = {
           listing_title?: string
           low_stock_threshold?: number | null
           making_up_cost?: number | null
+          making_up_cost_notes?: string | null
           order_index?: number | null
           packaging_cost?: number | null
+          packaging_cost_notes?: string | null
           product_cost?: number | null
+          product_cost_notes?: string | null
           product_status?: string | null
           promoted_listing_percentage?: number | null
           sku?: string
