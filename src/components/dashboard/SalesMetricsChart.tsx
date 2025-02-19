@@ -36,6 +36,8 @@ export const SalesMetricsChart = () => {
     }))
     .sort((a: any, b: any) => new Date(a.date).getTime() - new Date(b.date).getTime());
 
+  console.log('Chart Data:', chartData); // Add this to debug
+
   return (
     <Card className="p-6">
       <h2 className="text-lg font-semibold mb-4">Daily Sales Performance</h2>
@@ -50,7 +52,13 @@ export const SalesMetricsChart = () => {
               tick={(props) => {
                 const { x, y, payload } = props;
                 const date = format(new Date(payload.value), 'dd/MM');
-                const margin = chartData.find(d => d.date === payload.value)?.profitMargin.toFixed(1) || '0.0';
+                const dayData = chartData.find(d => d.date === payload.value);
+                const margin = dayData && !isNaN(dayData.profitMargin) 
+                  ? dayData.profitMargin.toFixed(1) 
+                  : '0.0';
+                
+                console.log('Margin for date:', payload.value, margin); // Add this to debug
+                
                 return (
                   <g transform={`translate(${x},${y})`}>
                     <text x={0} y={0} dy={16} textAnchor="middle">{date}</text>
