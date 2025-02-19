@@ -34,10 +34,11 @@ const Profitability = () => {
           vatCost = sale.total_price / 6; // 20% VAT calculation
         }
 
-        // Use total_product_cost from the view
+        // Use values directly from the view
         const totalProductCost = sale.total_product_cost || 0;
         const shippingCost = sale.shipping_cost || 0;
         const baseShippingRate = sale.base_shipping_rate || 0;
+        const advertisingCost = sale.advertising_cost || 0;
 
         console.log('Cost breakdown for SKU:', sale.sku, {
           totalProductCost,
@@ -47,7 +48,7 @@ const Profitability = () => {
             base: baseShippingRate,
             defaultServiceId: sale.default_shipping_service_id
           },
-          advertisingCost: sale.advertising_cost || 0,
+          advertisingCost,
           vatCost
         });
 
@@ -55,7 +56,7 @@ const Profitability = () => {
         const totalCosts = (sale.platform_fees || 0) + 
                          shippingCost + 
                          totalProductCost +
-                         (sale.advertising_cost || 0) +
+                         advertisingCost +
                          vatCost;
 
         // Calculate profit and margin
@@ -64,13 +65,14 @@ const Profitability = () => {
 
         return {
           ...sale,
-          id: sale.sale_id, // Map sale_id to id for the ProfitabilityData type
+          id: sale.sale_id,
           vat_cost: vatCost,
           total_costs: totalCosts,
           profit: profit,
           profit_margin: profitMargin,
-          product_cost: totalProductCost, // Use the total_product_cost from the view
-          shipping_cost: shippingCost // Ensure shipping_cost is properly set
+          product_cost: totalProductCost,
+          shipping_cost: shippingCost,
+          advertising_cost: advertisingCost
         } as ProfitabilityData;
       });
 

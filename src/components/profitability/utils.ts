@@ -47,7 +47,7 @@ Margin = ${formatPercentage(sale.profit_margin)}`;
 
     case 'shipping':
       const pickingFee = sale.picking_fee || 0;
-      return `Base Shipping Cost: ${formatCurrency(sale.shipping_cost - pickingFee)}
+      return `Base Shipping Rate: ${formatCurrency(sale.base_shipping_rate)}
 Picking Fee: ${formatCurrency(pickingFee)}
 ----------------------------------
 Total Shipping = ${formatCurrency(sale.shipping_cost)}`;
@@ -82,11 +82,10 @@ Total Platform Fees = ${formatCurrency(sale.platform_fees)}`;
       if (!sale.promoted) {
         return 'No advertising costs for this sale';
       }
-      const adCost = (sale.total_price * (sale.promoted_listing_percentage || 0)) / 100;
       return `Sale Price: ${formatCurrency(sale.total_price)}
 Promoted Listing Rate: ${formatPercentage(sale.promoted_listing_percentage)}
 ----------------------------------
-Advertising Cost = ${formatCurrency(adCost)}`;
+Advertising Cost = ${formatCurrency(sale.advertising_cost)}`;
 
     default:
       return '';
