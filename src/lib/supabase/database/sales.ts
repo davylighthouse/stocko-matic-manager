@@ -1,19 +1,8 @@
-
 import { supabase } from '@/integrations/supabase/client';
 import type { SaleWithProduct, SalesTotals } from '@/types/sales';
 import type { ProfitabilityData } from '@/components/profitability/types';
 import { format } from 'date-fns';
 import Papa from 'papaparse';
-
-interface SalesCSVRow {
-  'Sale Date': string;
-  Platform: string;
-  'Listing Title': string;
-  SKU: string;
-  'Promoted Listing': string;
-  Quantity: string;
-  'Total Price': string;
-}
 
 const parsePrice = (value: string | number | null | undefined): number => {
   if (value === null || value === undefined || value === '') return 0;
@@ -28,40 +17,25 @@ export const getSalesWithProducts = async () => {
     .select('*')
     .order('sale_date', { ascending: false });
 
-  if (error) throw error;
-  
-  console.log('Raw data from database:', data);
+  if (error) {
+    console.error('Error fetching sales with products:', error);
+    throw error;
+  }
   
   // Ensure numeric values are properly handled
-  const formattedData = data?.map(sale => {
-    const formatted = {
-      ...sale,
-      total_price: parsePrice(sale.total_price),
-      gross_profit: parsePrice(sale.gross_profit)
-    };
-    console.log('Formatting sale:', {
-      original: {
-        total_price: sale.total_price,
-        gross_profit: sale.gross_profit
-      },
-      formatted: {
-        total_price: formatted.total_price,
-        gross_profit: formatted.gross_profit
-      }
-    });
-    return formatted;
-  });
-
-  console.log('Formatted data:', formattedData);
+  const formattedData = data?.map(sale => ({
+    ...sale,
+    total_price: parsePrice(sale.total_price),
+    gross_profit: parsePrice(sale.gross_profit)
+  }));
 
   return formattedData as SaleWithProduct[];
 };
 
 export const getSalesTotals = async () => {
-  // Get aggregated data from sales_profitability view
   const { data, error } = await supabase
     .from('sales_profitability')
-    .select('total_price, quantity, profit, sku, sale_date')
+    .select('total_price, quantity, platform_fees, total_costs, sku, sale_date')
     .throwOnError();
 
   if (error) {
@@ -73,7 +47,7 @@ export const getSalesTotals = async () => {
   const totals = (data || []).reduce((acc, sale) => ({
     total_sales: acc.total_sales + (sale.total_price || 0),
     total_quantity: acc.total_quantity + (sale.quantity || 0),
-    total_profit: acc.total_profit + (sale.profit || 0),
+    total_profit: acc.total_profit + ((sale.total_price || 0) - (sale.total_costs || 0)),
   }), {
     total_sales: 0,
     total_quantity: 0,
@@ -127,7 +101,7 @@ export const updateSale = async (id: number, data: Partial<SaleWithProduct>) => 
 
   console.log('Processed data for update:', numericData);
 
-  const { data: updatedData, error } = await supabase
+  const { error } = await supabase
     .from('sales')
     .update({
       sale_date: numericData.sale_date,
@@ -138,8 +112,7 @@ export const updateSale = async (id: number, data: Partial<SaleWithProduct>) => 
       gross_profit: numericData.gross_profit,
       promoted: numericData.promoted
     })
-    .eq('id', id)
-    .select();
+    .eq('id', id);
 
   if (error) throw error;
   return true;
