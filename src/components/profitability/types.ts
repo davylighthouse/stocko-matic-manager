@@ -11,6 +11,7 @@ export interface ProfitabilityData {
   platform_fees: number;
   shipping_cost: number;
   vat_cost: number;
+  advertising_cost: number;
   total_costs: number;
   profit: number;
   profit_margin: number;
@@ -35,6 +36,20 @@ export interface ProfitabilityTableProps {
 
 export interface ColumnWidth {
   [key: string]: number;
+  date: number;
+  platform: number;
+  sku: number;
+  title: number;
+  quantity: number;
+  salePrice: number;
+  productCost: number;
+  platformFees: number;
+  shipping: number;
+  vat: number;
+  advertising: number;
+  totalCosts: number;
+  profit: number;
+  margin: number;
 }
 
 export interface EditableCellProps {

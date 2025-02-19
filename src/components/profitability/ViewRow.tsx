@@ -85,6 +85,13 @@ export const ViewRow = ({ sale, columnWidths, onEdit }: ViewRowProps) => {
           tooltipContent={getCalculationTooltip(sale, 'vat', formatCurrency, formatPercentage)}
         />
       </TableCell>
+      <TableCell className="text-right" style={{ width: columnWidths.advertising }}>
+        <CalculationDialog 
+          title="Advertising"
+          value={formatCurrency(sale.advertising_cost)}
+          tooltipContent={getCalculationTooltip(sale, 'advertising', formatCurrency, formatPercentage)}
+        />
+      </TableCell>
       <TableCell className="text-right" style={{ width: columnWidths.totalCosts }}>
         <CalculationDialog 
           title="Total Costs"
