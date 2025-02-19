@@ -30,8 +30,10 @@ const Profitability = () => {
       const pred6Sales = data?.filter(sale => sale.sku === 'PRED6');
       if (pred6Sales && pred6Sales.length > 0) {
         console.log('PRED6 Sales Data:', pred6Sales);
-        pred6Sales.forEach(sale => {
-          console.log('Detailed PRED6 Sale Analysis:', {
+        
+        // Log each PRED6 sale with JSON.stringify to ensure all data is visible
+        pred6Sales.forEach((sale, index) => {
+          console.log(`PRED6 Sale #${index + 1} of ${pred6Sales.length}:`, JSON.stringify({
             id: sale.id,
             date: sale.sale_date,
             platform: sale.platform,
@@ -45,15 +47,33 @@ const Profitability = () => {
             total_costs: sale.total_costs,
             profit: sale.profit,
             profit_margin: sale.profit_margin,
-            // Platform fee components
             platform_fee_percentage: sale.platform_fee_percentage,
             platform_flat_fee: sale.platform_flat_fee,
             promoted: sale.promoted,
             promoted_listing_percentage: sale.promoted_listing_percentage,
-            // Additional costs
             making_up_cost: sale.making_up_cost,
             packaging_cost: sale.packaging_cost,
-            picking_fee: sale.picking_fee
+            picking_fee: sale.picking_fee,
+            fba_fee_amount: sale.fba_fee_amount
+          }, null, 2));
+
+          // Calculate expected platform fees for verification
+          const expectedPlatformFees = sale.promoted 
+            ? (sale.total_price * (sale.platform_fee_percentage || 0) / 100) + 
+              (sale.platform_flat_fee || 0) +
+              (sale.total_price * (sale.promoted_listing_percentage || 0) / 100)
+            : (sale.total_price * (sale.platform_fee_percentage || 0) / 100) + 
+              (sale.platform_flat_fee || 0);
+
+          console.log(`PRED6 Sale #${index + 1} Fee Calculation:`, {
+            total_price: sale.total_price,
+            platform_fee_percentage: sale.platform_fee_percentage,
+            platform_flat_fee: sale.platform_flat_fee,
+            promoted: sale.promoted,
+            promoted_percentage: sale.promoted_listing_percentage,
+            expected_platform_fees: expectedPlatformFees,
+            actual_platform_fees: sale.platform_fees,
+            fba_fee_amount: sale.fba_fee_amount
           });
         });
       } else {
