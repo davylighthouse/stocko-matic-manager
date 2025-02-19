@@ -1,7 +1,7 @@
 
 import { Card } from "@/components/ui/card";
-import { LineChart, Line, XAxis, YAxis, CartesianGrid, Tooltip, Legend, ResponsiveContainer } from 'recharts';
-import { format, subDays } from 'date-fns';
+import { BarChart, Bar, XAxis, YAxis, CartesianGrid, Tooltip, Legend, ResponsiveContainer } from 'recharts';
+import { format } from 'date-fns';
 import { useQuery } from "@tanstack/react-query";
 import { getSalesWithProducts } from "@/lib/supabase/database";
 
@@ -41,7 +41,7 @@ export const SalesMetricsChart = () => {
       <h2 className="text-lg font-semibold mb-4">Daily Sales Performance</h2>
       <div className="h-[400px]">
         <ResponsiveContainer width="100%" height="100%">
-          <LineChart data={chartData}>
+          <BarChart data={chartData}>
             <CartesianGrid strokeDasharray="3 3" />
             <XAxis 
               dataKey="date" 
@@ -54,28 +54,25 @@ export const SalesMetricsChart = () => {
               labelFormatter={(label) => format(new Date(label), 'dd MMM yyyy')}
             />
             <Legend />
-            <Line
+            <Bar
               yAxisId="left"
-              type="monotone"
               dataKey="sales"
-              stroke="#8884d8"
+              fill="#8884d8"
               name="Total Sales"
             />
-            <Line
+            <Bar
               yAxisId="left"
-              type="monotone"
               dataKey="grossProfit"
-              stroke="#82ca9d"
+              fill="#82ca9d"
               name="Gross Profit"
             />
-            <Line
+            <Bar
               yAxisId="right"
-              type="monotone"
               dataKey="profitMargin"
-              stroke="#ffc658"
+              fill="#ffc658"
               name="Profit Margin %"
             />
-          </LineChart>
+          </BarChart>
         </ResponsiveContainer>
       </div>
     </Card>
