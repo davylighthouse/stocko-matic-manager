@@ -25,23 +25,41 @@ const Profitability = () => {
         console.error('Error fetching profitability data:', error);
         throw error;
       }
-      
-      // Log the first few records to inspect the data
-      console.log('Sample profitability records:', data?.slice(0, 3));
-      
-      // Log platform fees specifically
-      data?.slice(0, 3).forEach(sale => {
-        console.log(`Platform fees breakdown for sale ${sale.id}:`, {
-          platform: sale.platform,
-          total_price: sale.total_price,
-          platform_fee_percentage: sale.platform_fee_percentage,
-          platform_flat_fee: sale.platform_flat_fee,
-          calculated_platform_fees: sale.platform_fees,
-          promoted: sale.promoted,
-          promoted_percentage: sale.promoted_listing_percentage
-        });
-      });
 
+      // Log specific PRED6 data
+      const pred6Sales = data?.filter(sale => sale.sku === 'PRED6');
+      if (pred6Sales && pred6Sales.length > 0) {
+        console.log('PRED6 Sales Data:', pred6Sales);
+        pred6Sales.forEach(sale => {
+          console.log('Detailed PRED6 Sale Analysis:', {
+            id: sale.id,
+            date: sale.sale_date,
+            platform: sale.platform,
+            quantity: sale.quantity,
+            total_price: sale.total_price,
+            product_cost: sale.product_cost,
+            total_product_cost: sale.total_product_cost,
+            platform_fees: sale.platform_fees,
+            shipping_cost: sale.shipping_cost,
+            vat_cost: sale.vat_cost,
+            total_costs: sale.total_costs,
+            profit: sale.profit,
+            profit_margin: sale.profit_margin,
+            // Platform fee components
+            platform_fee_percentage: sale.platform_fee_percentage,
+            platform_flat_fee: sale.platform_flat_fee,
+            promoted: sale.promoted,
+            promoted_listing_percentage: sale.promoted_listing_percentage,
+            // Additional costs
+            making_up_cost: sale.making_up_cost,
+            packaging_cost: sale.packaging_cost,
+            picking_fee: sale.picking_fee
+          });
+        });
+      } else {
+        console.log('No PRED6 sales found in the data');
+      }
+      
       return data as ProfitabilityData[];
     }
   });
@@ -94,4 +112,3 @@ const Profitability = () => {
 };
 
 export default Profitability;
-
