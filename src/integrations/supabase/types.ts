@@ -372,7 +372,6 @@ export type Database = {
           promoted: boolean | null
           quantity: number
           sale_date: string
-          shipping_service_id: number | null
           sku: string | null
           total_price: number | null
         }
@@ -384,7 +383,6 @@ export type Database = {
           promoted?: boolean | null
           quantity: number
           sale_date: string
-          shipping_service_id?: number | null
           sku?: string | null
           total_price?: number | null
         }
@@ -396,18 +394,10 @@ export type Database = {
           promoted?: boolean | null
           quantity?: number
           sale_date?: string
-          shipping_service_id?: number | null
           sku?: string | null
           total_price?: number | null
         }
         Relationships: [
-          {
-            foreignKeyName: "sales_shipping_service_id_fkey"
-            columns: ["shipping_service_id"]
-            isOneToOne: false
-            referencedRelation: "shipping_services"
-            referencedColumns: ["id"]
-          },
           {
             foreignKeyName: "sales_sku_fkey"
             columns: ["sku"]
@@ -656,6 +646,7 @@ export type Database = {
           default_picking_fee_id: number | null
           default_shipping_service_id: number | null
           fba_fee_amount: number | null
+          gross_profit: number | null
           id: number | null
           listing_title: string | null
           making_up_cost: number | null
@@ -666,14 +657,16 @@ export type Database = {
           platform_fees: number | null
           platform_flat_fee: number | null
           product_cost: number | null
+          profit: number | null
+          profit_margin: number | null
           promoted: boolean | null
           promoted_listing_percentage: number | null
           quantity: number | null
           sale_date: string | null
           shipping_cost: number | null
-          shipping_service_id: number | null
           shipping_service_price: number | null
           sku: string | null
+          total_costs: number | null
           total_price: number | null
           total_product_cost: number | null
           vat_cost: number | null
@@ -697,13 +690,6 @@ export type Database = {
           {
             foreignKeyName: "products_default_shipping_service_id_fkey"
             columns: ["default_shipping_service_id"]
-            isOneToOne: false
-            referencedRelation: "shipping_services"
-            referencedColumns: ["id"]
-          },
-          {
-            foreignKeyName: "sales_shipping_service_id_fkey"
-            columns: ["shipping_service_id"]
             isOneToOne: false
             referencedRelation: "shipping_services"
             referencedColumns: ["id"]

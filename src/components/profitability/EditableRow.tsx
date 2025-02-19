@@ -1,11 +1,9 @@
 
-import { TableCell } from "@/components/ui/table";
+import { TableCell, TableRow } from "@/components/ui/table";
+import { format } from "date-fns";
 import { Button } from "@/components/ui/button";
 import { ProfitabilityData } from "./types";
 import { EditableCell } from "./EditableCell";
-import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
-import { useQuery } from "@tanstack/react-query";
-import { supabase } from "@/integrations/supabase/client";
 
 interface EditableRowProps {
   sale: ProfitabilityData;
@@ -24,20 +22,6 @@ export const EditableRow = ({
   onCancel, 
   onChange 
 }: EditableRowProps) => {
-  // Fetch shipping services
-  const { data: shippingServices = [] } = useQuery({
-    queryKey: ['shipping-services'],
-    queryFn: async () => {
-      const { data, error } = await supabase
-        .from('shipping_services')
-        .select('*')
-        .order('courier, service_name');
-      
-      if (error) throw error;
-      return data;
-    },
-  });
-
   return (
     <>
       <TableCell style={{ width: columnWidths.date }}>
@@ -65,23 +49,7 @@ export const EditableRow = ({
         <EditableCell value={editedData.platform_fees || 0} field="platform_fees" type="number" onChange={onChange} />
       </TableCell>
       <TableCell style={{ width: columnWidths.shipping }}>
-        <div className="space-y-2">
-          <Select
-            value={String(editedData.shipping_service_id || editedData.default_shipping_service_id || '')}
-            onValueChange={(value) => onChange('shipping_service_id', parseInt(value))}
-          >
-            <SelectTrigger className="w-full">
-              <SelectValue placeholder="Select shipping service" />
-            </SelectTrigger>
-            <SelectContent>
-              {shippingServices.map((service) => (
-                <SelectItem key={service.id} value={String(service.id)}>
-                  {service.courier} - {service.service_name} (£{service.price.toFixed(2)})
-                </SelectItem>
-              ))}
-            </SelectContent>
-          </Select>
-        </div>
+        <EditableCell value={editedData.shipping_cost || 0} field="shipping_cost" type="number" onChange={onChange} />
       </TableCell>
       <TableCell style={{ width: columnWidths.vat }}>
         <EditableCell value={editedData.vat_cost || 0} field="vat_cost" type="number" onChange={onChange} />

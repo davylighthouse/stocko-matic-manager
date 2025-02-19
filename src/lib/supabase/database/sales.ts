@@ -127,18 +127,19 @@ export const updateSale = async (id: number, data: Partial<SaleWithProduct>) => 
 
   console.log('Processed data for update:', numericData);
 
-  const { error } = await supabase
+  const { data: updatedData, error } = await supabase
     .from('sales')
     .update({
-      sale_date: data.sale_date,
-      platform: data.platform,
-      sku: data.sku,
-      quantity: data.quantity,
+      sale_date: numericData.sale_date,
+      platform: numericData.platform,
+      sku: numericData.sku,
+      quantity: numericData.quantity,
       total_price: numericData.total_price,
       gross_profit: numericData.gross_profit,
-      promoted: data.promoted
+      promoted: numericData.promoted
     })
-    .eq('id', id);
+    .eq('id', id)
+    .select();
 
   if (error) throw error;
   return true;
@@ -148,15 +149,14 @@ export const updateSaleProfitability = async (id: number, data: Partial<Profitab
   console.log('Updating sale profitability:', { id, data });
   
   const { error } = await supabase
-    .from('sales')
+    .from('sales')  // Changed from 'sales_profitability' to 'sales' since it's a view
     .update({
       sale_date: data.sale_date,
       platform: data.platform,
       sku: data.sku,
       quantity: data.quantity,
       total_price: parsePrice(data.total_price),
-      promoted: data.promoted,
-      shipping_service_id: data.shipping_service_id
+      gross_profit: data.profit  // We'll calculate this from the profitability data
     })
     .eq('id', id);
 
