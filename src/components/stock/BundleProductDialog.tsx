@@ -1,4 +1,3 @@
-
 import { useState, useEffect } from "react";
 import { Dialog, DialogContent, DialogHeader, DialogTitle } from "@/components/ui/dialog";
 import { Button } from "@/components/ui/button";
@@ -81,6 +80,7 @@ export const BundleProductDialog = ({
       return;
     }
 
+    console.log('Available products:', data);
     setAvailableProducts(data || []);
   };
 
@@ -104,24 +104,33 @@ export const BundleProductDialog = ({
   const calculateBundleStock = (components: BundleComponent[]) => {
     if (!components.length) return 0;
     
+    console.log('Calculating bundle stock for components:', components);
+    console.log('Available products for calculation:', availableProducts);
+    
     const stockLevels = components
       .filter(c => c.component_sku && c.quantity > 0)
       .map(c => {
         const component = availableProducts.find(p => p.sku === c.component_sku);
+        console.log(`Component ${c.component_sku}:`, component);
+        console.log(`Stock calculation: ${component?.stock_quantity || 0} / ${c.quantity || 1}`);
         return component ? Math.floor((component.stock_quantity || 0) / (c.quantity || 1)) : 0;
       });
 
+    console.log('Stock levels calculated:', stockLevels);
     return stockLevels.length > 0 ? Math.min(...stockLevels) : 0;
   };
 
   const calculateBundleCost = (components: BundleComponent[]) => {
     if (!components.length) return 0;
     
+    console.log('Calculating bundle cost for components:', components);
     return components
       .filter(c => c.component_sku && c.quantity > 0)
       .reduce((total, c) => {
         const component = availableProducts.find(p => p.sku === c.component_sku);
-        return total + ((component?.product_cost || 0) * (c.quantity || 1));
+        const cost = ((component?.product_cost || 0) * (c.quantity || 1));
+        console.log(`Component ${c.component_sku} cost: ${component?.product_cost || 0} * ${c.quantity || 1} = ${cost}`);
+        return total + cost;
       }, 0);
   };
 
@@ -177,8 +186,10 @@ export const BundleProductDialog = ({
   };
 
   const validComponents = components.filter(c => c.component_sku && c.quantity > 0);
+  console.log('Valid components for calculations:', validComponents);
   const expectedStock = calculateBundleStock(validComponents);
   const expectedCost = calculateBundleCost(validComponents);
+  console.log('Final calculated values - Stock:', expectedStock, 'Cost:', expectedCost);
 
   return (
     <Dialog open={open} onOpenChange={onOpenChange}>
@@ -192,6 +203,17 @@ export const BundleProductDialog = ({
             <h3 className="font-semibold mb-2">Bundle Summary</h3>
             <p>Expected Stock: {expectedStock}</p>
             <p>Expected Cost: £{expectedCost.toFixed(2)}</p>
+            <div className="text-sm text-gray-500 mt-2">
+              <p>Debug Info:</p>
+              {validComponents.map((c, i) => {
+                const component = availableProducts.find(p => p.sku === c.component_sku);
+                return (
+                  <p key={i}>
+                    {c.component_sku}: Stock {component?.stock_quantity || 0} / Qty {c.quantity || 1}
+                  </p>
+                );
+              })}
+            </div>
           </div>
 
           <div className="space-y-4">
