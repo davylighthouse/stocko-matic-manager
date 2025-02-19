@@ -2,8 +2,8 @@
 import { useState } from "react";
 import { Card } from "@/components/ui/card";
 import { useToast } from "@/components/ui/use-toast";
-import { processCSV, downloadProductTemplate } from "@/lib/supabase/database/csv";
-import { downloadSalesTemplate } from "@/lib/supabase/database/sales";
+import { processCSV } from "@/lib/supabase/database/csv";
+import { processSalesCSV, downloadSalesTemplate } from "@/lib/supabase/database/sales";
 import { Separator } from "@/components/ui/separator";
 import { UploadSection } from "@/components/upload/UploadSection";
 
@@ -72,7 +72,7 @@ const Upload = () => {
     }
 
     try {
-      const result = await processCSV(file);
+      const result = await (type === 'sales' ? processSalesCSV(file) : processCSV(file));
       
       if (result.success) {
         toast({

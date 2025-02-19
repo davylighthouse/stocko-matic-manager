@@ -4,6 +4,16 @@ import type { ProfitabilityData } from '@/components/profitability/types';
 import { format, parse } from 'date-fns';
 import Papa from 'papaparse';
 
+interface SalesCSVRow {
+  'Sale Date': string;
+  Platform: string;
+  'Listing Title': string;
+  SKU: string;
+  'Promoted Listing': string;
+  Quantity: string;
+  'Total Price': string;
+}
+
 const parsePrice = (value: string | number | null | undefined): number => {
   if (value === null || value === undefined || value === '') return 0;
   const stringValue = value.toString().trim().replace(/[£$,\s]/g, '');
@@ -157,9 +167,9 @@ export const updateSaleProfitability = async (id: number, data: Partial<Profitab
   return true;
 };
 
-export const processCSV = async (file: File): Promise<{ success: boolean; message?: string }> => {
+export const processSalesCSV = async (file: File): Promise<{ success: boolean; message?: string }> => {
   return new Promise((resolve, reject) => {
-    Papa.parse(file, {
+    Papa.parse<SalesCSVRow>(file, {
       header: true,
       skipEmptyLines: true,
       complete: async (results) => {
@@ -185,6 +195,8 @@ export const processCSV = async (file: File): Promise<{ success: boolean; messag
               total_price: parsePrice(row['Total Price']),
               promoted: row['Promoted Listing']?.toLowerCase() === 'yes',
             };
+
+            console.log('Inserting sale:', saleData);
 
             const { error } = await supabase
               .from('sales')

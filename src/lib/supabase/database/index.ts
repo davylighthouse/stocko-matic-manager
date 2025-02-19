@@ -1,6 +1,5 @@
 
-export * from './sales';
+export * from './analytics';
 export * from './products';
 export * from './stock-checks';
-export * from './csv';
-export * from './analytics';
+export { processSalesCSV as processCSV } from './sales';
