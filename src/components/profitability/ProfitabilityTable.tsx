@@ -26,7 +26,7 @@ export const ProfitabilityTable = ({ sales }: ProfitabilityTableProps) => {
     date: 120,
     platform: 100,
     sku: 120,
-    title: 200,
+    title: 250,
     quantity: 80,
     salePrice: 100,
     productCost: 100,
@@ -114,7 +114,7 @@ export const ProfitabilityTable = ({ sales }: ProfitabilityTableProps) => {
 
   return (
     <TooltipProvider>
-      <div className="overflow-x-auto">
+      <div className="overflow-x-auto relative">
         <div className="flex justify-end p-4 text-sm text-gray-500">
           Total Rows: {sales.length}
         </div>
@@ -122,15 +122,15 @@ export const ProfitabilityTable = ({ sales }: ProfitabilityTableProps) => {
           <ProfitabilityTableHeader columnWidths={columnWidths} />
           <TableBody>
             {sales.map((sale) => (
-              <RowContextMenu
+              <TableRow 
                 key={sale.id}
-                onVerify={() => handleVerify(sale.id)}
-                onUnverify={() => handleUnverify(sale.id)}
-                verified={sale.verified || false}
+                className={`border-b transition-colors hover:bg-gray-50/50 ${sale.verified ? "bg-green-50/50" : ""}`}
               >
-                <TableRow 
+                <RowContextMenu
                   key={sale.id}
-                  className={`transition-colors duration-200 ${sale.verified ? "bg-green-50" : ""}`}
+                  onVerify={() => handleVerify(sale.id)}
+                  onUnverify={() => handleUnverify(sale.id)}
+                  verified={sale.verified || false}
                 >
                   {editingId === sale.id ? (
                     <EditableRow
@@ -148,8 +148,8 @@ export const ProfitabilityTable = ({ sales }: ProfitabilityTableProps) => {
                       onEdit={() => handleEdit(sale)}
                     />
                   )}
-                </TableRow>
-              </RowContextMenu>
+                </RowContextMenu>
+              </TableRow>
             ))}
           </TableBody>
         </Table>

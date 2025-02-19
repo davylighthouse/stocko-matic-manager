@@ -8,7 +8,7 @@ export const EditableCell = ({ value, field, type = 'text', onChange }: Editable
       type={type}
       value={value}
       onChange={(e) => onChange(field, type === 'number' ? parseFloat(e.target.value) : e.target.value)}
-      className="w-full"
+      className="w-full px-2 py-1 text-sm"
     />
   );
 };
