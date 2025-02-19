@@ -118,7 +118,7 @@ export const ShippingRatesHistory = () => {
       header: "Weight Range", 
       key: "weight_from" as const,
       align: "right" as const,
-      format: (_: number, row: ShippingRateHistory) => 
+      format: (value: number, row: ShippingRateHistory) => 
         `${row.weight_from.toFixed(3)} - ${row.weight_to.toFixed(3)} kg`
     },
     { 
