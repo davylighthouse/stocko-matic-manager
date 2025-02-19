@@ -115,11 +115,11 @@ export const ShippingRatesHistory = () => {
       format: (value: { service_name: string }) => value.service_name
     },
     { 
-      header: "Weight Range", 
+      header: "Weight Range (g)", 
       key: "weight_from" as const,
       align: "right" as const,
       format: (value: number, row: ShippingRateHistory) => 
-        `${row.weight_from.toFixed(3)} - ${row.weight_to.toFixed(3)} kg`
+        `${Math.round(row.weight_from)} - ${Math.round(row.weight_to)}g`
     },
     { 
       header: "Price", 

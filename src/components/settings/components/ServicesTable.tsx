@@ -1,4 +1,3 @@
-
 import { useState } from "react";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
@@ -57,7 +56,6 @@ export const ServicesTable = ({
 
   const handleServiceEdit = (service: ShippingService) => {
     if (editingServiceId === service.id) {
-      // Save changes
       const editedService = editedServices[service.id];
       if (editedService) {
         onUpdate(editedService);
@@ -73,7 +71,6 @@ export const ServicesTable = ({
         return updated;
       });
     } else {
-      // Start editing
       setEditingServiceId(service.id);
       setEditedServices(prev => ({
         ...prev,
@@ -87,7 +84,7 @@ export const ServicesTable = ({
       ...prev,
       [id]: {
         ...prev[id],
-        [field]: field === 'max_weight' ? Math.round(value) : value
+        [field]: field === 'max_weight' ? parseInt(value) : value
       }
     }));
   };
@@ -126,7 +123,7 @@ export const ServicesTable = ({
                 <tr className="border-b">
                   <th className="px-4 py-2 text-left">Service Name</th>
                   <th className="px-4 py-2 text-right">Price (£)</th>
-                  <th className="px-4 py-2 text-right">Weight (g)</th>
+                  <th className="px-4 py-2 text-right">Max Weight (g)</th>
                   <th className="px-4 py-2"></th>
                 </tr>
               </thead>
@@ -165,8 +162,9 @@ export const ServicesTable = ({
                           <Input
                             type="number"
                             step="1"
-                            value={currentService.max_weight}
-                            onChange={(e) => handleServiceChange(service.id, 'max_weight', parseInt(e.target.value))}
+                            min="0"
+                            value={Math.round(currentService.max_weight)}
+                            onChange={(e) => handleServiceChange(service.id, 'max_weight', e.target.value)}
                             className="w-32 ml-auto"
                           />
                         ) : (
