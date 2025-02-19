@@ -666,14 +666,16 @@ export type Database = {
           platform_fees: number | null
           platform_flat_fee: number | null
           product_cost: number | null
+          profit: number | null
+          profit_margin: number | null
           promoted: boolean | null
           promoted_listing_percentage: number | null
           quantity: number | null
           sale_date: string | null
           shipping_cost: number | null
           shipping_service_id: number | null
-          shipping_service_price: number | null
           sku: string | null
+          total_costs: number | null
           total_price: number | null
           total_product_cost: number | null
           vat_cost: number | null
