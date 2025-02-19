@@ -2,7 +2,7 @@
 import { useState } from "react";
 import { Card } from "@/components/ui/card";
 import { useToast } from "@/components/ui/use-toast";
-import { processCSV } from "@/lib/supabase/database/csv";
+import { processCSV, downloadProductTemplate } from "@/lib/supabase/database/csv/utils";
 import { processSalesCSV, downloadSalesTemplate } from "@/lib/supabase/database/sales";
 import { Separator } from "@/components/ui/separator";
 import { UploadSection } from "@/components/upload/UploadSection";
