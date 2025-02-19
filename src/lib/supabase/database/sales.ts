@@ -127,19 +127,18 @@ export const updateSale = async (id: number, data: Partial<SaleWithProduct>) => 
 
   console.log('Processed data for update:', numericData);
 
-  const { data: updatedData, error } = await supabase
+  const { error } = await supabase
     .from('sales')
     .update({
-      sale_date: numericData.sale_date,
-      platform: numericData.platform,
-      sku: numericData.sku,
-      quantity: numericData.quantity,
+      sale_date: data.sale_date,
+      platform: data.platform,
+      sku: data.sku,
+      quantity: data.quantity,
       total_price: numericData.total_price,
       gross_profit: numericData.gross_profit,
-      promoted: numericData.promoted
+      promoted: data.promoted
     })
-    .eq('id', id)
-    .select();
+    .eq('id', id);
 
   if (error) throw error;
   return true;
@@ -156,8 +155,8 @@ export const updateSaleProfitability = async (id: number, data: Partial<Profitab
       sku: data.sku,
       quantity: data.quantity,
       total_price: parsePrice(data.total_price),
-      gross_profit: data.profit,  // We'll calculate this from the profitability data
-      shipping_service_id: data.shipping_service_id  // Add shipping service ID to the update
+      promoted: data.promoted,
+      shipping_service_id: data.shipping_service_id
     })
     .eq('id', id);
 
