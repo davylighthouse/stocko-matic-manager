@@ -21,7 +21,15 @@ interface ProductsTableProps {
   updatedFields?: string[];
 }
 
-const SortableTableRow = ({ product, children }: { product: Product; children: React.ReactNode }) => {
+const SortableTableRow = ({ 
+  product, 
+  children, 
+  onRowClick 
+}: { 
+  product: Product; 
+  children: React.ReactNode;
+  onRowClick: () => void;
+}) => {
   const {
     attributes,
     listeners,
@@ -36,8 +44,13 @@ const SortableTableRow = ({ product, children }: { product: Product; children: R
   };
 
   return (
-    <tr ref={setNodeRef} style={style}>
-      <td className="px-6 py-4 whitespace-nowrap">
+    <tr 
+      ref={setNodeRef} 
+      style={style}
+      className="cursor-pointer hover:bg-gray-50"
+      onClick={onRowClick}
+    >
+      <td className="px-6 py-4 whitespace-nowrap" onClick={(e) => e.stopPropagation()}>
         <button className="cursor-grab focus:cursor-grabbing" {...attributes} {...listeners}>
           <GripVertical className="h-4 w-4 text-gray-400" />
         </button>
@@ -88,7 +101,11 @@ export const ProductsTable = ({
             const threshold = product.low_stock_threshold ?? 20;
             
             return (
-              <SortableTableRow key={product.sku} product={product}>
+              <SortableTableRow 
+                key={product.sku} 
+                product={product}
+                onRowClick={() => onProductSelect(product)}
+              >
                 <td className="px-6 py-4 whitespace-nowrap text-sm font-medium text-gray-900 flex items-center gap-2">
                   {product.sku}
                   {product.bundle_products && (
