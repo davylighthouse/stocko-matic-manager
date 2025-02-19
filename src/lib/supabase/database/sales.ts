@@ -46,7 +46,17 @@ export const getSalesWithProducts = async () => {
 export const getSalesTotals = async () => {
   const { data, error } = await supabase
     .from('sales_profitability')
-    .select('total_price, quantity, platform_fees, total_costs, sku, sale_date')
+    .select(`
+      total_price,
+      quantity,
+      platform_fees,
+      sku,
+      sale_date,
+      total_product_cost,
+      shipping_cost,
+      advertising_cost,
+      vat_status
+    `)
     .throwOnError();
 
   if (error) {
@@ -55,11 +65,27 @@ export const getSalesTotals = async () => {
   }
 
   // Calculate totals
-  const totals = (data || []).reduce((acc, sale) => ({
-    total_sales: acc.total_sales + (sale.total_price || 0),
-    total_quantity: acc.total_quantity + (sale.quantity || 0),
-    total_profit: acc.total_profit + ((sale.total_price || 0) - (sale.total_costs || 0)),
-  }), {
+  const totals = (data || []).reduce((acc, sale) => {
+    // Calculate VAT if applicable
+    let vatCost = 0;
+    if (sale.vat_status === 'standard') {
+      vatCost = (sale.total_price || 0) / 6;
+    }
+
+    const totalCosts = (sale.platform_fees || 0) +
+                      (sale.shipping_cost || 0) +
+                      (sale.total_product_cost || 0) +
+                      (sale.advertising_cost || 0) +
+                      vatCost;
+
+    const profit = (sale.total_price || 0) - totalCosts;
+
+    return {
+      total_sales: acc.total_sales + (sale.total_price || 0),
+      total_quantity: acc.total_quantity + (sale.quantity || 0),
+      total_profit: acc.total_profit + profit,
+    };
+  }, {
     total_sales: 0,
     total_quantity: 0,
     total_profit: 0,
