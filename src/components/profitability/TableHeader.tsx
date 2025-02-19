@@ -1,12 +1,12 @@
 
-import { Table, TableHead, TableHeader, TableRow } from "@/components/ui/table";
+import { TableHead, TableHeader, TableRow } from "@/components/ui/table";
 import { ColumnWidth } from "./types";
 
 interface TableHeaderProps {
   columnWidths: ColumnWidth;
 }
 
-export const TableHeaderComponent = ({ columnWidths }: TableHeaderProps) => (
+export const ProfitabilityTableHeader = ({ columnWidths }: TableHeaderProps) => (
   <TableHeader>
     <TableRow>
       <TableHead style={{ width: columnWidths.date }}>Date</TableHead>

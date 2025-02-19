@@ -664,6 +664,7 @@ export type Database = {
       }
       sales_profitability: {
         Row: {
+          advertising_cost: number | null
           amazon_fba_tier_id: number | null
           default_picking_fee_id: number | null
           default_shipping_service_id: number | null

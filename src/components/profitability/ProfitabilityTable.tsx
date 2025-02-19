@@ -32,6 +32,7 @@ export const ProfitabilityTable = ({ sales }: ProfitabilityTableProps) => {
     platformFees: 100,
     shipping: 100,
     vat: 100,
+    advertising: 100,
     totalCosts: 100,
     profit: 100,
     margin: 100,
@@ -85,10 +86,7 @@ export const ProfitabilityTable = ({ sales }: ProfitabilityTableProps) => {
     <TooltipProvider>
       <div className="overflow-x-auto">
         <Table>
-          <ProfitabilityTableHeader 
-            columnWidths={columnWidths}
-            onResize={handleResize}
-          />
+          <ProfitabilityTableHeader columnWidths={columnWidths} />
           <TableBody>
             {sales.map((sale) => (
               <TableRow key={sale.id}>
