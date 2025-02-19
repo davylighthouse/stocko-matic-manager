@@ -21,7 +21,7 @@ export const ProfitabilityTable = ({ sales }: ProfitabilityTableProps) => {
   const { toast } = useToast();
   const queryClient = useQueryClient();
 
-  const [columnWidths, setColumnWidths] = useState({
+  const [columnWidths] = useState({
     date: 120,
     platform: 100,
     sku: 120,
@@ -37,13 +37,6 @@ export const ProfitabilityTable = ({ sales }: ProfitabilityTableProps) => {
     profit: 100,
     margin: 100,
   });
-
-  const handleResize = (column: string, width: number) => {
-    setColumnWidths(prev => ({
-      ...prev,
-      [column]: width
-    }));
-  };
 
   const handleEdit = (sale: ProfitabilityData) => {
     setEditingId(sale.id);
