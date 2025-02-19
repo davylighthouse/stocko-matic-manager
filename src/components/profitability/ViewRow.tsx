@@ -1,17 +1,16 @@
 
-import { TableCell, TableRow } from "@/components/ui/table";
+import { TableCell } from "@/components/ui/table";
 import { format } from "date-fns";
 import { Button } from "@/components/ui/button";
-import { Pencil, Calculator } from "lucide-react";
-import { Dialog, DialogContent, DialogDescription, DialogHeader, DialogTitle, DialogTrigger } from "@/components/ui/dialog";
+import { Pencil } from "lucide-react";
 import { ProfitabilityData } from "./types";
 import { formatCurrency, formatPercentage, getCalculationTooltip, getMarginColor, getProfitColor } from "./utils";
 import { useState } from "react";
-import { ProductEditDialog } from "@/components/stock/ProductEditDialog";
-import { useQuery, useQueryClient } from "@tanstack/react-query";
-import { getStockLevels, updateProductDetails } from "@/lib/supabase/database";
-import { useToast } from "@/hooks/use-toast";
-import { Product } from "@/types/database";
+import { useQuery } from "@tanstack/react-query";
+import { getStockLevels } from "@/lib/supabase/database";
+import { CalculationDialog } from "./components/CalculationDialog";
+import { ProductDialog } from "./components/ProductDialog";
+import { getPlatformColor } from "./utils/styles";
 
 interface ViewRowProps {
   sale: ProfitabilityData;
@@ -21,14 +20,6 @@ interface ViewRowProps {
 
 export const ViewRow = ({ sale, columnWidths, onEdit }: ViewRowProps) => {
   const [isProductDialogOpen, setIsProductDialogOpen] = useState(false);
-  const [updatedFields, setUpdatedFields] = useState<string[]>([]);
-  const { toast } = useToast();
-  const queryClient = useQueryClient();
-
-  const getPlatformColor = (platform: string, promoted: boolean) => {
-    if (platform.toLowerCase() !== 'ebay') return '';
-    return promoted ? 'text-red-600 font-medium' : 'text-green-600 font-medium';
-  };
 
   const { data: products = [] } = useQuery({
     queryKey: ['products'],
@@ -36,65 +27,6 @@ export const ViewRow = ({ sale, columnWidths, onEdit }: ViewRowProps) => {
   });
 
   const currentProduct = products.find(p => p.sku === sale.sku);
-
-  const handleProductUpdate = async (event: React.FormEvent<HTMLFormElement>) => {
-    event.preventDefault();
-    if (!currentProduct) return;
-
-    const formData = new FormData(event.currentTarget);
-    const updates: Partial<Product> = {};
-    const updatedFieldNames: string[] = [];
-
-    formData.forEach((value, key) => {
-      if (value !== '' && value !== null) {
-        (updates as any)[key] = value;
-        updatedFieldNames.push(key);
-      }
-    });
-
-    try {
-      await updateProductDetails(currentProduct.sku, updates);
-      await queryClient.invalidateQueries({ queryKey: ['products'] });
-      setIsProductDialogOpen(false);
-      toast({
-        title: "Success",
-        description: "Product details updated successfully",
-      });
-      setUpdatedFields([]);
-    } catch (error) {
-      toast({
-        title: "Error",
-        description: error instanceof Error ? error.message : "Failed to update product details",
-        variant: "destructive",
-      });
-      setUpdatedFields([]);
-    }
-  };
-
-  const handleStockUpdate = async (sku: string, quantity: number) => {
-    // This function is required by the ProductEditDialog but won't be used in this context
-  };
-
-  const CalculationDialog = ({ title, value, tooltipContent, className = "" }: { title: string, value: React.ReactNode, tooltipContent: string, className?: string }) => (
-    <Dialog>
-      <DialogTrigger asChild>
-        <div className={`group inline-flex items-center gap-1 cursor-pointer ${className}`}>
-          {value}
-          <Calculator className="h-3.5 w-3.5 opacity-50 group-hover:opacity-100 transition-opacity" />
-        </div>
-      </DialogTrigger>
-      <DialogContent className="bg-slate-900 text-slate-50">
-        <DialogHeader>
-          <DialogTitle className="text-slate-200">{title}</DialogTitle>
-          <DialogDescription>
-            <pre className="text-sm whitespace-pre-wrap font-mono bg-slate-800 p-4 rounded mt-4 text-slate-100">
-              {tooltipContent}
-            </pre>
-          </DialogDescription>
-        </DialogHeader>
-      </DialogContent>
-    </Dialog>
-  );
 
   return (
     <>
@@ -186,13 +118,10 @@ export const ViewRow = ({ sale, columnWidths, onEdit }: ViewRowProps) => {
         </Button>
       </TableCell>
 
-      <ProductEditDialog
-        product={currentProduct}
-        open={isProductDialogOpen}
+      <ProductDialog
+        isOpen={isProductDialogOpen}
         onOpenChange={setIsProductDialogOpen}
-        onSubmit={handleProductUpdate}
-        onStockUpdate={handleStockUpdate}
-        updatedFields={updatedFields}
+        currentProduct={currentProduct}
       />
     </>
   );
