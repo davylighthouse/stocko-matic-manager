@@ -26,7 +26,7 @@ const Profitability = () => {
         throw error;
       }
 
-      // Process VAT and shipping costs
+      // Process data and calculate derived fields
       const processedData = data?.map(sale => {
         // Calculate VAT if applicable
         let vatCost = 0;
@@ -34,26 +34,29 @@ const Profitability = () => {
           vatCost = sale.total_price / 6; // 20% VAT calculation
         }
 
-        // Add VAT cost to total costs
+        // Calculate total costs including VAT
         const totalCosts = (sale.total_costs || 0) + vatCost;
+
+        // Calculate profit and margin
         const profit = sale.total_price - totalCosts;
         const profitMargin = (profit / sale.total_price) * 100;
 
         return {
           ...sale,
+          id: sale.sale_id, // Map sale_id to id for compatibility
           vat_cost: vatCost,
           total_costs: totalCosts,
           profit: profit,
           profit_margin: profitMargin
-        };
+        } as ProfitabilityData;
       });
 
       console.log('Processed sales data:', processedData);
-      return processedData as ProfitabilityData[];
+      return processedData;
     },
     refetchOnWindowFocus: true,
     refetchOnMount: true,
-    gcTime: 0 // Using gcTime instead of cacheTime in v5
+    gcTime: 0
   });
 
   const filteredSales = salesData.filter(
