@@ -3,13 +3,13 @@ import { TableCell, TableRow } from "@/components/ui/table"
 import { Button } from "@/components/ui/button"
 import { Check, X } from "lucide-react"
 import { EditableCell } from "./EditableCell"
-import { ColumnWidths, ProfitabilityData } from "./types"
+import { ColumnWidth, ProfitabilityData } from "./types"
 import { formatCurrency, formatDate, formatPercent } from "./utils"
 
 interface EditableRowProps {
   sale: ProfitabilityData
   editedData: Partial<ProfitabilityData>
-  columnWidths: Record<string, string>
+  columnWidths: Record<string, ColumnWidth>
   onSave: () => void
   onCancel: () => void
   onChange: (field: keyof ProfitabilityData, value: any) => void

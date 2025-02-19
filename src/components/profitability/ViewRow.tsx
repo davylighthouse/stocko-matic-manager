@@ -2,13 +2,13 @@
 import { TableCell, TableRow } from "@/components/ui/table"
 import { Button } from "@/components/ui/button"
 import { Edit } from "lucide-react"
-import { ColumnWidths } from "./types"
+import { ColumnWidth } from "./types"
 import { ProfitabilityData } from "./types"
 import { formatCurrency, formatDate, formatPercent } from "./utils"
 
 interface ViewRowProps {
   sale: ProfitabilityData
-  columnWidths: Record<string, string>
+  columnWidths: Record<string, ColumnWidth>
   onEdit: () => void
   className?: string
 }

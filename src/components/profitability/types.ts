@@ -41,22 +41,24 @@ export interface EditableCellProps {
   onChange: (field: keyof ProfitabilityData, value: any) => void;
   format?: (value: number) => string;
   type?: string;
+  width?: string;
 }
 
+export type ColumnWidth = string;
+
 export interface ColumnWidths {
-  date: string;
-  platform: string;
-  sku: string;
-  title: string;
-  quantity: string;
-  salePrice: string;
-  productCost: string;
-  platformFees: string;
-  shipping: string;
-  vat: string;
-  advertising: string;
-  totalCosts: string;
-  profit: string;
-  margin: string;
-  [key: string]: string; // Add index signature to make it assignable to Record<string, string>
+  date: ColumnWidth;
+  platform: ColumnWidth;
+  sku: ColumnWidth;
+  title: ColumnWidth;
+  quantity: ColumnWidth;
+  salePrice: ColumnWidth;
+  productCost: ColumnWidth;
+  platformFees: ColumnWidth;
+  shipping: ColumnWidth;
+  vat: ColumnWidth;
+  advertising: ColumnWidth;
+  totalCosts: ColumnWidth;
+  profit: ColumnWidth;
+  margin: ColumnWidth;
 }
