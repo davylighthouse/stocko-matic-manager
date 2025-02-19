@@ -35,28 +35,29 @@ export interface ProfitabilityTableProps {
   sales: ProfitabilityData[];
 }
 
-export interface ColumnWidth {
-  [key: string]: number;
-  date: number;
-  platform: number;
-  sku: number;
-  title: number;
-  quantity: number;
-  salePrice: number;
-  productCost: number;
-  platformFees: number;
-  shipping: number;
-  vat: number;
-  advertising: number;
-  totalCosts: number;
-  profit: number;
-  margin: number;
-}
-
 export interface EditableCellProps {
   value: string | number;
   field: keyof ProfitabilityData;
+  onChange: (field: keyof ProfitabilityData, value: any) => void;
+  format?: (value: number) => string;
   type?: string;
-  onChange: (field: keyof ProfitabilityData, value: string | number) => void;
 }
 
+export type ColumnWidth = string;
+
+export interface ColumnWidths {
+  date: string;
+  platform: string;
+  sku: string;
+  title: string;
+  quantity: string;
+  salePrice: string;
+  productCost: string;
+  platformFees: string;
+  shipping: string;
+  vat: string;
+  advertising: string;
+  totalCosts: string;
+  profit: string;
+  margin: string;
+}

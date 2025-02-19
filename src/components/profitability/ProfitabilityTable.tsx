@@ -21,21 +21,21 @@ export const ProfitabilityTable = ({ sales }: ProfitabilityTableProps) => {
   const { toast } = useToast();
   const queryClient = useQueryClient();
 
-  const [columnWidths] = useState({
-    date: 120,
-    platform: 100,
-    sku: 120,
-    title: 250,
-    quantity: 80,
-    salePrice: 100,
-    productCost: 100,
-    platformFees: 100,
-    shipping: 100,
-    vat: 100,
-    advertising: 100,
-    totalCosts: 100,
-    profit: 100,
-    margin: 100,
+  const [columnWidths] = useState<ColumnWidths>({
+    date: '120px',
+    platform: '100px',
+    sku: '120px',
+    title: '250px',
+    quantity: '80px',
+    salePrice: '100px',
+    productCost: '100px',
+    platformFees: '100px',
+    shipping: '100px',
+    vat: '100px',
+    advertising: '100px',
+    totalCosts: '100px',
+    profit: '100px',
+    margin: '100px',
   });
 
   const handleEdit = (sale: ProfitabilityData) => {

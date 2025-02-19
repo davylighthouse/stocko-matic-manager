@@ -8,6 +8,16 @@ export const formatPercentage = (value: number | null | undefined) => {
   return `${value.toFixed(1)}%`;
 };
 
+export const formatPercent = formatPercentage; // Alias for backward compatibility
+
+export const formatDate = (date: string) => {
+  return new Date(date).toLocaleDateString('en-GB', {
+    day: '2-digit',
+    month: '2-digit',
+    year: 'numeric',
+  });
+};
+
 export const getProfitColor = (profit: number | null | undefined) => {
   if (profit === null || profit === undefined) return "bg-red-100 text-red-900";
   if (profit >= 3) return "bg-green-100 text-green-900";
