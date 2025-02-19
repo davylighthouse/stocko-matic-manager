@@ -3,13 +3,13 @@ import { useState } from "react";
 import { useQuery, useMutation, useQueryClient } from "@tanstack/react-query";
 import { Button } from "@/components/ui/button";
 import { Card } from "@/components/ui/card";
-import { Input } from "@/components/ui/input";
-import { Calendar } from "@/components/ui/calendar";
-import { Popover, PopoverContent, PopoverTrigger } from "@/components/ui/popover";
+import { Plus } from "lucide-react";
 import { format } from "date-fns";
-import { CalendarIcon, Plus } from "lucide-react";
 import { supabase } from "@/integrations/supabase/client";
 import { useToast } from "@/components/ui/use-toast";
+import { FormField } from "./shared/FormField";
+import { DatePickerField } from "./shared/DatePickerField";
+import { HistoryTable } from "./shared/HistoryTable";
 
 interface ShippingRateHistory {
   id: number;
@@ -20,6 +20,9 @@ interface ShippingRateHistory {
   effective_from: string;
   effective_to: string | null;
   notes: string | null;
+  shipping_services: {
+    service_name: string;
+  };
 }
 
 interface ShippingService {
@@ -66,12 +69,12 @@ export const ShippingRatesHistory = () => {
         .order('service_id, weight_from, effective_from');
       
       if (error) throw error;
-      return data as (ShippingRateHistory & { shipping_services: { service_name: string } })[];
+      return data as ShippingRateHistory[];
     },
   });
 
   const addMutation = useMutation({
-    mutationFn: async (rate: Omit<ShippingRateHistory, 'id' | 'effective_to'>) => {
+    mutationFn: async (rate: Omit<ShippingRateHistory, 'id' | 'effective_to' | 'shipping_services'>) => {
       const { error } = await supabase
         .from('shipping_rate_history')
         .insert([rate]);
@@ -105,6 +108,33 @@ export const ShippingRatesHistory = () => {
     });
   };
 
+  const columns = [
+    { 
+      header: "Service", 
+      key: "shipping_services" as const,
+      format: (value: { service_name: string }) => value.service_name
+    },
+    { 
+      header: "Weight Range", 
+      key: "weight_from" as const,
+      align: "right" as const,
+      format: (_: number, row: ShippingRateHistory) => 
+        `${row.weight_from.toFixed(3)} - ${row.weight_to.toFixed(3)} kg`
+    },
+    { 
+      header: "Price", 
+      key: "price" as const,
+      align: "right" as const,
+      format: (value: number) => `£${value.toFixed(2)}`
+    },
+    { 
+      header: "Effective From", 
+      key: "effective_from" as const,
+      format: (value: string) => format(new Date(value), 'dd MMM yyyy')
+    },
+    { header: "Notes", key: "notes" as const },
+  ];
+
   return (
     <Card className="p-6">
       <div className="flex justify-between items-center mb-6">
@@ -134,66 +164,44 @@ export const ShippingRatesHistory = () => {
                 ))}
               </select>
             </div>
-            <div className="space-y-2">
-              <label className="text-sm font-medium">Effective From</label>
-              <Popover>
-                <PopoverTrigger asChild>
-                  <Button variant="outline" className="w-full justify-start text-left font-normal">
-                    <CalendarIcon className="mr-2 h-4 w-4" />
-                    {format(newRate.effective_from, 'PPP')}
-                  </Button>
-                </PopoverTrigger>
-                <PopoverContent className="w-auto p-0">
-                  <Calendar
-                    mode="single"
-                    selected={newRate.effective_from}
-                    onSelect={(date) => date && setNewRate({ ...newRate, effective_from: date })}
-                    initialFocus
-                  />
-                </PopoverContent>
-              </Popover>
-            </div>
-            <div className="space-y-2">
-              <label className="text-sm font-medium">Weight From (kg)</label>
-              <Input
-                type="number"
-                step="0.001"
-                value={newRate.weight_from}
-                onChange={(e) => setNewRate({ ...newRate, weight_from: e.target.value })}
-                placeholder="Minimum weight"
-                required
-              />
-            </div>
-            <div className="space-y-2">
-              <label className="text-sm font-medium">Weight To (kg)</label>
-              <Input
-                type="number"
-                step="0.001"
-                value={newRate.weight_to}
-                onChange={(e) => setNewRate({ ...newRate, weight_to: e.target.value })}
-                placeholder="Maximum weight"
-                required
-              />
-            </div>
-            <div className="space-y-2">
-              <label className="text-sm font-medium">Price</label>
-              <Input
-                type="number"
-                step="0.01"
-                value={newRate.price}
-                onChange={(e) => setNewRate({ ...newRate, price: e.target.value })}
-                placeholder="Rate price"
-                required
-              />
-            </div>
-            <div className="col-span-2 space-y-2">
-              <label className="text-sm font-medium">Notes</label>
-              <Input
-                value={newRate.notes}
-                onChange={(e) => setNewRate({ ...newRate, notes: e.target.value })}
-                placeholder="Add notes about this change"
-              />
-            </div>
+            <DatePickerField
+              label="Effective From"
+              date={newRate.effective_from}
+              onChange={(date) => setNewRate({ ...newRate, effective_from: date })}
+            />
+            <FormField
+              label="Weight From (kg)"
+              value={newRate.weight_from}
+              onChange={(value) => setNewRate({ ...newRate, weight_from: value })}
+              placeholder="Minimum weight"
+              type="number"
+              step="0.001"
+              required
+            />
+            <FormField
+              label="Weight To (kg)"
+              value={newRate.weight_to}
+              onChange={(value) => setNewRate({ ...newRate, weight_to: value })}
+              placeholder="Maximum weight"
+              type="number"
+              step="0.001"
+              required
+            />
+            <FormField
+              label="Price"
+              value={newRate.price}
+              onChange={(value) => setNewRate({ ...newRate, price: value })}
+              placeholder="Rate price"
+              type="number"
+              step="0.01"
+              required
+            />
+            <FormField
+              label="Notes"
+              value={newRate.notes}
+              onChange={(value) => setNewRate({ ...newRate, notes: value })}
+              placeholder="Add notes about this change"
+            />
           </div>
           <div className="flex justify-end gap-2">
             <Button type="button" variant="outline" onClick={() => setIsAdding(false)}>
@@ -204,32 +212,7 @@ export const ShippingRatesHistory = () => {
         </form>
       )}
 
-      <div className="overflow-x-auto">
-        <table className="w-full">
-          <thead>
-            <tr className="border-b">
-              <th className="px-4 py-2 text-left">Service</th>
-              <th className="px-4 py-2 text-right">Weight Range</th>
-              <th className="px-4 py-2 text-right">Price</th>
-              <th className="px-4 py-2 text-left">Effective From</th>
-              <th className="px-4 py-2 text-left">Notes</th>
-            </tr>
-          </thead>
-          <tbody>
-            {history.map((rate) => (
-              <tr key={rate.id} className="border-b">
-                <td className="px-4 py-2">{rate.shipping_services.service_name}</td>
-                <td className="px-4 py-2 text-right">
-                  {rate.weight_from.toFixed(3)} - {rate.weight_to.toFixed(3)} kg
-                </td>
-                <td className="px-4 py-2 text-right">£{rate.price.toFixed(2)}</td>
-                <td className="px-4 py-2">{format(new Date(rate.effective_from), 'dd MMM yyyy')}</td>
-                <td className="px-4 py-2">{rate.notes}</td>
-              </tr>
-            ))}
-          </tbody>
-        </table>
-      </div>
+      <HistoryTable data={history} columns={columns} />
     </Card>
   );
 };

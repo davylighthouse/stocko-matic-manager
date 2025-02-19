@@ -3,13 +3,13 @@ import { useState } from "react";
 import { useQuery, useMutation, useQueryClient } from "@tanstack/react-query";
 import { Button } from "@/components/ui/button";
 import { Card } from "@/components/ui/card";
-import { Input } from "@/components/ui/input";
-import { Calendar } from "@/components/ui/calendar";
-import { Popover, PopoverContent, PopoverTrigger } from "@/components/ui/popover";
+import { Plus } from "lucide-react";
 import { format } from "date-fns";
-import { CalendarIcon, Plus } from "lucide-react";
 import { supabase } from "@/integrations/supabase/client";
 import { useToast } from "@/components/ui/use-toast";
+import { FormField } from "./shared/FormField";
+import { DatePickerField } from "./shared/DatePickerField";
+import { HistoryTable } from "./shared/HistoryTable";
 
 interface PickingFeeHistory {
   id: number;
@@ -75,6 +75,22 @@ export const PickingFeesHistory = () => {
     });
   };
 
+  const columns = [
+    { header: "Fee Name", key: "fee_name" as const },
+    { 
+      header: "Fee Amount", 
+      key: "fee_amount" as const, 
+      align: "right" as const,
+      format: (value: number) => `£${value.toFixed(2)}`
+    },
+    { 
+      header: "Effective From", 
+      key: "effective_from" as const,
+      format: (value: string) => format(new Date(value), 'dd MMM yyyy')
+    },
+    { header: "Notes", key: "notes" as const },
+  ];
+
   return (
     <Card className="p-6">
       <div className="flex justify-between items-center mb-6">
@@ -88,53 +104,33 @@ export const PickingFeesHistory = () => {
       {isAdding && (
         <form onSubmit={handleSubmit} className="mb-6 p-4 border rounded-lg space-y-4">
           <div className="grid grid-cols-2 gap-4">
-            <div className="space-y-2">
-              <label className="text-sm font-medium">Fee Name</label>
-              <Input
-                value={newRate.fee_name}
-                onChange={(e) => setNewRate({ ...newRate, fee_name: e.target.value })}
-                placeholder="Enter fee name"
-                required
-              />
-            </div>
-            <div className="space-y-2">
-              <label className="text-sm font-medium">Effective From</label>
-              <Popover>
-                <PopoverTrigger asChild>
-                  <Button variant="outline" className="w-full justify-start text-left font-normal">
-                    <CalendarIcon className="mr-2 h-4 w-4" />
-                    {format(newRate.effective_from, 'PPP')}
-                  </Button>
-                </PopoverTrigger>
-                <PopoverContent className="w-auto p-0">
-                  <Calendar
-                    mode="single"
-                    selected={newRate.effective_from}
-                    onSelect={(date) => date && setNewRate({ ...newRate, effective_from: date })}
-                    initialFocus
-                  />
-                </PopoverContent>
-              </Popover>
-            </div>
-            <div className="space-y-2">
-              <label className="text-sm font-medium">Fee Amount</label>
-              <Input
-                type="number"
-                step="0.01"
-                value={newRate.fee_amount}
-                onChange={(e) => setNewRate({ ...newRate, fee_amount: e.target.value })}
-                placeholder="Enter fee amount"
-                required
-              />
-            </div>
-            <div className="space-y-2">
-              <label className="text-sm font-medium">Notes</label>
-              <Input
-                value={newRate.notes}
-                onChange={(e) => setNewRate({ ...newRate, notes: e.target.value })}
-                placeholder="Add notes about this change"
-              />
-            </div>
+            <FormField
+              label="Fee Name"
+              value={newRate.fee_name}
+              onChange={(value) => setNewRate({ ...newRate, fee_name: value })}
+              placeholder="Enter fee name"
+              required
+            />
+            <DatePickerField
+              label="Effective From"
+              date={newRate.effective_from}
+              onChange={(date) => setNewRate({ ...newRate, effective_from: date })}
+            />
+            <FormField
+              label="Fee Amount"
+              value={newRate.fee_amount}
+              onChange={(value) => setNewRate({ ...newRate, fee_amount: value })}
+              placeholder="Enter fee amount"
+              type="number"
+              step="0.01"
+              required
+            />
+            <FormField
+              label="Notes"
+              value={newRate.notes}
+              onChange={(value) => setNewRate({ ...newRate, notes: value })}
+              placeholder="Add notes about this change"
+            />
           </div>
           <div className="flex justify-end gap-2">
             <Button type="button" variant="outline" onClick={() => setIsAdding(false)}>
@@ -145,28 +141,7 @@ export const PickingFeesHistory = () => {
         </form>
       )}
 
-      <div className="overflow-x-auto">
-        <table className="w-full">
-          <thead>
-            <tr className="border-b">
-              <th className="px-4 py-2 text-left">Fee Name</th>
-              <th className="px-4 py-2 text-right">Fee Amount</th>
-              <th className="px-4 py-2 text-left">Effective From</th>
-              <th className="px-4 py-2 text-left">Notes</th>
-            </tr>
-          </thead>
-          <tbody>
-            {history.map((rate) => (
-              <tr key={rate.id} className="border-b">
-                <td className="px-4 py-2">{rate.fee_name}</td>
-                <td className="px-4 py-2 text-right">£{rate.fee_amount.toFixed(2)}</td>
-                <td className="px-4 py-2">{format(new Date(rate.effective_from), 'dd MMM yyyy')}</td>
-                <td className="px-4 py-2">{rate.notes}</td>
-              </tr>
-            ))}
-          </tbody>
-        </table>
-      </div>
+      <HistoryTable data={history} columns={columns} />
     </Card>
   );
 };

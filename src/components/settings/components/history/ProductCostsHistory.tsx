@@ -3,13 +3,13 @@ import { useState } from "react";
 import { useQuery, useMutation, useQueryClient } from "@tanstack/react-query";
 import { Button } from "@/components/ui/button";
 import { Card } from "@/components/ui/card";
-import { Input } from "@/components/ui/input";
-import { Calendar } from "@/components/ui/calendar";
-import { Popover, PopoverContent, PopoverTrigger } from "@/components/ui/popover";
+import { Plus } from "lucide-react";
 import { format } from "date-fns";
-import { CalendarIcon, Plus } from "lucide-react";
 import { supabase } from "@/integrations/supabase/client";
 import { useToast } from "@/components/ui/use-toast";
+import { FormField } from "./shared/FormField";
+import { DatePickerField } from "./shared/DatePickerField";
+import { HistoryTable } from "./shared/HistoryTable";
 
 interface ProductCostHistory {
   id: number;
@@ -83,6 +83,34 @@ export const ProductCostsHistory = () => {
     });
   };
 
+  const columns = [
+    { header: "SKU", key: "sku" as const },
+    { 
+      header: "Product Cost", 
+      key: "product_cost" as const,
+      align: "right" as const,
+      format: (value: number) => `£${value.toFixed(2)}`
+    },
+    { 
+      header: "Packaging Cost", 
+      key: "packaging_cost" as const,
+      align: "right" as const,
+      format: (value: number | null) => value ? `£${value.toFixed(2)}` : '-'
+    },
+    { 
+      header: "Making Up Cost", 
+      key: "making_up_cost" as const,
+      align: "right" as const,
+      format: (value: number | null) => value ? `£${value.toFixed(2)}` : '-'
+    },
+    { 
+      header: "Effective From", 
+      key: "effective_from" as const,
+      format: (value: string) => format(new Date(value), 'dd MMM yyyy')
+    },
+    { header: "Notes", key: "notes" as const },
+  ];
+
   return (
     <Card className="p-6">
       <div className="flex justify-between items-center mb-6">
@@ -96,73 +124,49 @@ export const ProductCostsHistory = () => {
       {isAdding && (
         <form onSubmit={handleSubmit} className="mb-6 p-4 border rounded-lg space-y-4">
           <div className="grid grid-cols-2 gap-4">
-            <div className="space-y-2">
-              <label className="text-sm font-medium">SKU</label>
-              <Input
-                value={newRate.sku}
-                onChange={(e) => setNewRate({ ...newRate, sku: e.target.value })}
-                placeholder="Product SKU"
-                required
-              />
-            </div>
-            <div className="space-y-2">
-              <label className="text-sm font-medium">Effective From</label>
-              <Popover>
-                <PopoverTrigger asChild>
-                  <Button variant="outline" className="w-full justify-start text-left font-normal">
-                    <CalendarIcon className="mr-2 h-4 w-4" />
-                    {format(newRate.effective_from, 'PPP')}
-                  </Button>
-                </PopoverTrigger>
-                <PopoverContent className="w-auto p-0">
-                  <Calendar
-                    mode="single"
-                    selected={newRate.effective_from}
-                    onSelect={(date) => date && setNewRate({ ...newRate, effective_from: date })}
-                    initialFocus
-                  />
-                </PopoverContent>
-              </Popover>
-            </div>
-            <div className="space-y-2">
-              <label className="text-sm font-medium">Product Cost</label>
-              <Input
-                type="number"
-                step="0.01"
-                value={newRate.product_cost}
-                onChange={(e) => setNewRate({ ...newRate, product_cost: e.target.value })}
-                placeholder="Base product cost"
-                required
-              />
-            </div>
-            <div className="space-y-2">
-              <label className="text-sm font-medium">Packaging Cost</label>
-              <Input
-                type="number"
-                step="0.01"
-                value={newRate.packaging_cost}
-                onChange={(e) => setNewRate({ ...newRate, packaging_cost: e.target.value })}
-                placeholder="Packaging cost (optional)"
-              />
-            </div>
-            <div className="space-y-2">
-              <label className="text-sm font-medium">Making Up Cost</label>
-              <Input
-                type="number"
-                step="0.01"
-                value={newRate.making_up_cost}
-                onChange={(e) => setNewRate({ ...newRate, making_up_cost: e.target.value })}
-                placeholder="Making up cost (optional)"
-              />
-            </div>
-            <div className="col-span-2 space-y-2">
-              <label className="text-sm font-medium">Notes</label>
-              <Input
-                value={newRate.notes}
-                onChange={(e) => setNewRate({ ...newRate, notes: e.target.value })}
-                placeholder="Add notes about this change"
-              />
-            </div>
+            <FormField
+              label="SKU"
+              value={newRate.sku}
+              onChange={(value) => setNewRate({ ...newRate, sku: value })}
+              placeholder="Product SKU"
+              required
+            />
+            <DatePickerField
+              label="Effective From"
+              date={newRate.effective_from}
+              onChange={(date) => setNewRate({ ...newRate, effective_from: date })}
+            />
+            <FormField
+              label="Product Cost"
+              value={newRate.product_cost}
+              onChange={(value) => setNewRate({ ...newRate, product_cost: value })}
+              placeholder="Base product cost"
+              type="number"
+              step="0.01"
+              required
+            />
+            <FormField
+              label="Packaging Cost"
+              value={newRate.packaging_cost}
+              onChange={(value) => setNewRate({ ...newRate, packaging_cost: value })}
+              placeholder="Packaging cost (optional)"
+              type="number"
+              step="0.01"
+            />
+            <FormField
+              label="Making Up Cost"
+              value={newRate.making_up_cost}
+              onChange={(value) => setNewRate({ ...newRate, making_up_cost: value })}
+              placeholder="Making up cost (optional)"
+              type="number"
+              step="0.01"
+            />
+            <FormField
+              label="Notes"
+              value={newRate.notes}
+              onChange={(value) => setNewRate({ ...newRate, notes: value })}
+              placeholder="Add notes about this change"
+            />
           </div>
           <div className="flex justify-end gap-2">
             <Button type="button" variant="outline" onClick={() => setIsAdding(false)}>
@@ -173,36 +177,7 @@ export const ProductCostsHistory = () => {
         </form>
       )}
 
-      <div className="overflow-x-auto">
-        <table className="w-full">
-          <thead>
-            <tr className="border-b">
-              <th className="px-4 py-2 text-left">SKU</th>
-              <th className="px-4 py-2 text-right">Product Cost</th>
-              <th className="px-4 py-2 text-right">Packaging Cost</th>
-              <th className="px-4 py-2 text-right">Making Up Cost</th>
-              <th className="px-4 py-2 text-left">Effective From</th>
-              <th className="px-4 py-2 text-left">Notes</th>
-            </tr>
-          </thead>
-          <tbody>
-            {history.map((rate) => (
-              <tr key={rate.id} className="border-b">
-                <td className="px-4 py-2">{rate.sku}</td>
-                <td className="px-4 py-2 text-right">£{rate.product_cost.toFixed(2)}</td>
-                <td className="px-4 py-2 text-right">
-                  {rate.packaging_cost ? `£${rate.packaging_cost.toFixed(2)}` : '-'}
-                </td>
-                <td className="px-4 py-2 text-right">
-                  {rate.making_up_cost ? `£${rate.making_up_cost.toFixed(2)}` : '-'}
-                </td>
-                <td className="px-4 py-2">{format(new Date(rate.effective_from), 'dd MMM yyyy')}</td>
-                <td className="px-4 py-2">{rate.notes}</td>
-              </tr>
-            ))}
-          </tbody>
-        </table>
-      </div>
+      <HistoryTable data={history} columns={columns} />
     </Card>
   );
 };
