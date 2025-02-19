@@ -37,23 +37,28 @@ const Profitability = () => {
         // Use values directly from the view
         const totalProductCost = sale.total_product_cost || 0;
         const shippingCost = sale.shipping_cost || 0;
-        const baseShippingRate = sale.base_shipping_rate || 0;
+        const platformFees = sale.platform_fees || 0;
         const advertisingCost = sale.advertising_cost || 0;
 
         console.log('Cost breakdown for SKU:', sale.sku, {
           totalProductCost,
-          platformFees: sale.platform_fees || 0,
+          platformFees,
           shipping: {
             total: shippingCost,
-            base: baseShippingRate,
+            base: sale.base_shipping_rate,
+            picking: sale.picking_fee,
             defaultServiceId: sale.default_shipping_service_id
           },
-          advertisingCost,
+          advertising: {
+            cost: advertisingCost,
+            promoted: sale.promoted,
+            percentage: sale.promoted_listing_percentage
+          },
           vatCost
         });
 
         // Calculate total costs including VAT
-        const totalCosts = (sale.platform_fees || 0) + 
+        const totalCosts = platformFees + 
                          shippingCost + 
                          totalProductCost +
                          advertisingCost +

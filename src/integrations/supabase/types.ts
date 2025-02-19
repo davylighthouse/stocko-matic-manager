@@ -844,7 +844,6 @@ export type Database = {
           sale_id: number | null
           shipping_cost: number | null
           sku: string | null
-          total_costs: number | null
           total_price: number | null
           total_product_cost: number | null
           vat_status: string | null
