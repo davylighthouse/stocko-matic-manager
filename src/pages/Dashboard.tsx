@@ -5,6 +5,8 @@ import { cn } from "@/lib/utils";
 import { LeagueTable } from "@/components/products/LeagueTable";
 import { useQuery } from "@tanstack/react-query";
 import { getTopProductsBySales, getSalesTotals } from "@/lib/supabase/database";
+import { SalesMetricsChart } from "@/components/dashboard/SalesMetricsChart";
+import { WeeklyInsights } from "@/components/dashboard/WeeklyInsights";
 
 const Dashboard = () => {
   // Use a wider date range to ensure we capture all sales
@@ -89,6 +91,11 @@ const Dashboard = () => {
             </Card>
           );
         })}
+      </div>
+
+      <div className="grid grid-cols-1 lg:grid-cols-2 gap-6">
+        <SalesMetricsChart />
+        <WeeklyInsights />
       </div>
 
       <LeagueTable />
