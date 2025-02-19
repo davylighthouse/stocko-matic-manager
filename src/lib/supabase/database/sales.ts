@@ -1,7 +1,8 @@
+
 import { supabase } from '@/integrations/supabase/client';
 import type { SaleWithProduct, SalesTotals } from '@/types/sales';
 import type { ProfitabilityData } from '@/components/profitability/types';
-import { format, parse } from 'date-fns';
+import { format } from 'date-fns';
 import Papa from 'papaparse';
 
 interface SalesCSVRow {
@@ -180,6 +181,42 @@ export const processSalesCSV = async (file: File): Promise<{ success: boolean; m
             if (!row.SKU || !row['Sale Date']) {
               console.error('Row missing required fields:', row);
               continue;
+            }
+
+            // First, ensure the product exists
+            const { data: existingProduct } = await supabase
+              .from('products')
+              .select('sku')
+              .eq('sku', row.SKU)
+              .single();
+
+            if (!existingProduct) {
+              console.log('Product does not exist, creating:', row.SKU);
+              // Get default IDs for required fields
+              const [{ data: defaultPickingFee }, { data: defaultShippingService }] = await Promise.all([
+                supabase.from('picking_fees').select('id').limit(1).single(),
+                supabase.from('shipping_services').select('id').limit(1).single()
+              ]);
+
+              if (!defaultPickingFee || !defaultShippingService) {
+                throw new Error('Default picking fee or shipping service not found');
+              }
+
+              // Create the product
+              const { error: productError } = await supabase
+                .from('products')
+                .insert([{
+                  sku: row.SKU,
+                  listing_title: row['Listing Title'] || row.SKU,
+                  default_picking_fee_id: defaultPickingFee.id,
+                  default_shipping_service_id: defaultShippingService.id,
+                  stock_quantity: 0  // Initial stock will be set separately
+                }]);
+
+              if (productError) {
+                console.error('Error creating product:', productError);
+                throw productError;
+              }
             }
 
             // Parse date handling DD/MM/YYYY format
