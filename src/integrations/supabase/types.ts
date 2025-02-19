@@ -597,29 +597,6 @@ export type Database = {
       }
     }
     Views: {
-      bundle_stock_levels: {
-        Row: {
-          bundle_cost: number | null
-          bundle_stock: number | null
-          sku: string | null
-        }
-        Relationships: [
-          {
-            foreignKeyName: "bundle_components_bundle_sku_fkey"
-            columns: ["sku"]
-            isOneToOne: false
-            referencedRelation: "current_stock_levels"
-            referencedColumns: ["sku"]
-          },
-          {
-            foreignKeyName: "bundle_components_bundle_sku_fkey"
-            columns: ["sku"]
-            isOneToOne: false
-            referencedRelation: "products"
-            referencedColumns: ["sku"]
-          },
-        ]
-      }
       current_stock_levels: {
         Row: {
           adjustments: number | null
@@ -788,6 +765,12 @@ export type Database = {
       }
     }
     Functions: {
+      calculate_stock_for_sku: {
+        Args: {
+          p_sku: string
+        }
+        Returns: number
+      }
       get_top_products_by_sales: {
         Args: {
           start_date: string
