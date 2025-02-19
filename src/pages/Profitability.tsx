@@ -34,10 +34,10 @@ const Profitability = () => {
           vatCost = sale.total_price / 6; // 20% VAT calculation
         }
 
-        // Use values directly from the view
-        const totalProductCost = sale.total_product_cost || 0;
-        const shippingCost = sale.shipping_cost || 0;
+        // Platform fees are now correctly calculated in the view
         const platformFees = sale.platform_fees || 0;
+        const shippingCost = sale.shipping_cost || 0;
+        const totalProductCost = sale.total_product_cost || 0;
         const advertisingCost = sale.advertising_cost || 0;
 
         console.log('Cost breakdown for SKU:', sale.sku, {
@@ -47,7 +47,15 @@ const Profitability = () => {
             total: shippingCost,
             base: sale.base_shipping_rate,
             picking: sale.picking_fee,
-            defaultServiceId: sale.default_shipping_service_id
+            defaultServiceId: sale.default_shipping_service_id,
+            platform: sale.platform,
+            isFBA: sale.platform === 'Amazon FBA',
+            fbaFee: sale.fba_fee_amount
+          },
+          amazon: {
+            platformFeePercentage: sale.platform_fee_percentage,
+            flatFee: sale.platform_flat_fee,
+            fbaFee: sale.fba_fee_amount
           },
           advertising: {
             cost: advertisingCost,
