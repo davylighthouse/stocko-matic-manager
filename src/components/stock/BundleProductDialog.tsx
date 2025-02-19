@@ -132,7 +132,11 @@ export const BundleProductDialog = ({
       // First, ensure this product is marked as a bundle
       const { error: bundleError } = await supabase
         .from('bundle_products')
-        .upsert({ bundle_sku: product.sku });
+        .upsert({ 
+          bundle_sku: product.sku,
+          created_at: new Date().toISOString(),
+          updated_at: new Date().toISOString()
+        });
 
       if (bundleError) throw bundleError;
 
@@ -144,7 +148,7 @@ export const BundleProductDialog = ({
 
       if (deleteError) throw deleteError;
 
-      // Add new components
+      // Add new components with timestamps
       const { error: componentsError } = await supabase
         .from('bundle_components')
         .insert(
@@ -153,22 +157,18 @@ export const BundleProductDialog = ({
             .map(c => ({
               bundle_sku: product.sku,
               component_sku: c.component_sku,
-              quantity: c.quantity
+              quantity: c.quantity,
+              created_at: new Date().toISOString(),
+              updated_at: new Date().toISOString()
             }))
         );
 
       if (componentsError) throw componentsError;
 
-      // Update the bundle's stock quantity based on component availability
-      const validComponents = components.filter(c => c.component_sku && c.quantity > 0);
-      const expectedStock = calculateBundleStock(validComponents);
+      // Trigger stock quantity update
+      const { error: updateError } = await supabase.rpc('update_stock_quantities');
       
-      const { error: stockUpdateError } = await supabase
-        .from('products')
-        .update({ stock_quantity: expectedStock })
-        .eq('sku', product.sku);
-
-      if (stockUpdateError) throw stockUpdateError;
+      if (updateError) throw updateError;
 
       toast({
         title: "Success",
