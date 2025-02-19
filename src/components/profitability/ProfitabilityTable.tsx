@@ -6,7 +6,7 @@ import {
   TableCell,
 } from "@/components/ui/table";
 import { TooltipProvider } from "@/components/ui/tooltip";
-import { ProfitabilityTableProps, ProfitabilityData } from "./types";
+import { ProfitabilityTableProps, ProfitabilityData, ColumnWidths } from "./types";
 import { EditableRow } from "./EditableRow";
 import { ViewRow } from "./ViewRow";
 import { ProfitabilityTableHeader } from "./TableHeader";
