@@ -34,13 +34,23 @@ const Profitability = () => {
           vatCost = sale.total_price / 6; // 20% VAT calculation
         }
 
-        // Use total_product_cost instead of product_cost
-        const productCost = sale.total_product_cost || 0;
+        // Calculate total product cost by summing all product-related costs
+        const totalProductCost = (sale.product_cost || 0) + 
+                               (sale.packaging_cost || 0) + 
+                               (sale.making_up_cost || 0);
 
-        // Calculate total costs including VAT and all product-related costs
+        console.log('Product costs breakdown:', {
+          sku: sale.sku,
+          base: sale.product_cost,
+          packaging: sale.packaging_cost,
+          makingUp: sale.making_up_cost,
+          total: totalProductCost
+        });
+
+        // Calculate total costs including VAT and all costs
         const totalCosts = (sale.platform_fees || 0) + 
                          (sale.shipping_cost || 0) + 
-                         productCost +
+                         totalProductCost +
                          (sale.advertising_cost || 0) +
                          vatCost;
 
@@ -55,7 +65,7 @@ const Profitability = () => {
           total_costs: totalCosts,
           profit: profit,
           profit_margin: profitMargin,
-          product_cost: productCost // Use total_product_cost for the product cost display
+          product_cost: totalProductCost // Use calculated total product cost
         } as ProfitabilityData;
       });
 
