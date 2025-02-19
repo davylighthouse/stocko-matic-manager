@@ -188,7 +188,7 @@ export const processSalesCSV = async (file: File): Promise<{ success: boolean; m
               .from('products')
               .select('sku')
               .eq('sku', row.SKU)
-              .single();
+              .maybeSingle();
 
             if (!existingProduct) {
               console.log('Product does not exist, creating:', row.SKU);
