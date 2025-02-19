@@ -1,4 +1,3 @@
-
 import { supabase } from '@/integrations/supabase/client';
 import type { SaleWithProduct, SalesTotals } from '@/types/sales';
 import type { ProfitabilityData } from '@/components/profitability/types';
@@ -24,8 +23,22 @@ const parsePrice = (value: string | number | null | undefined): number => {
 
 export const getSalesWithProducts = async () => {
   const { data, error } = await supabase
-    .from('sales_with_products')
-    .select('*')
+    .from('sales_profitability')
+    .select(`
+      id,
+      sale_date,
+      platform,
+      sku,
+      listing_title,
+      promoted,
+      quantity,
+      total_price,
+      total_product_cost,
+      platform_fees,
+      shipping_cost,
+      advertising_cost,
+      vat_status
+    `)
     .order('sale_date', { ascending: false });
 
   if (error) {
@@ -33,12 +46,27 @@ export const getSalesWithProducts = async () => {
     throw error;
   }
   
-  // Ensure numeric values are properly handled
-  const formattedData = data?.map(sale => ({
-    ...sale,
-    total_price: parsePrice(sale.total_price),
-    gross_profit: parsePrice(sale.gross_profit)
-  }));
+  // Calculate gross profit for each sale
+  const formattedData = data?.map(sale => {
+    // Calculate VAT if applicable
+    const vatCost = sale.vat_status === 'standard' ? (sale.total_price || 0) / 6 : 0;
+
+    // Calculate total costs
+    const totalCosts = (sale.total_product_cost || 0) +
+                      (sale.platform_fees || 0) +
+                      (sale.shipping_cost || 0) +
+                      (sale.advertising_cost || 0) +
+                      vatCost;
+
+    // Calculate gross profit
+    const grossProfit = (sale.total_price || 0) - totalCosts;
+
+    return {
+      ...sale,
+      total_price: sale.total_price || 0,
+      gross_profit: grossProfit
+    };
+  });
 
   return formattedData as SaleWithProduct[];
 };

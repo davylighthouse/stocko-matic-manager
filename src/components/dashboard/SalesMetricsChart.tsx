@@ -3,7 +3,7 @@ import { Card } from "@/components/ui/card";
 import { BarChart, Bar, XAxis, YAxis, CartesianGrid, Tooltip, Legend, ResponsiveContainer } from 'recharts';
 import { format } from 'date-fns';
 import { useQuery } from "@tanstack/react-query";
-import { getSalesWithProducts } from "@/lib/supabase/database";
+import { getSalesWithProducts } from "@/lib/supabase/database/sales";
 
 export const SalesMetricsChart = () => {
   const { data: sales = [] } = useQuery({
@@ -36,7 +36,7 @@ export const SalesMetricsChart = () => {
     }))
     .sort((a: any, b: any) => new Date(a.date).getTime() - new Date(b.date).getTime());
 
-  console.log('Chart Data:', chartData); // Add this to debug
+  console.log('Chart Data:', chartData);
 
   return (
     <Card className="p-6">
@@ -57,7 +57,7 @@ export const SalesMetricsChart = () => {
                   ? dayData.profitMargin.toFixed(1) 
                   : '0.0';
                 
-                console.log('Margin for date:', payload.value, margin); // Add this to debug
+                console.log('Margin for date:', payload.value, margin);
                 
                 return (
                   <g transform={`translate(${x},${y})`}>
