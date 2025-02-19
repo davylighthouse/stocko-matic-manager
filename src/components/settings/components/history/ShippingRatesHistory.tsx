@@ -3,13 +3,12 @@ import { useState } from "react";
 import { useQuery, useMutation, useQueryClient } from "@tanstack/react-query";
 import { Button } from "@/components/ui/button";
 import { Card } from "@/components/ui/card";
-import { Plus } from "lucide-react";
+import { Plus, Pencil, Check, X } from "lucide-react";
 import { format } from "date-fns";
 import { supabase } from "@/integrations/supabase/client";
 import { useToast } from "@/components/ui/use-toast";
 import { FormField } from "./shared/FormField";
 import { DatePickerField } from "./shared/DatePickerField";
-import { HistoryTable } from "./shared/HistoryTable";
 
 interface ShippingRateHistory {
   id: number;
@@ -34,6 +33,8 @@ export const ShippingRatesHistory = () => {
   const { toast } = useToast();
   const queryClient = useQueryClient();
   const [isAdding, setIsAdding] = useState(false);
+  const [editingId, setEditingId] = useState<number | null>(null);
+  const [editingRate, setEditingRate] = useState<Partial<ShippingRateHistory> | null>(null);
   const [newRate, setNewRate] = useState({
     service_id: "",
     weight_from: "",
@@ -96,9 +97,53 @@ export const ShippingRatesHistory = () => {
     },
   });
 
+  const updateMutation = useMutation({
+    mutationFn: async (rate: Partial<ShippingRateHistory>) => {
+      const { error } = await supabase
+        .from('shipping_rate_history')
+        .update({
+          weight_from: rate.weight_from,
+          weight_to: rate.weight_to,
+          price: rate.price,
+          notes: rate.notes,
+        })
+        .eq('id', rate.id);
+      
+      if (error) throw error;
+    },
+    onSuccess: () => {
+      queryClient.invalidateQueries({ queryKey: ['shipping-rate-history'] });
+      setEditingId(null);
+      setEditingRate(null);
+      toast({ title: "Success", description: "Rate updated successfully" });
+    },
+  });
+
+  const handleStartEdit = (rate: ShippingRateHistory) => {
+    setEditingId(rate.id);
+    setEditingRate({
+      id: rate.id,
+      weight_from: rate.weight_from,
+      weight_to: rate.weight_to,
+      price: rate.price,
+      notes: rate.notes,
+    });
+  };
+
+  const handleCancelEdit = () => {
+    setEditingId(null);
+    setEditingRate(null);
+  };
+
+  const handleSaveEdit = () => {
+    if (editingRate) {
+      updateMutation.mutate(editingRate);
+    }
+  };
+
   const handleSubmit = (e: React.FormEvent) => {
     e.preventDefault();
-    e.stopPropagation(); // Prevent event bubbling
+    e.stopPropagation();
     addMutation.mutate({
       service_id: parseInt(newRate.service_id),
       weight_from: parseFloat(newRate.weight_from),
@@ -110,7 +155,7 @@ export const ShippingRatesHistory = () => {
   };
 
   const handleFormClick = (e: React.MouseEvent) => {
-    e.stopPropagation(); // Prevent event bubbling
+    e.stopPropagation();
   };
 
   const handleInputChange = (field: string, value: string) => {
@@ -119,33 +164,6 @@ export const ShippingRatesHistory = () => {
       [field]: value
     }));
   };
-
-  const columns = [
-    { 
-      header: "Service", 
-      key: "shipping_services" as const,
-      format: (value: { service_name: string }) => value.service_name
-    },
-    { 
-      header: "Weight Range (g)", 
-      key: "weight_from" as const,
-      align: "right" as const,
-      format: (value: number, row: ShippingRateHistory) => 
-        `${Math.round(row.weight_from)} - ${Math.round(row.weight_to)}g`
-    },
-    { 
-      header: "Price", 
-      key: "price" as const,
-      align: "right" as const,
-      format: (value: number) => `£${value.toFixed(2)}`
-    },
-    { 
-      header: "Effective From", 
-      key: "effective_from" as const,
-      format: (value: string) => format(new Date(value), 'dd MMM yyyy')
-    },
-    { header: "Notes", key: "notes" as const },
-  ];
 
   return (
     <Card className="p-6">
@@ -227,7 +245,103 @@ export const ShippingRatesHistory = () => {
         </form>
       )}
 
-      <HistoryTable data={history} columns={columns} />
+      <div className="overflow-x-auto">
+        <table className="w-full">
+          <thead>
+            <tr className="border-b">
+              <th className="px-4 py-2 text-left">Service</th>
+              <th className="px-4 py-2 text-right">Weight Range (g)</th>
+              <th className="px-4 py-2 text-right">Price</th>
+              <th className="px-4 py-2 text-left">Effective From</th>
+              <th className="px-4 py-2 text-left">Notes</th>
+              <th className="px-4 py-2 text-right">Actions</th>
+            </tr>
+          </thead>
+          <tbody>
+            {history.map((rate) => (
+              <tr key={rate.id} className="border-b">
+                <td className="px-4 py-2">{rate.shipping_services.service_name}</td>
+                <td className="px-4 py-2 text-right">
+                  {editingId === rate.id ? (
+                    <div className="flex gap-2">
+                      <FormField
+                        value={String(editingRate?.weight_from ?? '')}
+                        onChange={(value) => setEditingRate(prev => ({ ...prev!, weight_from: parseFloat(value) }))}
+                        type="number"
+                        step="0.001"
+                        required
+                      />
+                      <FormField
+                        value={String(editingRate?.weight_to ?? '')}
+                        onChange={(value) => setEditingRate(prev => ({ ...prev!, weight_to: parseFloat(value) }))}
+                        type="number"
+                        step="0.001"
+                        required
+                      />
+                    </div>
+                  ) : (
+                    `${Math.round(rate.weight_from)} - ${Math.round(rate.weight_to)}g`
+                  )}
+                </td>
+                <td className="px-4 py-2 text-right">
+                  {editingId === rate.id ? (
+                    <FormField
+                      value={String(editingRate?.price ?? '')}
+                      onChange={(value) => setEditingRate(prev => ({ ...prev!, price: parseFloat(value) }))}
+                      type="number"
+                      step="0.01"
+                      required
+                    />
+                  ) : (
+                    `£${rate.price.toFixed(2)}`
+                  )}
+                </td>
+                <td className="px-4 py-2">
+                  {format(new Date(rate.effective_from), 'dd MMM yyyy')}
+                </td>
+                <td className="px-4 py-2">
+                  {editingId === rate.id ? (
+                    <FormField
+                      value={editingRate?.notes ?? ''}
+                      onChange={(value) => setEditingRate(prev => ({ ...prev!, notes: value }))}
+                      placeholder="Add notes"
+                    />
+                  ) : (
+                    rate.notes
+                  )}
+                </td>
+                <td className="px-4 py-2 text-right">
+                  {editingId === rate.id ? (
+                    <div className="flex justify-end gap-2">
+                      <Button
+                        size="sm"
+                        variant="outline"
+                        onClick={handleCancelEdit}
+                      >
+                        <X className="h-4 w-4" />
+                      </Button>
+                      <Button
+                        size="sm"
+                        onClick={handleSaveEdit}
+                      >
+                        <Check className="h-4 w-4" />
+                      </Button>
+                    </div>
+                  ) : (
+                    <Button
+                      size="sm"
+                      variant="outline"
+                      onClick={() => handleStartEdit(rate)}
+                    >
+                      <Pencil className="h-4 w-4" />
+                    </Button>
+                  )}
+                </td>
+              </tr>
+            ))}
+          </tbody>
+        </table>
+      </div>
     </Card>
   );
 };
