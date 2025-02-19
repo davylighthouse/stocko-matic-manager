@@ -14,6 +14,8 @@ export const getProductDetails = async (sku: string): Promise<Product | null> =>
       supplier,
       product_status,
       default_shipping_service,
+      default_shipping_service_id,
+      default_picking_fee_id,
       vat_status,
       dimensions_height,
       dimensions_width,
@@ -58,7 +60,7 @@ export const getProductDetails = async (sku: string): Promise<Product | null> =>
   return data;
 };
 
-export const updateProductDetails = async (sku: string, updates: Partial<Product>) => {
+export const updateProductDetails = async (sku: string, updates: Record<string, unknown>) => {
   const { error } = await supabase.rpc('process_product_updates', {
     p_sku: sku,
     p_updates: updates

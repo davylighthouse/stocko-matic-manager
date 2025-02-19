@@ -14,6 +14,8 @@ export const getStockLevels = async (): Promise<Product[]> => {
       supplier,
       product_status,
       default_shipping_service,
+      default_shipping_service_id,
+      default_picking_fee_id,
       vat_status,
       dimensions_height,
       dimensions_width,
