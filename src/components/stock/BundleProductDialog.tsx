@@ -165,7 +165,7 @@ export const BundleProductDialog = ({
 
       if (componentsError) throw componentsError;
 
-      // Trigger stock quantity update
+      // Call the update_stock_quantities function
       const { error: updateError } = await supabase.rpc('update_stock_quantities');
       
       if (updateError) throw updateError;
