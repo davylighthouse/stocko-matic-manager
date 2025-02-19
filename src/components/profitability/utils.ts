@@ -1,4 +1,3 @@
-
 export const formatCurrency = (value: number | null | undefined) => {
   if (value === null || value === undefined) return '£0.00';
   return `£${value.toFixed(2)}`;
@@ -59,10 +58,8 @@ Making Up Cost: ${formatCurrency(sale.making_up_cost)}
 Total Product Cost = ${formatCurrency(sale.total_product_cost)}`;
 
     case 'vat':
-      const vatRate = sale.vat_status === 'standard' ? '20%' : sale.vat_status;
       return `Sale Price: ${formatCurrency(sale.total_price)}
-VAT Rate: ${vatRate}
-VAT Status: ${sale.vat_status}
+VAT Amount = ${formatCurrency(sale.total_price / 6)}
 ----------------------------------
 VAT Amount = ${formatCurrency(sale.vat_cost)}`;
 
