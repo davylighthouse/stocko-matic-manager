@@ -14,13 +14,34 @@ const Profitability = () => {
   const { data: salesData = [], isLoading } = useQuery({
     queryKey: ['profitability'],
     queryFn: async () => {
+      console.log('Fetching profitability data...');
+      
       const { data, error } = await supabase
         .from('sales_profitability')
         .select('*')
         .order('sale_date', { ascending: false });
 
-      if (error) throw error;
+      if (error) {
+        console.error('Error fetching profitability data:', error);
+        throw error;
+      }
       
+      // Log the first few records to inspect the data
+      console.log('Sample profitability records:', data?.slice(0, 3));
+      
+      // Log platform fees specifically
+      data?.slice(0, 3).forEach(sale => {
+        console.log(`Platform fees breakdown for sale ${sale.id}:`, {
+          platform: sale.platform,
+          total_price: sale.total_price,
+          platform_fee_percentage: sale.platform_fee_percentage,
+          platform_flat_fee: sale.platform_flat_fee,
+          calculated_platform_fees: sale.platform_fees,
+          promoted: sale.promoted,
+          promoted_percentage: sale.promoted_listing_percentage
+        });
+      });
+
       return data as ProfitabilityData[];
     }
   });
@@ -73,3 +94,4 @@ const Profitability = () => {
 };
 
 export default Profitability;
+
