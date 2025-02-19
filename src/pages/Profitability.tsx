@@ -34,12 +34,19 @@ const Profitability = () => {
           vatCost = sale.total_price / 6; // 20% VAT calculation
         }
 
-        // Calculate total costs including VAT
-        const totalCosts = (sale.total_costs || 0) + vatCost;
+        // Use total_product_cost instead of product_cost
+        const productCost = sale.total_product_cost || 0;
+
+        // Calculate total costs including VAT and all product-related costs
+        const totalCosts = (sale.platform_fees || 0) + 
+                         (sale.shipping_cost || 0) + 
+                         productCost +
+                         (sale.advertising_cost || 0) +
+                         vatCost;
 
         // Calculate profit and margin
-        const profit = sale.total_price - totalCosts;
-        const profitMargin = (profit / sale.total_price) * 100;
+        const profit = (sale.total_price || 0) - totalCosts;
+        const profitMargin = sale.total_price ? (profit / sale.total_price) * 100 : 0;
 
         return {
           ...sale,
@@ -47,7 +54,8 @@ const Profitability = () => {
           vat_cost: vatCost,
           total_costs: totalCosts,
           profit: profit,
-          profit_margin: profitMargin
+          profit_margin: profitMargin,
+          product_cost: productCost // Use total_product_cost for the product cost display
         } as ProfitabilityData;
       });
 
