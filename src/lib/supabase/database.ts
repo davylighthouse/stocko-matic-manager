@@ -428,7 +428,11 @@ export const getSalesTotals = async (): Promise<SalesTotals> => {
     .select(`
       total_price,
       quantity,
-      profit
+      total_product_cost,
+      platform_fees,
+      shipping_cost,
+      advertising_cost,
+      vat_status
     `);
 
   if (error) {
@@ -438,10 +442,23 @@ export const getSalesTotals = async (): Promise<SalesTotals> => {
 
   // Calculate totals from the sales_profitability view
   const totals = data.reduce((acc, sale) => {
+    // Calculate VAT if applicable
+    const vatCost = sale.vat_status === 'standard' ? (sale.total_price || 0) / 6 : 0;
+
+    // Calculate total costs
+    const totalCosts = (sale.total_product_cost || 0) +
+                      (sale.platform_fees || 0) +
+                      (sale.shipping_cost || 0) +
+                      (sale.advertising_cost || 0) +
+                      vatCost;
+
+    // Calculate profit
+    const profit = (sale.total_price || 0) - totalCosts;
+
     return {
       total_sales: (acc.total_sales || 0) + (sale.total_price || 0),
       total_quantity: (acc.total_quantity || 0) + (sale.quantity || 0),
-      total_profit: (acc.total_profit || 0) + (sale.profit || 0),
+      total_profit: (acc.total_profit || 0) + profit,
     };
   }, {
     total_sales: 0,
@@ -450,11 +467,14 @@ export const getSalesTotals = async (): Promise<SalesTotals> => {
   });
 
   // Get unique products count
-  const { data: uniqueProducts } = await supabase
+  const { data: uniqueProducts, error: uniqueError } = await supabase
     .from('sales_profitability')
-    .select('sku')
-    .limit(1)
-    .single();
+    .select('sku', { count: 'exact', head: true });
+
+  if (uniqueError) {
+    console.error('Error fetching unique products:', uniqueError);
+    throw uniqueError;
+  }
 
   // Get date range
   const { data: dateRange } = await supabase
@@ -473,7 +493,7 @@ export const getSalesTotals = async (): Promise<SalesTotals> => {
 
   return {
     ...totals,
-    unique_products: uniqueProducts?.length || 0,
+    unique_products: uniqueProducts?.count || 0,
     earliest_sale: dateRange?.sale_date || '',
     latest_sale: latestDate?.sale_date || '',
   };
