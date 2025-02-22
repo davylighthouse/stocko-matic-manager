@@ -7,12 +7,16 @@ import { Input } from "@/components/ui/input";
 import { Plus, Pencil, Trash2, Save } from "lucide-react";
 import { useToast } from "@/components/ui/use-toast";
 import { supabase } from "@/integrations/supabase/client";
+import { format } from "date-fns";
 
 interface PlatformFee {
   id: number;
   platform_name: string;
   percentage_fee: number;
   flat_fee: number;
+  effective_from: string;
+  effective_to: string | null;
+  notes: string | null;
 }
 
 export const PlatformSettings = () => {
@@ -24,25 +28,26 @@ export const PlatformSettings = () => {
     platform_name: "",
     percentage_fee: "0",
     flat_fee: "0",
+    effective_from: format(new Date(), 'yyyy-MM-dd'),
   });
 
   const { data: platforms = [] } = useQuery({
     queryKey: ['platform-fees'],
     queryFn: async () => {
       const { data, error } = await supabase
-        .from('platform_fees')
+        .from('current_platform_fees')
         .select('*')
         .order('platform_name');
       
       if (error) throw error;
-      return data;
+      return data as PlatformFee[];
     },
   });
 
   const addMutation = useMutation({
-    mutationFn: async (platform: Omit<PlatformFee, 'id'>) => {
+    mutationFn: async (platform: Omit<PlatformFee, 'id' | 'effective_to'>) => {
       const { error } = await supabase
-        .from('platform_fees')
+        .from('platform_fee_history')
         .insert([platform]);
       
       if (error) throw error;
@@ -50,7 +55,12 @@ export const PlatformSettings = () => {
     onSuccess: () => {
       queryClient.invalidateQueries({ queryKey: ['platform-fees'] });
       setIsAdding(false);
-      setNewPlatform({ platform_name: "", percentage_fee: "0", flat_fee: "0" });
+      setNewPlatform({
+        platform_name: "",
+        percentage_fee: "0",
+        flat_fee: "0",
+        effective_from: format(new Date(), 'yyyy-MM-dd'),
+      });
       toast({ title: "Success", description: "Platform added successfully" });
     },
   });
@@ -58,7 +68,7 @@ export const PlatformSettings = () => {
   const updateMutation = useMutation({
     mutationFn: async ({ id, ...platform }: PlatformFee) => {
       const { error } = await supabase
-        .from('platform_fees')
+        .from('platform_fee_history')
         .update(platform)
         .eq('id', id);
       
@@ -74,7 +84,7 @@ export const PlatformSettings = () => {
   const deleteMutation = useMutation({
     mutationFn: async (id: number) => {
       const { error } = await supabase
-        .from('platform_fees')
+        .from('platform_fee_history')
         .delete()
         .eq('id', id);
       
@@ -92,11 +102,8 @@ export const PlatformSettings = () => {
       platform_name: newPlatform.platform_name,
       percentage_fee: parseFloat(newPlatform.percentage_fee),
       flat_fee: parseFloat(newPlatform.flat_fee),
+      effective_from: newPlatform.effective_from,
     });
-  };
-
-  const handleUpdateSubmit = (platform: PlatformFee) => {
-    updateMutation.mutate(platform);
   };
 
   return (
@@ -111,7 +118,7 @@ export const PlatformSettings = () => {
 
       {isAdding && (
         <form onSubmit={handleAddSubmit} className="mb-6 p-4 border rounded-lg space-y-4">
-          <div className="grid grid-cols-3 gap-4">
+          <div className="grid grid-cols-4 gap-4">
             <Input
               placeholder="Platform Name"
               value={newPlatform.platform_name}
@@ -131,6 +138,11 @@ export const PlatformSettings = () => {
               value={newPlatform.flat_fee}
               onChange={(e) => setNewPlatform({ ...newPlatform, flat_fee: e.target.value })}
             />
+            <Input
+              type="date"
+              value={newPlatform.effective_from}
+              onChange={(e) => setNewPlatform({ ...newPlatform, effective_from: e.target.value })}
+            />
           </div>
           <div className="flex justify-end gap-2">
             <Button type="button" variant="outline" onClick={() => setIsAdding(false)}>
@@ -148,11 +160,12 @@ export const PlatformSettings = () => {
               <th className="px-4 py-2 text-left">Platform</th>
               <th className="px-4 py-2 text-right">Percentage Fee</th>
               <th className="px-4 py-2 text-right">Flat Fee</th>
+              <th className="px-4 py-2 text-left">Effective From</th>
               <th className="px-4 py-2"></th>
             </tr>
           </thead>
           <tbody>
-            {platforms.map((platform: PlatformFee) => (
+            {platforms.map((platform) => (
               <tr key={platform.id} className="border-b">
                 <td className="px-4 py-2">
                   {editingId === platform.id ? (
@@ -160,7 +173,7 @@ export const PlatformSettings = () => {
                       value={platform.platform_name}
                       onChange={(e) => {
                         const updated = { ...platform, platform_name: e.target.value };
-                        handleUpdateSubmit(updated);
+                        updateMutation.mutate(updated);
                       }}
                     />
                   ) : (
@@ -175,7 +188,7 @@ export const PlatformSettings = () => {
                       value={platform.percentage_fee}
                       onChange={(e) => {
                         const updated = { ...platform, percentage_fee: parseFloat(e.target.value) };
-                        handleUpdateSubmit(updated);
+                        updateMutation.mutate(updated);
                       }}
                       className="w-32 ml-auto"
                     />
@@ -191,13 +204,16 @@ export const PlatformSettings = () => {
                       value={platform.flat_fee}
                       onChange={(e) => {
                         const updated = { ...platform, flat_fee: parseFloat(e.target.value) };
-                        handleUpdateSubmit(updated);
+                        updateMutation.mutate(updated);
                       }}
                       className="w-32 ml-auto"
                     />
                   ) : (
                     `£${platform.flat_fee.toFixed(2)}`
                   )}
+                </td>
+                <td className="px-4 py-2">
+                  {format(new Date(platform.effective_from), 'dd MMM yyyy')}
                 </td>
                 <td className="px-4 py-2">
                   <div className="flex justify-end gap-2">

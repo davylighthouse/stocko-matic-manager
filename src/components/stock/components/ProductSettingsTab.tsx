@@ -1,3 +1,4 @@
+
 import { useState } from 'react';
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select';
 import { Label } from '@/components/ui/label';
@@ -36,7 +37,7 @@ export const ProductSettingsTab = ({
     queryKey: ['shipping-services'],
     queryFn: async () => {
       const { data: currentShippingServices } = await supabase
-        .from('current_shipping_services')
+        .from('shipping_services')
         .select('*');
       return currentShippingServices || [];
     },
