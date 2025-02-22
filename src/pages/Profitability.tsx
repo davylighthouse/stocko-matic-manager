@@ -66,13 +66,13 @@ const Profitability = () => {
           total_costs: totalCosts,
           platform_fee_percentage: sale.platform_fee_percentage || 0,
           default_shipping_service_id: 0,
-          picking_fee: sale.picking_fee || 0,
           default_picking_fee_id: 0,
           amazon_fba_tier_id: null,
           fba_fee_amount: sale.fba_fee_amount || null,
           platform_flat_fee: sale.platform_flat_fee || null,
           verified: false,
           promoted_listing_percentage: 0,
+          picking_fee: 0, // Set default value since it's no longer in the view
         } satisfies ProfitabilityData;
       }) || [];
 
