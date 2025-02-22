@@ -1,4 +1,3 @@
-
 import { supabase } from '@/integrations/supabase/client';
 import type { SaleWithProduct, SalesTotals } from '@/types/sales';
 import type { ProfitabilityData } from '@/components/profitability/types';
@@ -54,6 +53,10 @@ export const getSalesWithProducts = async (): Promise<SaleWithProduct[]> => {
     promoted: sale.promoted || false,
     quantity: sale.quantity || 0,
     total_price: sale.total_price || 0,
+    total_product_cost: sale.total_product_cost || 0,
+    platform_fees: sale.platform_fees || 0,
+    shipping_cost: sale.shipping_cost || 0,
+    advertising_cost: sale.advertising_cost || 0,
     gross_profit: (sale.total_price || 0) - (
       (sale.total_product_cost || 0) +
       (sale.platform_fees || 0) +
