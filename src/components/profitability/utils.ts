@@ -81,12 +81,12 @@ VAT Amount = ${formatCurrency(sale.vat_cost)}`;
 
     case 'platform_fees':
       let feeBreakdown = [];
+
+      // Amazon percentage fee (for both FBA and FBM)
       const percentageFee = sale.platform_fee_percentage || 0;
-      const calculatedPercentageFee = (sale.total_price * percentageFee) / 100;
-      
-      // Both FBA and FBM use percentage fees
       if (percentageFee > 0) {
-        feeBreakdown.push(`Percentage Fee (${formatPercentage(percentageFee)}): ${formatCurrency(calculatedPercentageFee)}`);
+        const calculatedPercentageFee = (sale.total_price * percentageFee) / 100;
+        feeBreakdown.push(`Amazon Fee (${formatPercentage(percentageFee)}): ${formatCurrency(calculatedPercentageFee)}`);
       }
 
       // Add FBA fee if applicable
