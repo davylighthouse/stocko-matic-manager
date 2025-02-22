@@ -81,30 +81,20 @@ export const deleteMultipleSales = async (ids: number[]): Promise<boolean> => {
   return true;
 };
 
-type SaleUpdateData = {
-  sale_date?: string | null;
-  platform?: string | null;
-  sku?: string | null;
-  quantity?: number | null;
-  total_price?: number | null;
-  gross_profit?: number | null;
-  promoted?: boolean | null;
-};
-
 export const updateSale = async (id: number, data: UpdateSaleData): Promise<boolean> => {
-  const updateData: SaleUpdateData = {
-    sale_date: data.sale_date || null,
-    platform: data.platform || null,
-    sku: data.sku || null,
-    quantity: data.quantity || null,
-    total_price: data.total_price ? parsePrice(data.total_price) : null,
-    gross_profit: data.gross_profit ? parsePrice(data.gross_profit) : null,
-    promoted: data.promoted ?? null
+  const updateObject = {
+    sale_date: data.sale_date,
+    platform: data.platform,
+    sku: data.sku,
+    quantity: data.quantity,
+    total_price: data.total_price ? parsePrice(data.total_price) : undefined,
+    gross_profit: data.gross_profit ? parsePrice(data.gross_profit) : undefined,
+    promoted: data.promoted
   };
 
   const { error } = await supabase
     .from('sales')
-    .update(updateData)
+    .update(updateObject)
     .eq('id', id);
 
   if (error) throw error;
@@ -112,18 +102,19 @@ export const updateSale = async (id: number, data: UpdateSaleData): Promise<bool
 };
 
 export const updateSaleProfitability = async (id: number, data: SaleProfitabilityUpdate): Promise<boolean> => {
-  const updateData: SaleUpdateData = {
-    sale_date: data.sale_date || null,
-    platform: data.platform || null,
-    sku: data.sku || null,
-    quantity: data.quantity || null,
-    total_price: data.total_price || null,
-    promoted: data.promoted ?? null
+  const updateObject = {
+    sale_date: data.sale_date,
+    platform: data.platform,
+    sku: data.sku,
+    quantity: data.quantity,
+    total_price: data.total_price,
+    promoted: data.promoted,
+    verified: data.verified
   };
 
   const { error } = await supabase
     .from('sales')
-    .update(updateData)
+    .update(updateObject)
     .eq('sale_id', id);
 
   if (error) throw error;
