@@ -1,6 +1,7 @@
 import { supabase } from '@/integrations/supabase/client';
-import { Product, Sale } from '@/types/database';
 import type { SaleWithProduct, SalesTotals } from '@/types/sales';
+import type { ProfitabilityData } from '@/components/profitability/types';
+import { format } from 'date-fns';
 
 export const processCSV = async (file: File): Promise<{ success: boolean; message: string }> => {
   try {
@@ -413,16 +414,19 @@ export const getTopProductsBySales = async (startDate: Date, endDate: Date) => {
 };
 
 export const getSalesWithProducts = async () => {
-  const { data, error } = await supabase
+  const { data: salesData, error } = await supabase
     .from('sales_profitability')
-    .select('*');
+    .select('*')
+    .throwOnError();
 
   if (error) {
     console.error('Error fetching sales with products:', error);
     throw error;
   }
 
-  return data.map(sale => ({
+  if (!salesData) return [];
+
+  return salesData.map(sale => ({
     id: sale.sale_id,
     sale_date: sale.sale_date,
     platform: sale.platform,

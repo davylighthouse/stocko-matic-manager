@@ -2,6 +2,7 @@ import { supabase } from '@/integrations/supabase/client';
 import type { SaleWithProduct, SalesTotals } from '@/types/sales';
 import type { ProfitabilityData } from '@/components/profitability/types';
 import { format } from 'date-fns';
+import Papa from 'papaparse';
 
 interface SalesCSVRow {
   'Sale Date': string;
@@ -23,12 +24,15 @@ const parsePrice = (value: string | number | null | undefined): number => {
 export const getSalesWithProducts = async () => {
   const { data, error } = await supabase
     .from('sales_profitability')
-    .select('*');
+    .select('*')
+    .throwOnError();
 
   if (error) {
     console.error('Error fetching sales with products:', error);
     throw error;
   }
+
+  if (!data) return [];
 
   return data.map(sale => ({
     id: sale.sale_id,
@@ -39,7 +43,6 @@ export const getSalesWithProducts = async () => {
     promoted: sale.promoted || false,
     quantity: sale.quantity || 0,
     total_price: sale.total_price || 0,
-    product_cost: sale.base_product_cost || 0,
     total_product_cost: sale.total_product_cost || 0,
     platform_fees: sale.platform_fees || 0,
     shipping_cost: sale.shipping_cost || 0,
@@ -209,7 +212,7 @@ export const processSalesCSV = async (file: File): Promise<{ success: boolean; m
             if (!existingProduct) {
               console.log('Product does not exist, creating:', row.SKU);
               const [{ data: defaultPickingFee }, { data: defaultShippingService }] = await Promise.all([
-                supabase.from('picking_fees').select('id').limit(1).single(),
+                supabase.from('current_picking_fees').select('id').limit(1).single(),
                 supabase.from('shipping_services').select('id').limit(1).single()
               ]);
 
