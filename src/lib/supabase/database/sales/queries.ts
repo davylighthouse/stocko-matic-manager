@@ -82,19 +82,17 @@ export const deleteMultipleSales = async (ids: number[]): Promise<boolean> => {
 };
 
 export const updateSale = async (id: number, data: UpdateSaleData): Promise<boolean> => {
-  const updateObject = {
-    sale_date: data.sale_date,
-    platform: data.platform,
-    sku: data.sku,
-    quantity: data.quantity,
-    total_price: data.total_price ? parsePrice(data.total_price) : undefined,
-    gross_profit: data.gross_profit ? parsePrice(data.gross_profit) : undefined,
-    promoted: data.promoted
-  };
-
   const { error } = await supabase
     .from('sales')
-    .update(updateObject)
+    .update({
+      sale_date: data.sale_date,
+      platform: data.platform,
+      sku: data.sku,
+      quantity: data.quantity,
+      total_price: data.total_price ? parsePrice(data.total_price) : undefined,
+      gross_profit: data.gross_profit ? parsePrice(data.gross_profit) : undefined,
+      promoted: data.promoted
+    } as UpdateSaleData)
     .eq('id', id);
 
   if (error) throw error;
@@ -102,19 +100,17 @@ export const updateSale = async (id: number, data: UpdateSaleData): Promise<bool
 };
 
 export const updateSaleProfitability = async (id: number, data: SaleProfitabilityUpdate): Promise<boolean> => {
-  const updateObject = {
-    sale_date: data.sale_date,
-    platform: data.platform,
-    sku: data.sku,
-    quantity: data.quantity,
-    total_price: data.total_price,
-    promoted: data.promoted,
-    verified: data.verified
-  };
-
   const { error } = await supabase
     .from('sales')
-    .update(updateObject)
+    .update({
+      sale_date: data.sale_date,
+      platform: data.platform,
+      sku: data.sku,
+      quantity: data.quantity,
+      total_price: data.total_price,
+      promoted: data.promoted,
+      verified: data.verified
+    } as SaleProfitabilityUpdate)
     .eq('sale_id', id);
 
   if (error) throw error;
