@@ -414,12 +414,34 @@ export const getTopProductsBySales = async (startDate: Date, endDate: Date) => {
 
 export const getSalesWithProducts = async () => {
   const { data, error } = await supabase
-    .from('sales_with_products')
-    .select('*')
-    .order('sale_date', { ascending: false });
+    .from('sales_profitability')
+    .select('*');
 
-  if (error) throw error;
-  return data as SaleWithProduct[];
+  if (error) {
+    console.error('Error fetching sales with products:', error);
+    throw error;
+  }
+
+  return data.map(sale => ({
+    id: sale.sale_id,
+    sale_date: sale.sale_date,
+    platform: sale.platform,
+    sku: sale.sku,
+    listing_title: sale.listing_title,
+    promoted: sale.promoted || false,
+    quantity: sale.quantity || 0,
+    total_price: sale.total_price || 0,
+    total_product_cost: sale.total_product_cost || 0,
+    platform_fees: sale.platform_fees || 0,
+    shipping_cost: sale.shipping_cost || 0,
+    advertising_cost: sale.advertising_cost || 0,
+    gross_profit: (sale.total_price || 0) - (
+      (sale.total_product_cost || 0) +
+      (sale.platform_fees || 0) +
+      (sale.shipping_cost || 0) +
+      (sale.advertising_cost || 0)
+    )
+  })) as SaleWithProduct[];
 };
 
 export const getSalesTotals = async (): Promise<SalesTotals> => {

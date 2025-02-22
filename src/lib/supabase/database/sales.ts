@@ -1,9 +1,7 @@
-
 import { supabase } from '@/integrations/supabase/client';
 import type { SaleWithProduct, SalesTotals } from '@/types/sales';
 import type { ProfitabilityData } from '@/components/profitability/types';
 import { format } from 'date-fns';
-import Papa from 'papaparse';
 
 interface SalesCSVRow {
   'Sale Date': string;
@@ -25,81 +23,34 @@ const parsePrice = (value: string | number | null | undefined): number => {
 export const getSalesWithProducts = async () => {
   const { data, error } = await supabase
     .from('sales_profitability')
-    .select(`
-      sale_id,
-      sale_date,
-      platform,
-      sku,
-      listing_title,
-      promoted,
-      quantity,
-      total_price,
-      base_product_cost,
-      packaging_cost,
-      making_up_cost,
-      additional_costs,
-      total_product_cost,
-      platform_fees,
-      shipping_cost,
-      advertising_cost,
-      vat_status,
-      platform_fee_percentage,
-      platform_flat_fee,
-      fba_fee_amount,
-      base_shipping_rate,
-      picking_fee
-    `)
-    .order('sale_date', { ascending: false });
+    .select('*');
 
   if (error) {
     console.error('Error fetching sales with products:', error);
     throw error;
   }
-  
-  // Calculate gross profit for each sale
-  const formattedData = data?.map(sale => {
-    // Calculate VAT if applicable
-    const vatCost = sale.vat_status === 'standard' ? (sale.total_price || 0) / 6 : 0;
 
-    // Calculate total costs
-    const totalCosts = (sale.total_product_cost || 0) +
-                      (sale.platform_fees || 0) +
-                      (sale.shipping_cost || 0) +
-                      (sale.advertising_cost || 0) +
-                      vatCost;
-
-    // Calculate gross profit
-    const grossProfit = (sale.total_price || 0) - totalCosts;
-
-    return {
-      id: sale.sale_id,
-      sale_date: sale.sale_date,
-      platform: sale.platform,
-      sku: sale.sku,
-      listing_title: sale.listing_title,
-      promoted: sale.promoted,
-      quantity: sale.quantity,
-      total_price: sale.total_price || 0,
-      base_product_cost: sale.base_product_cost || 0,
-      packaging_cost: sale.packaging_cost || 0,
-      making_up_cost: sale.making_up_cost || 0,
-      additional_costs: sale.additional_costs || 0,
-      total_product_cost: sale.total_product_cost || 0,
-      platform_fees: sale.platform_fees || 0,
-      shipping_cost: sale.shipping_cost || 0,
-      advertising_cost: sale.advertising_cost || 0,
-      vat_cost: vatCost,
-      gross_profit: grossProfit,
-      // Add new fields for fee breakdowns
-      platform_fee_percentage: sale.platform_fee_percentage || 0,
-      platform_flat_fee: sale.platform_flat_fee || 0,
-      fba_fee_amount: sale.fba_fee_amount || 0,
-      base_shipping_rate: sale.base_shipping_rate || 0,
-      picking_fee: sale.picking_fee || 0
-    };
-  });
-
-  return formattedData as SaleWithProduct[];
+  return data.map(sale => ({
+    id: sale.sale_id,
+    sale_date: sale.sale_date,
+    platform: sale.platform,
+    sku: sale.sku,
+    listing_title: sale.listing_title,
+    promoted: sale.promoted || false,
+    quantity: sale.quantity || 0,
+    total_price: sale.total_price || 0,
+    product_cost: sale.base_product_cost || 0,
+    total_product_cost: sale.total_product_cost || 0,
+    platform_fees: sale.platform_fees || 0,
+    shipping_cost: sale.shipping_cost || 0,
+    advertising_cost: sale.advertising_cost || 0,
+    gross_profit: (sale.total_price || 0) - (
+      (sale.total_product_cost || 0) +
+      (sale.platform_fees || 0) +
+      (sale.shipping_cost || 0) +
+      (sale.advertising_cost || 0)
+    )
+  })) as SaleWithProduct[];
 };
 
 export const getSalesTotals = async () => {
@@ -123,9 +74,7 @@ export const getSalesTotals = async () => {
     throw error;
   }
 
-  // Calculate totals
   const totals = (data || []).reduce((acc, sale) => {
-    // Calculate VAT if applicable
     let vatCost = 0;
     if (sale.vat_status === 'standard') {
       vatCost = (sale.total_price || 0) / 6;
@@ -150,10 +99,8 @@ export const getSalesTotals = async () => {
     total_profit: 0,
   });
 
-  // Get unique SKUs count
   const uniqueSkus = new Set(data?.map(sale => sale.sku)).size;
 
-  // Sort data by sale_date to get earliest and latest
   const sortedData = [...(data || [])].sort((a, b) => 
     new Date(a.sale_date).getTime() - new Date(b.sale_date).getTime()
   );
@@ -228,7 +175,7 @@ export const updateSaleProfitability = async (id: number, data: Partial<Profitab
       promoted: data.promoted,
       verified: data.verified
     })
-    .eq('id', id);
+    .eq('sale_id', id);
 
   if (error) {
     console.error('Error updating sale:', error);
@@ -253,7 +200,6 @@ export const processSalesCSV = async (file: File): Promise<{ success: boolean; m
               continue;
             }
 
-            // First, ensure the product exists
             const { data: existingProduct } = await supabase
               .from('products')
               .select('sku')
@@ -262,7 +208,6 @@ export const processSalesCSV = async (file: File): Promise<{ success: boolean; m
 
             if (!existingProduct) {
               console.log('Product does not exist, creating:', row.SKU);
-              // Get default IDs for required fields
               const [{ data: defaultPickingFee }, { data: defaultShippingService }] = await Promise.all([
                 supabase.from('picking_fees').select('id').limit(1).single(),
                 supabase.from('shipping_services').select('id').limit(1).single()
@@ -272,7 +217,6 @@ export const processSalesCSV = async (file: File): Promise<{ success: boolean; m
                 throw new Error('Default picking fee or shipping service not found');
               }
 
-              // Create the product
               const { error: productError } = await supabase
                 .from('products')
                 .insert([{
@@ -280,7 +224,7 @@ export const processSalesCSV = async (file: File): Promise<{ success: boolean; m
                   listing_title: row['Listing Title'] || row.SKU,
                   default_picking_fee_id: defaultPickingFee.id,
                   default_shipping_service_id: defaultShippingService.id,
-                  stock_quantity: 0  // Initial stock will be set separately
+                  stock_quantity: 0
                 }]);
 
               if (productError) {
@@ -289,11 +233,9 @@ export const processSalesCSV = async (file: File): Promise<{ success: boolean; m
               }
             }
 
-            // Parse date handling DD/MM/YYYY format
             const [day, month, year] = row['Sale Date'].split(/[-/]/);
             const saleDate = new Date(Number(year), Number(month) - 1, Number(day));
             
-            // Validate the date
             if (isNaN(saleDate.getTime())) {
               console.error('Invalid date format:', row['Sale Date']);
               continue;
@@ -301,7 +243,6 @@ export const processSalesCSV = async (file: File): Promise<{ success: boolean; m
 
             const formattedDate = format(saleDate, 'yyyy-MM-dd');
 
-            // Create sale record
             const saleData = {
               sale_date: formattedDate,
               platform: row.Platform,
@@ -344,13 +285,11 @@ export const processSalesCSV = async (file: File): Promise<{ success: boolean; m
 };
 
 export const downloadSalesTemplate = async () => {
-  // Create CSV content with the new format
   const csvContent = [
     ['Sale Date', 'Platform', 'Listing Title', 'SKU', 'Promoted Listing', 'Quantity', 'Total Price'].join(','),
-    ['04/01/2024', 'Amazon', 'Example Product', 'ABC123', 'Yes', '1', '19.99'].join(','), // Example row with correct date format
+    ['04/01/2024', 'Amazon', 'Example Product', 'ABC123', 'Yes', '1', '19.99'].join(',')
   ].join('\n');
 
-  // Create and download the file
   const blob = new Blob([csvContent], { type: 'text/csv;charset=utf-8;' });
   const link = document.createElement('a');
   link.href = URL.createObjectURL(blob);

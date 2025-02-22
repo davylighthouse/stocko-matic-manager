@@ -36,6 +36,13 @@ export interface ProfitabilityTableProps {
   sales: ProfitabilityData[];
 }
 
+export interface EditableCellProps {
+  value: string | number;
+  field: keyof ProfitabilityData;
+  type?: 'text' | 'number' | 'date';
+  onChange: (field: keyof ProfitabilityData, value: string | number) => void;
+}
+
 export interface ColumnWidth {
   [key: string]: number;
   date: number;
