@@ -5,6 +5,8 @@ import { SaleProfitabilityUpdate, UpdateSaleData } from './types';
 import { parsePrice } from './utils';
 
 export const getSalesWithProducts = async (): Promise<SaleWithProduct[]> => {
+  console.log('Fetching sales with products...');
+  
   const { data: salesData, error } = await supabase
     .from('sales_profitability')
     .select(`
@@ -27,29 +29,58 @@ export const getSalesWithProducts = async (): Promise<SaleWithProduct[]> => {
     throw error;
   }
 
-  return (salesData || []).map(sale => ({
-    id: sale.sale_id,
-    sale_date: sale.sale_date,
-    platform: sale.platform,
-    sku: sale.sku,
-    listing_title: sale.listing_title,
-    promoted: sale.promoted || false,
-    quantity: sale.quantity || 0,
-    total_price: sale.total_price || 0,
-    total_product_cost: sale.total_product_cost || 0,
-    platform_fees: sale.platform_fees || 0,
-    shipping_cost: sale.shipping_cost || 0,
-    advertising_cost: sale.advertising_cost || 0,
-    gross_profit: (sale.total_price || 0) - (
-      (sale.total_product_cost || 0) +
-      (sale.platform_fees || 0) +
-      (sale.shipping_cost || 0) +
-      (sale.advertising_cost || 0)
-    )
-  }));
+  console.log('Raw sales data:', salesData);
+
+  // Explicitly type the transformation to avoid deep type inference
+  const transformedSales: SaleWithProduct[] = (salesData || []).map(sale => {
+    console.log('Processing sale:', sale.sale_id);
+    
+    const totalPrice = Number(sale.total_price) || 0;
+    const totalProductCost = Number(sale.total_product_cost) || 0;
+    const platformFees = Number(sale.platform_fees) || 0;
+    const shippingCost = Number(sale.shipping_cost) || 0;
+    const advertisingCost = Number(sale.advertising_cost) || 0;
+    
+    const grossProfit = totalPrice - (
+      totalProductCost +
+      platformFees +
+      shippingCost +
+      advertisingCost
+    );
+
+    console.log('Calculated values for sale', sale.sale_id, {
+      totalPrice,
+      totalProductCost,
+      platformFees,
+      shippingCost,
+      advertisingCost,
+      grossProfit
+    });
+
+    return {
+      id: sale.sale_id,
+      sale_date: sale.sale_date,
+      platform: sale.platform,
+      sku: sale.sku,
+      listing_title: sale.listing_title,
+      promoted: Boolean(sale.promoted),
+      quantity: Number(sale.quantity) || 0,
+      total_price: totalPrice,
+      total_product_cost: totalProductCost,
+      platform_fees: platformFees,
+      shipping_cost: shippingCost,
+      advertising_cost: advertisingCost,
+      gross_profit: grossProfit
+    };
+  });
+
+  console.log('Transformed sales data:', transformedSales);
+  return transformedSales;
 };
 
 export const deleteSale = async (id: number): Promise<boolean> => {
+  console.log('Deleting sale:', id);
+  
   const { error } = await supabase
     .from('sales')
     .delete()
@@ -60,6 +91,8 @@ export const deleteSale = async (id: number): Promise<boolean> => {
 };
 
 export const deleteMultipleSales = async (ids: number[]): Promise<boolean> => {
+  console.log('Deleting multiple sales:', ids);
+  
   const { error } = await supabase
     .from('sales')
     .delete()
@@ -70,51 +103,57 @@ export const deleteMultipleSales = async (ids: number[]): Promise<boolean> => {
 };
 
 export const updateSale = async (id: number, data: UpdateSaleData): Promise<boolean> => {
-  console.log('Received data for update:', data);
+  console.log('Updating sale:', id, 'with data:', data);
   
-  const numericData = {
-    ...data,
-    total_price: parsePrice(data.total_price),
-    gross_profit: parsePrice(data.gross_profit)
+  // Create a new object with explicit type conversion to avoid deep type inference
+  const updateData = {
+    sale_date: data.sale_date,
+    platform: data.platform,
+    sku: data.sku,
+    quantity: data.quantity !== undefined ? Number(data.quantity) : undefined,
+    total_price: data.total_price !== undefined ? parsePrice(data.total_price) : undefined,
+    gross_profit: data.gross_profit !== undefined ? parsePrice(data.gross_profit) : undefined,
+    promoted: data.promoted
   };
 
-  console.log('Processed data for update:', numericData);
+  console.log('Processed update data:', updateData);
 
   const { error } = await supabase
     .from('sales')
-    .update({
-      sale_date: numericData.sale_date,
-      platform: numericData.platform,
-      sku: numericData.sku,
-      quantity: numericData.quantity,
-      total_price: numericData.total_price,
-      gross_profit: numericData.gross_profit,
-      promoted: numericData.promoted
-    })
+    .update(updateData)
     .eq('id', id);
 
-  if (error) throw error;
+  if (error) {
+    console.error('Error updating sale:', error);
+    throw error;
+  }
+  
   return true;
 };
 
 export const updateSaleProfitability = async (id: number, data: SaleProfitabilityUpdate): Promise<boolean> => {
   console.log('Updating sale profitability:', { id, data });
   
+  // Create a new object with explicit type conversion to avoid deep type inference
+  const updateData = {
+    sale_date: data.sale_date,
+    platform: data.platform,
+    sku: data.sku,
+    quantity: data.quantity !== undefined ? Number(data.quantity) : undefined,
+    total_price: data.total_price !== undefined ? Number(data.total_price) : undefined,
+    promoted: data.promoted,
+    verified: data.verified
+  };
+
+  console.log('Processed profitability update data:', updateData);
+
   const { error } = await supabase
     .from('sales')
-    .update({
-      sale_date: data.sale_date,
-      platform: data.platform,
-      sku: data.sku,
-      quantity: data.quantity,
-      total_price: data.total_price,
-      promoted: data.promoted,
-      verified: data.verified
-    })
+    .update(updateData)
     .eq('sale_id', id);
 
   if (error) {
-    console.error('Error updating sale:', error);
+    console.error('Error updating sale profitability:', error);
     throw error;
   }
 
