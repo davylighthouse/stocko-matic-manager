@@ -24,8 +24,8 @@ export interface UpdateSaleData {
   platform?: string;
   sku?: string;
   quantity?: number;
-  total_price?: number;
-  gross_profit?: number;
+  total_price?: number | string;
+  gross_profit?: number | string;
   promoted?: boolean;
 }
 

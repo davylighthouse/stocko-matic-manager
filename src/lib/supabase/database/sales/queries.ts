@@ -31,10 +31,7 @@ export const getSalesWithProducts = async (): Promise<SaleWithProduct[]> => {
 
   console.log('Raw sales data:', salesData);
 
-  // Explicitly type the transformation to avoid deep type inference
-  const transformedSales: SaleWithProduct[] = (salesData || []).map(sale => {
-    console.log('Processing sale:', sale.sale_id);
-    
+  return (salesData || []).map(sale => {
     const totalPrice = Number(sale.total_price) || 0;
     const totalProductCost = Number(sale.total_product_cost) || 0;
     const platformFees = Number(sale.platform_fees) || 0;
@@ -47,15 +44,6 @@ export const getSalesWithProducts = async (): Promise<SaleWithProduct[]> => {
       shippingCost +
       advertisingCost
     );
-
-    console.log('Calculated values for sale', sale.sale_id, {
-      totalPrice,
-      totalProductCost,
-      platformFees,
-      shippingCost,
-      advertisingCost,
-      grossProfit
-    });
 
     return {
       id: sale.sale_id,
@@ -73,14 +61,9 @@ export const getSalesWithProducts = async (): Promise<SaleWithProduct[]> => {
       gross_profit: grossProfit
     };
   });
-
-  console.log('Transformed sales data:', transformedSales);
-  return transformedSales;
 };
 
 export const deleteSale = async (id: number): Promise<boolean> => {
-  console.log('Deleting sale:', id);
-  
   const { error } = await supabase
     .from('sales')
     .delete()
@@ -91,8 +74,6 @@ export const deleteSale = async (id: number): Promise<boolean> => {
 };
 
 export const deleteMultipleSales = async (ids: number[]): Promise<boolean> => {
-  console.log('Deleting multiple sales:', ids);
-  
   const { error } = await supabase
     .from('sales')
     .delete()
@@ -103,59 +84,37 @@ export const deleteMultipleSales = async (ids: number[]): Promise<boolean> => {
 };
 
 export const updateSale = async (id: number, data: UpdateSaleData): Promise<boolean> => {
-  console.log('Updating sale:', id, 'with data:', data);
-  
-  // Create a new object with explicit type conversion to avoid deep type inference
-  const updateData = {
-    sale_date: data.sale_date,
-    platform: data.platform,
-    sku: data.sku,
-    quantity: data.quantity !== undefined ? Number(data.quantity) : undefined,
-    total_price: data.total_price !== undefined ? parsePrice(data.total_price) : undefined,
-    gross_profit: data.gross_profit !== undefined ? parsePrice(data.gross_profit) : undefined,
-    promoted: data.promoted
-  };
-
-  console.log('Processed update data:', updateData);
-
   const { error } = await supabase
     .from('sales')
-    .update(updateData)
+    .update({
+      sale_date: data.sale_date,
+      platform: data.platform,
+      sku: data.sku,
+      quantity: data.quantity,
+      total_price: data.total_price ? parsePrice(data.total_price) : undefined,
+      gross_profit: data.gross_profit ? parsePrice(data.gross_profit) : undefined,
+      promoted: data.promoted
+    })
     .eq('id', id);
 
-  if (error) {
-    console.error('Error updating sale:', error);
-    throw error;
-  }
-  
+  if (error) throw error;
   return true;
 };
 
 export const updateSaleProfitability = async (id: number, data: SaleProfitabilityUpdate): Promise<boolean> => {
-  console.log('Updating sale profitability:', { id, data });
-  
-  // Create a new object with explicit type conversion to avoid deep type inference
-  const updateData = {
-    sale_date: data.sale_date,
-    platform: data.platform,
-    sku: data.sku,
-    quantity: data.quantity !== undefined ? Number(data.quantity) : undefined,
-    total_price: data.total_price !== undefined ? Number(data.total_price) : undefined,
-    promoted: data.promoted,
-    verified: data.verified
-  };
-
-  console.log('Processed profitability update data:', updateData);
-
   const { error } = await supabase
     .from('sales')
-    .update(updateData)
+    .update({
+      sale_date: data.sale_date,
+      platform: data.platform,
+      sku: data.sku,
+      quantity: data.quantity,
+      total_price: data.total_price,
+      promoted: data.promoted,
+      verified: data.verified
+    })
     .eq('sale_id', id);
 
-  if (error) {
-    console.error('Error updating sale profitability:', error);
-    throw error;
-  }
-
+  if (error) throw error;
   return true;
 };
