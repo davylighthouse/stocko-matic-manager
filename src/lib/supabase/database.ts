@@ -1,3 +1,4 @@
+
 import { supabase } from '@/integrations/supabase/client';
 import type { SaleWithProduct, SalesTotals } from '@/types/sales';
 import type { ProfitabilityData } from '@/components/profitability/types';
@@ -416,7 +417,21 @@ export const getTopProductsBySales = async (startDate: Date, endDate: Date) => {
 export const getSalesWithProducts = async () => {
   const { data: salesData, error } = await supabase
     .from('sales_profitability')
-    .select('*')
+    .select(`
+      sale_id,
+      sale_date,
+      platform,
+      sku,
+      listing_title,
+      promoted,
+      quantity,
+      total_price,
+      total_product_cost,
+      platform_fees,
+      shipping_cost,
+      advertising_cost,
+      vat_status
+    `)
     .throwOnError();
 
   if (error) {

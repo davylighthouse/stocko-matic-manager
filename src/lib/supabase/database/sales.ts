@@ -21,10 +21,24 @@ const parsePrice = (value: string | number | null | undefined): number => {
   return isNaN(number) ? 0 : number;
 };
 
-export const getSalesWithProducts = async () => {
-  const { data, error } = await supabase
+export const getSalesWithProducts = async (): Promise<SaleWithProduct[]> => {
+  const { data: salesData, error } = await supabase
     .from('sales_profitability')
-    .select('*')
+    .select(`
+      sale_id,
+      sale_date,
+      platform,
+      sku,
+      listing_title,
+      promoted,
+      quantity,
+      total_price,
+      total_product_cost,
+      platform_fees,
+      shipping_cost,
+      advertising_cost,
+      vat_status
+    `)
     .throwOnError();
 
   if (error) {
@@ -32,9 +46,9 @@ export const getSalesWithProducts = async () => {
     throw error;
   }
 
-  if (!data) return [];
+  if (!salesData) return [];
 
-  return data.map(sale => ({
+  return salesData.map(sale => ({
     id: sale.sale_id,
     sale_date: sale.sale_date,
     platform: sale.platform,
@@ -53,7 +67,7 @@ export const getSalesWithProducts = async () => {
       (sale.shipping_cost || 0) +
       (sale.advertising_cost || 0)
     )
-  })) as SaleWithProduct[];
+  }));
 };
 
 export const getSalesTotals = async () => {
