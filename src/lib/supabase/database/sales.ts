@@ -22,8 +22,10 @@ const parsePrice = (value: string | number | null | undefined): number => {
 };
 
 export const getSalesWithProducts = async (): Promise<SaleWithProduct[]> => {
+  console.log("Fetching sales data...");
+
   const { data: salesData, error } = await supabase
-    .from('sales_profitability')
+    .from("sales_profitability")
     .select(`
       sale_id,
       sale_date,
@@ -36,34 +38,69 @@ export const getSalesWithProducts = async (): Promise<SaleWithProduct[]> => {
       total_product_cost,
       platform_fees,
       shipping_cost,
-      advertising_cost
+      advertising_cost,
+      vat_status
     `);
 
   if (error) {
-    console.error('Error fetching sales with products:', error);
+    console.error("Error fetching sales with products:", error);
     throw error;
   }
 
-  return (salesData || []).map(sale => ({
-    id: sale.sale_id,
-    sale_date: sale.sale_date,
-    platform: sale.platform,
-    sku: sale.sku,
-    listing_title: sale.listing_title,
-    promoted: sale.promoted || false,
-    quantity: sale.quantity || 0,
-    total_price: sale.total_price || 0,
-    total_product_cost: sale.total_product_cost || 0,
-    platform_fees: sale.platform_fees || 0,
-    shipping_cost: sale.shipping_cost || 0,
-    advertising_cost: sale.advertising_cost || 0,
-    gross_profit: (sale.total_price || 0) - (
+  return (salesData || []).map((sale) => {
+    // Calculate VAT correctly
+    let vatCost = 0;
+    if (sale.vat_status === "standard") {
+      vatCost = sale.total_price / 6;
+    }
+
+    // Check Amazon FBA shipping rule
+    let shippingCost = sale.shipping_cost;
+    if (sale.platform === "Amazon FBA") {
+      shippingCost = 0;
+    }
+
+    // Calculate total costs correctly
+    const totalCosts =
       (sale.total_product_cost || 0) +
       (sale.platform_fees || 0) +
-      (sale.shipping_cost || 0) +
-      (sale.advertising_cost || 0)
-    )
-  }));
+      shippingCost +
+      (sale.advertising_cost || 0) +
+      vatCost;
+
+    // Calculate final profit
+    const profit = (sale.total_price || 0) - totalCosts;
+
+    // ✅ LOGGING: Validate historical vs. current values
+    console.log("-----------");
+    console.log(`Sale ID: ${sale.sale_id}`);
+    console.log(`Sale Date: ${sale.sale_date}`);
+    console.log(`SKU: ${sale.sku}`);
+    console.log(`Total Price: ${sale.total_price}`);
+    console.log(`Product Cost (Historical or Current?): ${sale.total_product_cost}`);
+    console.log(`Platform Fees (Historical or Current?): ${sale.platform_fees}`);
+    console.log(`Shipping Cost Used: ${shippingCost}`);
+    console.log(`Amazon FBA Shipping Adjustment: ${sale.platform === "Amazon FBA" ? "Set to 0" : "Used as is"}`);
+    console.log(`VAT Calculation: ${vatCost}`);
+    console.log(`Final Profit: ${profit}`);
+    console.log("-----------");
+
+    return {
+      id: sale.sale_id,
+      sale_date: sale.sale_date,
+      platform: sale.platform,
+      sku: sale.sku,
+      listing_title: sale.listing_title,
+      promoted: sale.promoted || false,
+      quantity: sale.quantity || 0,
+      total_price: sale.total_price || 0,
+      total_product_cost: sale.total_product_cost || 0,
+      platform_fees: sale.platform_fees || 0,
+      shipping_cost: shippingCost,
+      advertising_cost: sale.advertising_cost || 0,
+      gross_profit: profit
+    };
+  });
 };
 
 export const getSalesTotals = async () => {
@@ -255,7 +292,7 @@ export const processSalesCSV = async (file: File): Promise<{ success: boolean; m
             }
 
             const formattedDate = format(saleDate, 'yyyy-MM-dd');
-
+            
             const saleData = {
               sale_date: formattedDate,
               platform: row.Platform,
