@@ -40,7 +40,7 @@ export const getSalesWithProducts = async (): Promise<SaleWithProduct[]> => {
       shipping_cost,
       advertising_cost,
       vat_status,
-      platform_fee_percentage,
+      platform_fee_percentage
     `);
 
   if (error) {
@@ -48,7 +48,11 @@ export const getSalesWithProducts = async (): Promise<SaleWithProduct[]> => {
     throw error;
   }
 
-  return (salesData || []).map((sale) => {
+  if (!salesData) {
+    return [];
+  }
+
+  return salesData.map((sale) => {
     // Calculate VAT correctly
     let vatCost = 0;
     if (sale.vat_status === "standard") {
@@ -61,9 +65,9 @@ export const getSalesWithProducts = async (): Promise<SaleWithProduct[]> => {
       shippingCost = 0;
     }
 
-    // Calculate advertising cost based on promoted listing percentage
+    // Calculate advertising cost based on platform fee percentage
     const advertisingCost = sale.promoted ? 
-      (sale.total_price || 0) * (sale.promoted_listing_percentage || 0) / 100 : 0;
+      (sale.total_price || 0) * (sale.platform_fee_percentage || 0) / 100 : 0;
 
     // Calculate total costs correctly
     const totalCosts =
@@ -89,7 +93,7 @@ export const getSalesWithProducts = async (): Promise<SaleWithProduct[]> => {
     console.log(`📦 Product Cost: £${sale.total_product_cost}`);
     console.log(`🏪 Platform Fees: £${sale.platform_fees} (${sale.platform_fee_percentage}%)`);
     console.log(`🚚 Shipping Cost: £${shippingCost} ${sale.platform === "Amazon FBA" ? "(FBA: Set to 0)" : ""}`);
-    console.log(`📢 Advertising: £${advertisingCost} (${sale.promoted_listing_percentage}%)`);
+    console.log(`📢 Advertising: £${advertisingCost}`);
     console.log(`💱 VAT: £${vatCost} (${sale.vat_status})`);
     console.log("\nPROFITABILITY:");
     console.log(`💶 Total Costs: £${totalCosts}`);
