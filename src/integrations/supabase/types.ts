@@ -782,12 +782,10 @@ export type Database = {
           additional_costs: number | null
           advertising_cost: number | null
           base_product_cost: number | null
-          base_shipping_rate: number | null
           fba_fee_amount: number | null
           listing_title: string | null
           making_up_cost: number | null
           packaging_cost: number | null
-          picking_fee: number | null
           platform: string | null
           platform_fee_percentage: number | null
           platform_fees: number | null
