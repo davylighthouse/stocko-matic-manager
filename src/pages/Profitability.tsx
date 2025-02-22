@@ -1,3 +1,4 @@
+
 import { useState } from "react";
 import { useQuery } from "@tanstack/react-query";
 import { Card } from "@/components/ui/card";
@@ -15,7 +16,7 @@ const Profitability = () => {
     queryFn: async () => {
       console.log('Fetching profitability data...');
       
-      const { data, error } = await supabase
+      const { data: salesData, error } = await supabase
         .from('sales_profitability')
         .select('*');
 
@@ -24,7 +25,8 @@ const Profitability = () => {
         throw error;
       }
 
-      const processedData = data?.map(sale => {
+      // Process data and calculate derived fields
+      const processedData = salesData?.map(sale => {
         // Calculate VAT if applicable
         const vatCost = sale.vat_status === 'standard' ? (sale.total_price || 0) / 6 : 0;
 
@@ -39,15 +41,15 @@ const Profitability = () => {
         const profit = (sale.total_price || 0) - totalCosts;
         const profitMargin = sale.total_price ? (profit / sale.total_price) * 100 : 0;
 
-        // Cast the data to match ProfitabilityData type
+        // Return ProfitabilityData
         return {
           id: sale.sale_id,
           sale_date: sale.sale_date,
           platform: sale.platform,
           sku: sale.sku,
           listing_title: sale.listing_title,
-          promoted: sale.promoted,
-          quantity: sale.quantity,
+          promoted: sale.promoted || false,
+          quantity: sale.quantity || 0,
           total_price: sale.total_price || 0,
           product_cost: sale.base_product_cost || 0,
           packaging_cost: sale.packaging_cost || 0,
@@ -58,19 +60,20 @@ const Profitability = () => {
           shipping_cost: sale.shipping_cost || 0,
           advertising_cost: sale.advertising_cost || 0,
           vat_cost: vatCost,
-          vat_status: sale.vat_status,
+          vat_status: sale.vat_status || 'exempt',
           profit,
           profit_margin: profitMargin,
-          verified: sale.verified || false,
           total_costs: totalCosts,
           platform_fee_percentage: sale.platform_fee_percentage || 0,
-          default_shipping_service_id: sale.default_shipping_service_id || 0,
+          default_shipping_service_id: 0,
           picking_fee: sale.picking_fee || 0,
-          default_picking_fee_id: sale.default_picking_fee_id || 0,
-          amazon_fba_tier_id: sale.amazon_fba_tier_id,
+          default_picking_fee_id: 0,
+          amazon_fba_tier_id: null,
           fba_fee_amount: sale.fba_fee_amount || null,
           platform_flat_fee: sale.platform_flat_fee || null,
-        } as ProfitabilityData;
+          verified: false,
+          promoted_listing_percentage: 0,
+        } satisfies ProfitabilityData;
       }) || [];
 
       return processedData;

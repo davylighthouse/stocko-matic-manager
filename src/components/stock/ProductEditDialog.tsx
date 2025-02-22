@@ -1,3 +1,4 @@
+
 import { Button } from "@/components/ui/button";
 import {
   Dialog,
@@ -28,13 +29,13 @@ export const ProductEditDialog = ({
     </FieldCheckIndicator>
   );
 
-  const onSettingChange = (field: string, value: any) => {
+  const onSettingChange = (field: string) => {
     onSubmit({
       preventDefault: () => {},
       stopPropagation: () => {},
       currentTarget: null,
       target: null,
-    } as any, field, value);
+    } as any);
   };
 
   if (!product) return null;
@@ -87,7 +88,7 @@ export const ProductEditDialog = ({
                 defaultShippingServiceId={product.default_shipping_service_id}
                 amazonFbaTierId={product.amazon_fba_tier_id}
                 vatStatus={product.vat_status}
-                onSettingChange={(field, value) => onSettingChange(field, value)}
+                onSettingChange={onSettingChange}
               />
             </TabsContent>
 
