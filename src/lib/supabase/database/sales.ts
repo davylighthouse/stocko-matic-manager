@@ -1,7 +1,6 @@
 
 import { supabase } from '@/integrations/supabase/client';
-import type { SaleWithProduct, SalesTotals } from '@/types/sales';
-import type { ProfitabilityData } from '@/components/profitability/types';
+import type { SaleWithProduct } from '@/types/sales';
 import { format } from 'date-fns';
 import Papa from 'papaparse';
 
@@ -24,6 +23,16 @@ interface SaleProfitabilityUpdate {
   total_price?: number;
   promoted?: boolean;
   verified?: boolean;
+}
+
+// Define a type for new sale data
+interface NewSaleData {
+  sale_date: string;
+  platform: string;
+  sku: string;
+  quantity: number;
+  total_price: number;
+  promoted: boolean;
 }
 
 const parsePrice = (value: string | number | null | undefined): number => {
@@ -161,7 +170,7 @@ export const updateSaleProfitability = async (id: number, data: SaleProfitabilit
 };
 
 export const processSalesCSV = async (file: File): Promise<{ success: boolean; message?: string }> => {
-  return new Promise((resolve, reject) => {
+  return new Promise((resolve) => {
     Papa.parse<SalesCSVRow>(file, {
       header: true,
       skipEmptyLines: true,
@@ -194,13 +203,13 @@ export const processSalesCSV = async (file: File): Promise<{ success: boolean; m
 
               const { error: productError } = await supabase
                 .from('products')
-                .insert([{
+                .insert({
                   sku: row.SKU,
                   listing_title: row['Listing Title'] || row.SKU,
                   default_picking_fee_id: defaultPickingFee.id,
                   default_shipping_service_id: defaultShippingService.id,
                   stock_quantity: 0
-                }]);
+                });
 
               if (productError) {
                 console.error('Error creating product:', productError);
@@ -218,7 +227,7 @@ export const processSalesCSV = async (file: File): Promise<{ success: boolean; m
 
             const formattedDate = format(saleDate, 'yyyy-MM-dd');
 
-            const saleData = {
+            const saleData: NewSaleData = {
               sale_date: formattedDate,
               platform: row.Platform,
               sku: row.SKU,
@@ -231,7 +240,7 @@ export const processSalesCSV = async (file: File): Promise<{ success: boolean; m
 
             const { error } = await supabase
               .from('sales')
-              .insert([saleData]);
+              .insert(saleData);
 
             if (error) {
               console.error('Error creating sale:', error);
