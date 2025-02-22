@@ -81,23 +81,26 @@ VAT Amount = ${formatCurrency(sale.vat_cost)}`;
 
     case 'platform_fees':
       let feeBreakdown = [];
+      const percentageFee = sale.platform_fee_percentage || 0;
+      const calculatedPercentageFee = (sale.total_price * percentageFee) / 100;
       
-      if (sale.platform === 'Amazon FBA') {
-        // For Amazon FBA, show both percentage fee and FBA fee
-        if (sale.platform_fee_percentage) {
-          feeBreakdown.push(`Percentage Fee (${formatPercentage(sale.platform_fee_percentage)}): ${formatCurrency((sale.total_price * sale.platform_fee_percentage) / 100)}`);
-        }
-        if (sale.fba_fee_amount) {
-          feeBreakdown.push(`FBA Fee: ${formatCurrency(sale.fba_fee_amount)}`);
-        }
-      } else {
-        // For other platforms, show percentage and flat fees
-        if (sale.platform_fee_percentage) {
-          feeBreakdown.push(`Percentage Fee (${formatPercentage(sale.platform_fee_percentage)}): ${formatCurrency((sale.total_price * sale.platform_fee_percentage) / 100)}`);
-        }
-        if (sale.platform_flat_fee) {
-          feeBreakdown.push(`Flat Fee: ${formatCurrency(sale.platform_flat_fee)}`);
-        }
+      // Both FBA and FBM use percentage fees
+      if (percentageFee > 0) {
+        feeBreakdown.push(`Percentage Fee (${formatPercentage(percentageFee)}): ${formatCurrency(calculatedPercentageFee)}`);
+      }
+
+      // Add FBA fee if applicable
+      if (sale.platform === 'Amazon FBA' && sale.fba_fee_amount) {
+        feeBreakdown.push(`FBA Fee: ${formatCurrency(sale.fba_fee_amount)}`);
+      }
+
+      // Add flat fee if applicable (mainly for other platforms)
+      if (sale.platform_flat_fee && sale.platform_flat_fee > 0) {
+        feeBreakdown.push(`Flat Fee: ${formatCurrency(sale.platform_flat_fee)}`);
+      }
+
+      if (feeBreakdown.length === 0) {
+        return 'No platform fees configured';
       }
 
       return `${feeBreakdown.join('\n')}
