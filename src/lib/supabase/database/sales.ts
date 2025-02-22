@@ -15,6 +15,17 @@ interface SalesCSVRow {
   'Total Price': string;
 }
 
+// Define a minimal update type for profitability updates
+interface SaleProfitabilityUpdate {
+  sale_date?: string;
+  platform?: string;
+  sku?: string;
+  quantity?: number;
+  total_price?: number;
+  promoted?: boolean;
+  verified?: boolean;
+}
+
 const parsePrice = (value: string | number | null | undefined): number => {
   if (value === null || value === undefined || value === '') return 0;
   const stringValue = value.toString().trim().replace(/[£$,\s]/g, '');
@@ -87,8 +98,11 @@ export const deleteMultipleSales = async (ids: number[]): Promise<boolean> => {
   return true;
 };
 
-type UpdateSaleData = Partial<Omit<SaleWithProduct, 'id'>> & {
+type UpdateSaleData = {
   sale_date?: string;
+  platform?: string;
+  sku?: string;
+  quantity?: number;
   total_price?: number;
   gross_profit?: number;
   promoted?: boolean;
@@ -122,7 +136,7 @@ export const updateSale = async (id: number, data: UpdateSaleData): Promise<bool
   return true;
 };
 
-export const updateSaleProfitability = async (id: number, data: Partial<ProfitabilityData>): Promise<boolean> => {
+export const updateSaleProfitability = async (id: number, data: SaleProfitabilityUpdate): Promise<boolean> => {
   console.log('Updating sale profitability:', { id, data });
   
   const { error } = await supabase
