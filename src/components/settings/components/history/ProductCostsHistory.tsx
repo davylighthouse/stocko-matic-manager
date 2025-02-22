@@ -18,6 +18,7 @@ interface ProductCostHistory {
   packaging_cost: number | null;
   making_up_cost: number | null;
   promoted_listing_percentage: number | null;
+  additional_costs: number | null;
   effective_from: string;
   effective_to: string | null;
   notes: string | null;
@@ -33,6 +34,7 @@ export const ProductCostsHistory = () => {
     packaging_cost: "",
     making_up_cost: "",
     promoted_listing_percentage: "",
+    additional_costs: "",
     effective_from: new Date(),
     notes: "",
   });
@@ -67,6 +69,7 @@ export const ProductCostsHistory = () => {
         packaging_cost: "",
         making_up_cost: "",
         promoted_listing_percentage: "",
+        additional_costs: "",
         effective_from: new Date(),
         notes: "",
       });
@@ -82,6 +85,7 @@ export const ProductCostsHistory = () => {
       packaging_cost: newRate.packaging_cost ? parseFloat(newRate.packaging_cost) : null,
       making_up_cost: newRate.making_up_cost ? parseFloat(newRate.making_up_cost) : null,
       promoted_listing_percentage: newRate.promoted_listing_percentage ? parseFloat(newRate.promoted_listing_percentage) : null,
+      additional_costs: newRate.additional_costs ? parseFloat(newRate.additional_costs) : null,
       effective_from: format(newRate.effective_from, 'yyyy-MM-dd'),
       notes: newRate.notes || null,
     });
@@ -104,6 +108,12 @@ export const ProductCostsHistory = () => {
     { 
       header: "Making Up Cost", 
       key: "making_up_cost" as const,
+      align: "right" as const,
+      format: (value: number | null) => value ? `£${value.toFixed(2)}` : '-'
+    },
+    { 
+      header: "Additional Costs", 
+      key: "additional_costs" as const,
       align: "right" as const,
       format: (value: number | null) => value ? `£${value.toFixed(2)}` : '-'
     },
@@ -168,6 +178,14 @@ export const ProductCostsHistory = () => {
               value={newRate.making_up_cost}
               onChange={(value) => setNewRate({ ...newRate, making_up_cost: value })}
               placeholder="Making up cost (optional)"
+              type="number"
+              step="0.01"
+            />
+            <FormField
+              label="Additional Costs"
+              value={newRate.additional_costs}
+              onChange={(value) => setNewRate({ ...newRate, additional_costs: value })}
+              placeholder="Additional costs (optional)"
               type="number"
               step="0.01"
             />

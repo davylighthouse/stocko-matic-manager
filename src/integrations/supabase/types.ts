@@ -265,6 +265,7 @@ export type Database = {
       }
       product_cost_history: {
         Row: {
+          additional_costs: number | null
           created_at: string | null
           created_by: string | null
           effective_from: string
@@ -278,6 +279,7 @@ export type Database = {
           sku: string
         }
         Insert: {
+          additional_costs?: number | null
           created_at?: string | null
           created_by?: string | null
           effective_from: string
@@ -291,6 +293,7 @@ export type Database = {
           sku: string
         }
         Update: {
+          additional_costs?: number | null
           created_at?: string | null
           created_by?: string | null
           effective_from?: string
@@ -729,6 +732,7 @@ export type Database = {
       }
       current_product_costs: {
         Row: {
+          additional_costs: number | null
           making_up_cost: number | null
           packaging_cost: number | null
           product_cost: number | null
@@ -926,6 +930,8 @@ export type Database = {
           product_cost: number
           packaging_cost: number
           making_up_cost: number
+          additional_costs: number
+          promoted_listing_percentage: number
         }[]
       }
       get_promoted_listing_percentage_at_date: {
