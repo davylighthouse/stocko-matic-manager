@@ -1,3 +1,4 @@
+
 import { supabase } from '@/integrations/supabase/client';
 import type { SaleWithProduct, SalesTotals } from '@/types/sales';
 import type { ProfitabilityData } from '@/components/profitability/types';
@@ -41,7 +42,12 @@ export const getSalesWithProducts = async () => {
       platform_fees,
       shipping_cost,
       advertising_cost,
-      vat_status
+      vat_status,
+      platform_fee_percentage,
+      platform_flat_fee,
+      fba_fee_amount,
+      base_shipping_rate,
+      picking_fee
     `)
     .order('sale_date', { ascending: false });
 
@@ -66,7 +72,7 @@ export const getSalesWithProducts = async () => {
     const grossProfit = (sale.total_price || 0) - totalCosts;
 
     return {
-      id: sale.sale_id, // Map sale_id to id for compatibility
+      id: sale.sale_id,
       sale_date: sale.sale_date,
       platform: sale.platform,
       sku: sale.sku,
@@ -83,7 +89,13 @@ export const getSalesWithProducts = async () => {
       shipping_cost: sale.shipping_cost || 0,
       advertising_cost: sale.advertising_cost || 0,
       vat_cost: vatCost,
-      gross_profit: grossProfit
+      gross_profit: grossProfit,
+      // Add new fields for fee breakdowns
+      platform_fee_percentage: sale.platform_fee_percentage || 0,
+      platform_flat_fee: sale.platform_flat_fee || 0,
+      fba_fee_amount: sale.fba_fee_amount || 0,
+      base_shipping_rate: sale.base_shipping_rate || 0,
+      picking_fee: sale.picking_fee || 0
     };
   });
 

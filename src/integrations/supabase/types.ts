@@ -227,30 +227,6 @@ export type Database = {
         }
         Relationships: []
       }
-      picking_fees: {
-        Row: {
-          created_at: string | null
-          fee_amount: number
-          fee_name: string
-          id: number
-          updated_at: string | null
-        }
-        Insert: {
-          created_at?: string | null
-          fee_amount: number
-          fee_name: string
-          id?: number
-          updated_at?: string | null
-        }
-        Update: {
-          created_at?: string | null
-          fee_amount?: number
-          fee_name?: string
-          id?: number
-          updated_at?: string | null
-        }
-        Relationships: []
-      }
       platform_fee_history: {
         Row: {
           created_at: string | null
@@ -284,33 +260,6 @@ export type Database = {
           notes?: string | null
           percentage_fee?: number
           platform_name?: string
-        }
-        Relationships: []
-      }
-      platform_fees: {
-        Row: {
-          created_at: string | null
-          flat_fee: number
-          id: number
-          percentage_fee: number
-          platform_name: string
-          updated_at: string | null
-        }
-        Insert: {
-          created_at?: string | null
-          flat_fee?: number
-          id?: number
-          percentage_fee?: number
-          platform_name: string
-          updated_at?: string | null
-        }
-        Update: {
-          created_at?: string | null
-          flat_fee?: number
-          id?: number
-          percentage_fee?: number
-          platform_name?: string
-          updated_at?: string | null
         }
         Relationships: []
       }
@@ -450,7 +399,14 @@ export type Database = {
             foreignKeyName: "products_default_picking_fee_id_fkey"
             columns: ["default_picking_fee_id"]
             isOneToOne: false
-            referencedRelation: "picking_fees"
+            referencedRelation: "current_picking_fees"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "products_default_picking_fee_id_fkey"
+            columns: ["default_picking_fee_id"]
+            isOneToOne: false
+            referencedRelation: "picking_fee_history"
             referencedColumns: ["id"]
           },
           {
@@ -587,44 +543,6 @@ export type Database = {
         Relationships: [
           {
             foreignKeyName: "shipping_rate_history_service_id_fkey"
-            columns: ["service_id"]
-            isOneToOne: false
-            referencedRelation: "shipping_services"
-            referencedColumns: ["id"]
-          },
-        ]
-      }
-      shipping_rates: {
-        Row: {
-          created_at: string | null
-          id: number
-          price: number
-          service_id: number | null
-          updated_at: string | null
-          weight_from: number
-          weight_to: number
-        }
-        Insert: {
-          created_at?: string | null
-          id?: number
-          price: number
-          service_id?: number | null
-          updated_at?: string | null
-          weight_from: number
-          weight_to: number
-        }
-        Update: {
-          created_at?: string | null
-          id?: number
-          price?: number
-          service_id?: number | null
-          updated_at?: string | null
-          weight_from?: number
-          weight_to?: number
-        }
-        Relationships: [
-          {
-            foreignKeyName: "shipping_rates_service_id_fkey"
             columns: ["service_id"]
             isOneToOne: false
             referencedRelation: "shipping_services"
@@ -786,6 +704,45 @@ export type Database = {
       }
     }
     Views: {
+      current_picking_fees: {
+        Row: {
+          effective_from: string | null
+          effective_to: string | null
+          fee_amount: number | null
+          fee_name: string | null
+          id: number | null
+        }
+        Relationships: []
+      }
+      current_platform_fees: {
+        Row: {
+          effective_from: string | null
+          effective_to: string | null
+          flat_fee: number | null
+          percentage_fee: number | null
+          platform_name: string | null
+        }
+        Relationships: []
+      }
+      current_shipping_rates: {
+        Row: {
+          effective_from: string | null
+          effective_to: string | null
+          price: number | null
+          service_id: number | null
+          weight_from: number | null
+          weight_to: number | null
+        }
+        Relationships: [
+          {
+            foreignKeyName: "shipping_rate_history_service_id_fkey"
+            columns: ["service_id"]
+            isOneToOne: false
+            referencedRelation: "shipping_services"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
       current_stock_levels: {
         Row: {
           adjustments: number | null
@@ -813,74 +770,6 @@ export type Database = {
           },
           {
             foreignKeyName: "stock_check_items_sku_fkey"
-            columns: ["sku"]
-            isOneToOne: false
-            referencedRelation: "products"
-            referencedColumns: ["sku"]
-          },
-        ]
-      }
-      sales_profitability: {
-        Row: {
-          additional_costs: number | null
-          advertising_cost: number | null
-          amazon_fba_tier_id: number | null
-          base_product_cost: number | null
-          base_shipping_rate: number | null
-          default_picking_fee_id: number | null
-          default_shipping_service_id: number | null
-          fba_fee_amount: number | null
-          listing_title: string | null
-          making_up_cost: number | null
-          packaging_cost: number | null
-          picking_fee: number | null
-          platform: string | null
-          platform_fee_percentage: number | null
-          platform_fees: number | null
-          platform_flat_fee: number | null
-          promoted: boolean | null
-          promoted_listing_percentage: number | null
-          quantity: number | null
-          sale_date: string | null
-          sale_id: number | null
-          shipping_cost: number | null
-          sku: string | null
-          total_price: number | null
-          total_product_cost: number | null
-          vat_status: string | null
-          verified: boolean | null
-        }
-        Relationships: [
-          {
-            foreignKeyName: "products_amazon_fba_tier_id_fkey"
-            columns: ["amazon_fba_tier_id"]
-            isOneToOne: false
-            referencedRelation: "amazon_fba_tiers"
-            referencedColumns: ["id"]
-          },
-          {
-            foreignKeyName: "products_default_picking_fee_id_fkey"
-            columns: ["default_picking_fee_id"]
-            isOneToOne: false
-            referencedRelation: "picking_fees"
-            referencedColumns: ["id"]
-          },
-          {
-            foreignKeyName: "products_default_shipping_service_id_fkey"
-            columns: ["default_shipping_service_id"]
-            isOneToOne: false
-            referencedRelation: "shipping_services"
-            referencedColumns: ["id"]
-          },
-          {
-            foreignKeyName: "sales_sku_fkey"
-            columns: ["sku"]
-            isOneToOne: false
-            referencedRelation: "current_stock_levels"
-            referencedColumns: ["sku"]
-          },
-          {
-            foreignKeyName: "sales_sku_fkey"
             columns: ["sku"]
             isOneToOne: false
             referencedRelation: "products"
