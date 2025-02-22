@@ -1,4 +1,3 @@
-
 import { useState } from "react";
 import { useQuery, useMutation, useQueryClient } from "@tanstack/react-query";
 import { Card } from "@/components/ui/card";
@@ -29,6 +28,7 @@ export const PlatformSettings = () => {
     percentage_fee: "0",
     flat_fee: "0",
     effective_from: format(new Date(), 'yyyy-MM-dd'),
+    notes: "",
   });
 
   const { data: platforms = [] } = useQuery({
@@ -60,6 +60,7 @@ export const PlatformSettings = () => {
         percentage_fee: "0",
         flat_fee: "0",
         effective_from: format(new Date(), 'yyyy-MM-dd'),
+        notes: "",
       });
       toast({ title: "Success", description: "Platform added successfully" });
     },
@@ -103,6 +104,7 @@ export const PlatformSettings = () => {
       percentage_fee: parseFloat(newPlatform.percentage_fee),
       flat_fee: parseFloat(newPlatform.flat_fee),
       effective_from: newPlatform.effective_from,
+      notes: newPlatform.notes || null,
     });
   };
 
@@ -142,6 +144,11 @@ export const PlatformSettings = () => {
               type="date"
               value={newPlatform.effective_from}
               onChange={(e) => setNewPlatform({ ...newPlatform, effective_from: e.target.value })}
+            />
+            <Input
+              placeholder="Notes"
+              value={newPlatform.notes}
+              onChange={(e) => setNewPlatform({ ...newPlatform, notes: e.target.value })}
             />
           </div>
           <div className="flex justify-end gap-2">

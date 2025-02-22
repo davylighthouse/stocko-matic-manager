@@ -1,4 +1,3 @@
-
 import { useState } from "react";
 import { useQuery, useMutation, useQueryClient } from "@tanstack/react-query";
 import { Card } from "@/components/ui/card";
@@ -27,6 +26,7 @@ export const PickingSettings = () => {
     fee_name: "",
     fee_amount: "0",
     effective_from: format(new Date(), 'yyyy-MM-dd'),
+    notes: "",
   });
 
   const { data: pickingFees = [] } = useQuery({
@@ -53,7 +53,7 @@ export const PickingSettings = () => {
     onSuccess: () => {
       queryClient.invalidateQueries({ queryKey: ['picking-fees'] });
       setIsAdding(false);
-      setNewFee({ fee_name: "", fee_amount: "0", effective_from: format(new Date(), 'yyyy-MM-dd') });
+      setNewFee({ fee_name: "", fee_amount: "0", effective_from: format(new Date(), 'yyyy-MM-dd'), notes: "" });
       toast({ title: "Success", description: "Picking fee added successfully" });
     },
   });
@@ -95,6 +95,7 @@ export const PickingSettings = () => {
       fee_name: newFee.fee_name,
       fee_amount: parseFloat(newFee.fee_amount),
       effective_from: newFee.effective_from,
+      notes: newFee.notes || null,
     };
     addMutation.mutate(newFeeData);
   };
@@ -128,6 +129,11 @@ export const PickingSettings = () => {
               type="date"
               value={newFee.effective_from}
               onChange={(e) => setNewFee({ ...newFee, effective_from: e.target.value })}
+            />
+            <Input
+              placeholder="Notes"
+              value={newFee.notes}
+              onChange={(e) => setNewFee({ ...newFee, notes: e.target.value })}
             />
           </div>
           <div className="flex justify-end gap-2">

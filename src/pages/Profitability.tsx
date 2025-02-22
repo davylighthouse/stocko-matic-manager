@@ -1,4 +1,3 @@
-
 import { useState } from "react";
 import { useQuery } from "@tanstack/react-query";
 import { Card } from "@/components/ui/card";
@@ -25,7 +24,6 @@ const Profitability = () => {
         throw error;
       }
 
-      // Process data and calculate derived fields
       const processedData = data?.map(sale => {
         // Calculate VAT if applicable
         const vatCost = sale.vat_status === 'standard' ? (sale.total_price || 0) / 6 : 0;
@@ -41,6 +39,7 @@ const Profitability = () => {
         const profit = (sale.total_price || 0) - totalCosts;
         const profitMargin = sale.total_price ? (profit / sale.total_price) * 100 : 0;
 
+        // Cast the data to match ProfitabilityData type
         return {
           id: sale.sale_id,
           sale_date: sale.sale_date,
@@ -62,11 +61,19 @@ const Profitability = () => {
           vat_status: sale.vat_status,
           profit,
           profit_margin: profitMargin,
-          verified: false, // Add this if needed from the sales table
+          verified: sale.verified || false,
+          total_costs: totalCosts,
+          platform_fee_percentage: sale.platform_fee_percentage || 0,
+          default_shipping_service_id: sale.default_shipping_service_id || 0,
+          picking_fee: sale.picking_fee || 0,
+          default_picking_fee_id: sale.default_picking_fee_id || 0,
+          amazon_fba_tier_id: sale.amazon_fba_tier_id,
+          fba_fee_amount: sale.fba_fee_amount || null,
+          platform_flat_fee: sale.platform_flat_fee || null,
         } as ProfitabilityData;
-      });
+      }) || [];
 
-      return processedData || [];
+      return processedData;
     },
     refetchOnWindowFocus: true,
     refetchOnMount: true,

@@ -11,7 +11,7 @@ export const processCSV = async (file: File): Promise<{ success: boolean; messag
 
     // Get default IDs
     const [{ data: defaultPickingFee }, { data: defaultShippingService }] = await Promise.all([
-      supabase.from('picking_fees').select('id').limit(1).single(),
+      supabase.from('current_picking_fees').select('id').limit(1).single(),
       supabase.from('shipping_services').select('id').limit(1).single()
     ]);
 
@@ -429,7 +429,7 @@ export const getSalesTotals = async (): Promise<SalesTotals> => {
       total_price,
       quantity,
       total_product_cost,
-      platform_fees,
+      platform_fee_history,
       shipping_cost,
       advertising_cost,
       vat_status
@@ -447,7 +447,7 @@ export const getSalesTotals = async (): Promise<SalesTotals> => {
 
     // Calculate total costs
     const totalCosts = (sale.total_product_cost || 0) +
-                      (sale.platform_fees || 0) +
+                      (sale.platform_fee_history || 0) +
                       (sale.shipping_cost || 0) +
                       (sale.advertising_cost || 0) +
                       vatCost;
