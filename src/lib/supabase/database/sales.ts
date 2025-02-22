@@ -1,4 +1,3 @@
-
 import { supabase } from '@/integrations/supabase/client';
 import type { SaleWithProduct, SalesTotals } from '@/types/sales';
 import type { ProfitabilityData } from '@/components/profitability/types';
@@ -22,26 +21,6 @@ const parsePrice = (value: string | number | null | undefined): number => {
   return isNaN(number) ? 0 : number;
 };
 
-interface SalesProfitabilityRow {
-  sale_id: number;
-  sale_date: string;
-  platform: string;
-  sku: string;
-  listing_title: string;
-  promoted: boolean;
-  quantity: number;
-  total_price: number;
-  base_product_cost: number;
-  total_product_cost: number;
-  platform_fees: number;
-  shipping_cost: number;
-  advertising_cost: number;
-  vat_status: string;
-  platform_fee_percentage: number;
-  platform_flat_fee: number | null;
-  fba_fee_amount: number | null;
-}
-
 export const getSalesWithProducts = async (): Promise<SaleWithProduct[]> => {
   const { data: salesData, error } = await supabase
     .from('sales_profitability')
@@ -54,15 +33,10 @@ export const getSalesWithProducts = async (): Promise<SaleWithProduct[]> => {
       promoted,
       quantity,
       total_price,
-      base_product_cost,
       total_product_cost,
       platform_fees,
       shipping_cost,
-      advertising_cost,
-      vat_status,
-      platform_fee_percentage,
-      platform_flat_fee,
-      fba_fee_amount
+      advertising_cost
     `);
 
   if (error) {
@@ -70,9 +44,7 @@ export const getSalesWithProducts = async (): Promise<SaleWithProduct[]> => {
     throw error;
   }
 
-  if (!salesData) return [];
-
-  return (salesData as SalesProfitabilityRow[]).map(sale => ({
+  return (salesData || []).map(sale => ({
     id: sale.sale_id,
     sale_date: sale.sale_date,
     platform: sale.platform,

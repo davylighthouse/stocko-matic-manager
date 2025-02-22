@@ -1,4 +1,3 @@
-
 import { supabase } from '@/integrations/supabase/client';
 import type { SaleWithProduct, SalesTotals } from '@/types/sales';
 import type { ProfitabilityData } from '@/components/profitability/types';
@@ -469,12 +468,15 @@ export const getSalesTotals = async (): Promise<SalesTotals> => {
     .select(`
       total_price,
       quantity,
+      platform_fees,
+      sku,
+      sale_date,
       total_product_cost,
-      platform_fee_history,
       shipping_cost,
       advertising_cost,
       vat_status
-    `);
+    `)
+    .throwOnError();
 
   if (error) {
     console.error('Error fetching sales totals:', error);
@@ -482,13 +484,13 @@ export const getSalesTotals = async (): Promise<SalesTotals> => {
   }
 
   // Calculate totals from the sales_profitability view
-  const totals = data.reduce((acc, sale) => {
+  const totals = (data || []).reduce((acc, sale) => {
     // Calculate VAT if applicable
-    const vatCost = sale.vat_status === 'standard' ? (sale.total_price || 0) / 6 : 0;
+    const vatCost = (sale.vat_status === 'standard' && sale.total_price) ? sale.total_price / 6 : 0;
 
-    // Calculate total costs
+    // Calculate total costs including VAT
     const totalCosts = (sale.total_product_cost || 0) +
-                      (sale.platform_fee_history || 0) +
+                      (sale.platform_fees || 0) +
                       (sale.shipping_cost || 0) +
                       (sale.advertising_cost || 0) +
                       vatCost;
@@ -508,14 +510,9 @@ export const getSalesTotals = async (): Promise<SalesTotals> => {
   });
 
   // Get unique products count
-  const { count: uniqueProducts, error: uniqueError } = await supabase
+  const { count: uniqueProducts } = await supabase
     .from('sales_profitability')
     .select('sku', { count: 'exact', head: true });
-
-  if (uniqueError) {
-    console.error('Error fetching unique products:', uniqueError);
-    throw uniqueError;
-  }
 
   // Get date range
   const { data: dateRange } = await supabase
