@@ -1,4 +1,13 @@
 
+// Explicitly define the base sale data structure
+export interface BaseSaleData {
+  sale_date?: string | null;
+  platform?: string | null;
+  sku?: string | null;
+  quantity?: number | null;
+  promoted?: boolean | null;
+}
+
 export interface SalesCSVRow {
   'Sale Date': string;
   Platform: string;
@@ -9,24 +18,14 @@ export interface SalesCSVRow {
   'Total Price': string;
 }
 
-export interface SaleProfitabilityUpdate {
-  sale_date?: string;
-  platform?: string;
-  sku?: string;
-  quantity?: number;
-  total_price?: number;
-  promoted?: boolean;
-  verified?: boolean;
+export interface SaleProfitabilityUpdate extends BaseSaleData {
+  total_price?: number | null;
+  verified?: boolean | null;
 }
 
-export interface UpdateSaleData {
-  sale_date?: string;
-  platform?: string;
-  sku?: string;
-  quantity?: number;
-  total_price?: number | string;
-  gross_profit?: number | string;
-  promoted?: boolean;
+export interface UpdateSaleData extends BaseSaleData {
+  total_price?: string | number | null;
+  gross_profit?: string | number | null;
 }
 
 export interface NewSaleData {
