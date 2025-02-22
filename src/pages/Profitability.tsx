@@ -16,49 +16,9 @@ const Profitability = () => {
     queryFn: async () => {
       console.log('Fetching profitability data...');
       
-      // First update any existing Amazon FBM rate to use the correct date
-      const { data: existingRate } = await supabase
-        .from('platform_fee_history')
-        .select('*')
-        .eq('platform_name', 'Amazon FBM')
-        .single();
-
-      if (existingRate && existingRate.effective_from !== '2024-01-01') {
-        const { error: updateError } = await supabase
-          .from('platform_fee_history')
-          .update({ effective_from: '2024-01-01' })
-          .eq('id', existingRate.id);
-
-        if (updateError) {
-          console.error('Error updating Amazon FBM rate date:', updateError);
-        }
-      }
-
-      // Get historical rates for comparison
-      const { data: historicalRates, error: ratesError } = await supabase
-        .from('platform_fee_history')
-        .select('*')
-        .order('effective_from', { ascending: false });
-
-      if (ratesError) {
-        console.error('Error fetching historical rates:', ratesError);
-        throw ratesError;
-      }
-
-      console.log('Current historical rates:', historicalRates);
-      
       const { data, error } = await supabase
         .from('sales_profitability')
-        .select(`
-          *,
-          products (
-            product_cost,
-            packaging_cost,
-            making_up_cost,
-            additional_costs
-          )
-        `)
-        .order('sale_date', { ascending: false });
+        .select('*');
 
       if (error) {
         console.error('Error fetching profitability data:', error);
@@ -68,22 +28,13 @@ const Profitability = () => {
       // Process data and calculate derived fields
       const processedData = data?.map(sale => {
         // Calculate VAT if applicable
-        let vatCost = 0;
-        if (sale.vat_status === 'standard') {
-          vatCost = sale.total_price / 6; // 20% VAT calculation
-        }
+        const vatCost = sale.vat_status === 'standard' ? (sale.total_price || 0) / 6 : 0;
 
-        // Platform fees are now correctly calculated in the view
-        const platformFees = sale.platform_fees || 0;
-        const shippingCost = sale.shipping_cost || 0;
-        const totalProductCost = sale.total_product_cost || 0;
-        const advertisingCost = sale.advertising_cost || 0;
-
-        // Calculate total costs including VAT
-        const totalCosts = platformFees + 
-                         shippingCost + 
-                         totalProductCost +
-                         advertisingCost +
+        // Calculate total costs
+        const totalCosts = (sale.total_product_cost || 0) +
+                         (sale.platform_fees || 0) +
+                         (sale.shipping_cost || 0) +
+                         (sale.advertising_cost || 0) +
                          vatCost;
 
         // Calculate profit and margin
@@ -91,23 +42,31 @@ const Profitability = () => {
         const profitMargin = sale.total_price ? (profit / sale.total_price) * 100 : 0;
 
         return {
-          ...sale,
           id: sale.sale_id,
+          sale_date: sale.sale_date,
+          platform: sale.platform,
+          sku: sale.sku,
+          listing_title: sale.listing_title,
+          promoted: sale.promoted,
+          quantity: sale.quantity,
+          total_price: sale.total_price || 0,
+          product_cost: sale.base_product_cost || 0,
+          packaging_cost: sale.packaging_cost || 0,
+          making_up_cost: sale.making_up_cost || 0,
+          additional_costs: sale.additional_costs || 0,
+          total_product_cost: sale.total_product_cost || 0,
+          platform_fees: sale.platform_fees || 0,
+          shipping_cost: sale.shipping_cost || 0,
+          advertising_cost: sale.advertising_cost || 0,
           vat_cost: vatCost,
-          total_costs: totalCosts,
-          profit: profit,
+          vat_status: sale.vat_status,
+          profit,
           profit_margin: profitMargin,
-          base_product_cost: sale.products?.product_cost || 0,
-          packaging_cost: sale.products?.packaging_cost || 0,
-          making_up_cost: sale.products?.making_up_cost || 0,
-          additional_costs: sale.products?.additional_costs || 0,
-          product_cost: sale.total_product_cost || 0,
-          shipping_cost: shippingCost,
-          advertising_cost: advertisingCost
+          verified: false, // Add this if needed from the sales table
         } as ProfitabilityData;
       });
 
-      return processedData;
+      return processedData || [];
     },
     refetchOnWindowFocus: true,
     refetchOnMount: true,

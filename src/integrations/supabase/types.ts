@@ -777,6 +777,48 @@ export type Database = {
           },
         ]
       }
+      sales_profitability: {
+        Row: {
+          additional_costs: number | null
+          advertising_cost: number | null
+          base_product_cost: number | null
+          base_shipping_rate: number | null
+          fba_fee_amount: number | null
+          listing_title: string | null
+          making_up_cost: number | null
+          packaging_cost: number | null
+          picking_fee: number | null
+          platform: string | null
+          platform_fee_percentage: number | null
+          platform_fees: number | null
+          platform_flat_fee: number | null
+          promoted: boolean | null
+          quantity: number | null
+          sale_date: string | null
+          sale_id: number | null
+          shipping_cost: number | null
+          sku: string | null
+          total_price: number | null
+          total_product_cost: number | null
+          vat_status: string | null
+        }
+        Relationships: [
+          {
+            foreignKeyName: "sales_sku_fkey"
+            columns: ["sku"]
+            isOneToOne: false
+            referencedRelation: "current_stock_levels"
+            referencedColumns: ["sku"]
+          },
+          {
+            foreignKeyName: "sales_sku_fkey"
+            columns: ["sku"]
+            isOneToOne: false
+            referencedRelation: "products"
+            referencedColumns: ["sku"]
+          },
+        ]
+      }
       sales_totals: {
         Row: {
           earliest_sale: string | null

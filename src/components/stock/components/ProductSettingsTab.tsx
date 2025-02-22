@@ -1,150 +1,139 @@
-import { Label } from "@/components/ui/label";
-import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
-import { Input } from "@/components/ui/input";
-import { TabContentProps } from "../types/product-dialog";
-import { useQuery } from "@tanstack/react-query";
-import { supabase } from "@/integrations/supabase/client";
-import { ShippingService, PickingFee } from "../types/product-dialog";
+import { useState } from 'react';
+import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select';
+import { Label } from '@/components/ui/label';
+import { Switch } from '@/components/ui/switch';
+import { supabase } from '@/integrations/supabase/client';
+import { useQuery } from '@tanstack/react-query';
 
-export const ProductSettingsTab = ({ product, renderFieldWithCheck }: TabContentProps) => {
-  const { data: shippingServices = [] } = useQuery({
-    queryKey: ['shipping-services'],
-    queryFn: async () => {
-      const { data, error } = await supabase
-        .from('shipping_services')
-        .select('id, service_name, courier')
-        .order('courier, service_name');
-      
-      if (error) throw error;
-      return data as ShippingService[];
-    },
-  });
+interface ProductSettingsTabProps {
+  sku: string;
+  defaultPickingFeeId?: number;
+  defaultShippingServiceId?: number;
+  amazonFbaTierId?: number | null;
+  vatStatus?: string;
+  onSettingChange: (field: string, value: any) => void;
+}
 
+export const ProductSettingsTab = ({
+  sku,
+  defaultPickingFeeId,
+  defaultShippingServiceId,
+  amazonFbaTierId,
+  vatStatus,
+  onSettingChange,
+}: ProductSettingsTabProps) => {
   const { data: pickingFees = [] } = useQuery({
     queryKey: ['picking-fees'],
     queryFn: async () => {
-      const { data, error } = await supabase
-        .from('picking_fees')
-        .select('id, fee_name, fee_amount')
-        .order('fee_name');
-      
-      if (error) throw error;
-      return data as PickingFee[];
+      const { data: currentPickingFees } = await supabase
+        .from('current_picking_fees')
+        .select('*');
+      return currentPickingFees || [];
     },
   });
 
-  const { data: fbaTiers = [] } = useQuery({
+  const { data: shippingServices = [] } = useQuery({
+    queryKey: ['shipping-services'],
+    queryFn: async () => {
+      const { data: currentShippingServices } = await supabase
+        .from('current_shipping_services')
+        .select('*');
+      return currentShippingServices || [];
+    },
+  });
+
+  const { data: amazonFbaTiers = [] } = useQuery({
     queryKey: ['amazon-fba-tiers'],
     queryFn: async () => {
-      const { data, error } = await supabase
+      const { data } = await supabase
         .from('amazon_fba_tiers')
         .select('*')
         .order('tier_name');
-      
-      if (error) throw error;
-      return data;
+      return data || [];
     },
   });
 
-  // Get the ID of the first picking fee if available
-  const defaultPickingFeeId = pickingFees[0]?.id.toString();
+  const handlePickingFeeChange = (value: string) => {
+    const pickingFeeId = parseInt(value);
+    onSettingChange('default_picking_fee_id', pickingFeeId);
+  };
+
+  const handleShippingServiceChange = (value: string) => {
+    const shippingServiceId = parseInt(value);
+    onSettingChange('default_shipping_service_id', shippingServiceId);
+  };
+
+  const handleVatStatusChange = (value: string) => {
+    onSettingChange('vat_status', value);
+  };
+
+  const handleAmazonFbaTierChange = (value: string) => {
+    const tierId = value === 'null' ? null : parseInt(value);
+    onSettingChange('amazon_fba_tier_id', tierId);
+  };
 
   return (
-    <div className="space-y-4">
+    <div className="grid gap-4">
       <div>
-        <Label htmlFor="default_shipping_service_id">Default Shipping Service</Label>
-        {renderFieldWithCheck("default_shipping_service_id",
-          <Select 
-            name="default_shipping_service_id" 
-            defaultValue={product.default_shipping_service_id?.toString()}
-          >
-            <SelectTrigger>
-              <SelectValue placeholder="Select shipping service" />
-            </SelectTrigger>
-            <SelectContent>
-              {shippingServices.map((service) => (
-                <SelectItem key={service.id} value={service.id.toString()}>
-                  {service.courier} - {service.service_name}
-                </SelectItem>
-              ))}
-            </SelectContent>
-          </Select>
-        )}
+        <Label htmlFor="picking-fee">Default Picking Fee</Label>
+        <Select onValueChange={handlePickingFeeChange} defaultValue={defaultPickingFeeId?.toString()}>
+          <SelectTrigger id="picking-fee">
+            <SelectValue placeholder="Select picking fee" />
+          </SelectTrigger>
+          <SelectContent>
+            {pickingFees.map((fee) => (
+              <SelectItem key={fee.id} value={fee.id.toString()}>
+                {fee.fee_name} (£{fee.fee_amount})
+              </SelectItem>
+            ))}
+          </SelectContent>
+        </Select>
       </div>
 
       <div>
-        <Label htmlFor="default_picking_fee_id">Default Picking Fee</Label>
-        {renderFieldWithCheck("default_picking_fee_id",
-          <Select 
-            name="default_picking_fee_id" 
-            defaultValue={product.default_picking_fee_id?.toString() || defaultPickingFeeId}
-          >
-            <SelectTrigger>
-              <SelectValue placeholder="Select picking fee" />
-            </SelectTrigger>
-            <SelectContent>
-              {pickingFees.map((fee) => (
-                <SelectItem key={fee.id} value={fee.id.toString()}>
-                  {fee.fee_name} (£{fee.fee_amount.toFixed(2)})
-                </SelectItem>
-              ))}
-            </SelectContent>
-          </Select>
-        )}
+        <Label htmlFor="shipping-service">Default Shipping Service</Label>
+        <Select onValueChange={handleShippingServiceChange} defaultValue={defaultShippingServiceId?.toString()}>
+          <SelectTrigger id="shipping-service">
+            <SelectValue placeholder="Select shipping service" />
+          </SelectTrigger>
+          <SelectContent>
+            {shippingServices.map((service) => (
+              <SelectItem key={service.id} value={service.id.toString()}>
+                {service.service_name}
+              </SelectItem>
+            ))}
+          </SelectContent>
+        </Select>
       </div>
 
       <div>
-        <Label htmlFor="vat_status">VAT Status</Label>
-        {renderFieldWithCheck("vat_status",
-          <Select name="vat_status" defaultValue={product.vat_status || "standard"}>
-            <SelectTrigger>
-              <SelectValue placeholder="Select VAT status" />
-            </SelectTrigger>
-            <SelectContent>
-              <SelectItem value="standard">Standard Rate</SelectItem>
-              <SelectItem value="reduced">Reduced Rate</SelectItem>
-              <SelectItem value="zero">Zero Rate</SelectItem>
-              <SelectItem value="exempt">Exempt</SelectItem>
-            </SelectContent>
-          </Select>
-        )}
+        <Label htmlFor="vat-status">VAT Status</Label>
+        <Select onValueChange={handleVatStatusChange} defaultValue={vatStatus}>
+          <SelectTrigger id="vat-status">
+            <SelectValue placeholder="Select VAT status" />
+          </SelectTrigger>
+          <SelectContent>
+            <SelectItem value="standard">Standard</SelectItem>
+            <SelectItem value="exempt">Exempt</SelectItem>
+          </SelectContent>
+        </Select>
       </div>
 
       <div>
-        <Label htmlFor="promoted_listing_percentage">eBay Promoted Listing Percentage (%)</Label>
-        {renderFieldWithCheck("promoted_listing_percentage",
-          <Input
-            type="number"
-            name="promoted_listing_percentage"
-            step="0.1"
-            min="0"
-            max="100"
-            defaultValue={product.promoted_listing_percentage?.toString() || "0"}
-            placeholder="Enter percentage (e.g. 2.5)"
-          />
-        )}
-      </div>
-
-      <div>
-        <Label htmlFor="amazon_fba_tier_id">Amazon FBA Tier</Label>
-        {renderFieldWithCheck("amazon_fba_tier_id",
-          <Select 
-            name="amazon_fba_tier_id" 
-            defaultValue={product.amazon_fba_tier_id?.toString() || "none"}
-          >
-            <SelectTrigger>
-              <SelectValue placeholder="Select FBA tier" />
-            </SelectTrigger>
-            <SelectContent>
-              <SelectItem value="none">None</SelectItem>
-              {fbaTiers.map((tier) => (
-                <SelectItem key={tier.id} value={tier.id.toString()}>
-                  {tier.tier_name} - {tier.size_category} (£{tier.fee_amount.toFixed(2)})
-                </SelectItem>
-              ))}
-            </SelectContent>
-          </Select>
-        )}
+        <Label htmlFor="amazon-fba-tier">Amazon FBA Tier</Label>
+        <Select onValueChange={handleAmazonFbaTierChange} defaultValue={amazonFbaTierId?.toString() || 'null'}>
+          <SelectTrigger id="amazon-fba-tier">
+            <SelectValue placeholder="Select Amazon FBA Tier" />
+          </SelectTrigger>
+          <SelectContent>
+            <SelectItem value="null">None</SelectItem>
+            {amazonFbaTiers.map((tier) => (
+              <SelectItem key={tier.id} value={tier.id.toString()}>
+                {tier.tier_name}
+              </SelectItem>
+            ))}
+          </SelectContent>
+        </Select>
       </div>
     </div>
   );
