@@ -41,7 +41,6 @@ export const getSalesWithProducts = async (): Promise<SaleWithProduct[]> => {
       advertising_cost,
       vat_status,
       platform_fee_percentage,
-      promoted_listing_percentage
     `);
 
   if (error) {
