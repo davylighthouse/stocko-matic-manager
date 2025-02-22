@@ -13,6 +13,10 @@ export interface SaleWithProduct {
   advertising_cost: number;
   gross_profit: number;
   promoted: boolean;
+  vat_status?: string;
+  vat_cost?: number;
+  profit_margin?: number;
+  total_costs?: number;
 }
 
 export interface SalesTotals {

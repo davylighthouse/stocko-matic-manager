@@ -39,7 +39,9 @@ export const getSalesWithProducts = async (): Promise<SaleWithProduct[]> => {
       platform_fees,
       shipping_cost,
       advertising_cost,
-      vat_status
+      vat_status,
+      platform_fee_percentage,
+      promoted_listing_percentage
     `);
 
   if (error) {
@@ -51,7 +53,7 @@ export const getSalesWithProducts = async (): Promise<SaleWithProduct[]> => {
     // Calculate VAT correctly
     let vatCost = 0;
     if (sale.vat_status === "standard") {
-      vatCost = sale.total_price / 6;
+      vatCost = (sale.total_price || 0) / 6;
     }
 
     // Check Amazon FBA shipping rule
@@ -60,29 +62,40 @@ export const getSalesWithProducts = async (): Promise<SaleWithProduct[]> => {
       shippingCost = 0;
     }
 
+    // Calculate advertising cost based on promoted listing percentage
+    const advertisingCost = sale.promoted ? 
+      (sale.total_price || 0) * (sale.promoted_listing_percentage || 0) / 100 : 0;
+
     // Calculate total costs correctly
     const totalCosts =
       (sale.total_product_cost || 0) +
       (sale.platform_fees || 0) +
       shippingCost +
-      (sale.advertising_cost || 0) +
+      advertisingCost +
       vatCost;
 
-    // Calculate final profit
+    // Calculate final profit and margin
     const profit = (sale.total_price || 0) - totalCosts;
+    const profitMargin = sale.total_price ? (profit / sale.total_price) * 100 : 0;
 
-    // ✅ LOGGING: Validate historical vs. current values
+    // ✅ DETAILED LOGGING: Historical vs Current Data Validation
+    console.log("\n-----------");
+    console.log(`📊 SALE ANALYSIS: #${sale.sale_id}`);
     console.log("-----------");
-    console.log(`Sale ID: ${sale.sale_id}`);
-    console.log(`Sale Date: ${sale.sale_date}`);
-    console.log(`SKU: ${sale.sku}`);
-    console.log(`Total Price: ${sale.total_price}`);
-    console.log(`Product Cost (Historical or Current?): ${sale.total_product_cost}`);
-    console.log(`Platform Fees (Historical or Current?): ${sale.platform_fees}`);
-    console.log(`Shipping Cost Used: ${shippingCost}`);
-    console.log(`Amazon FBA Shipping Adjustment: ${sale.platform === "Amazon FBA" ? "Set to 0" : "Used as is"}`);
-    console.log(`VAT Calculation: ${vatCost}`);
-    console.log(`Final Profit: ${profit}`);
+    console.log("BASIC INFO:");
+    console.log(`📅 Sale Date: ${sale.sale_date}`);
+    console.log(`🏷️ SKU: ${sale.sku}`);
+    console.log(`💰 Total Price: £${sale.total_price}`);
+    console.log("\nCOST ANALYSIS:");
+    console.log(`📦 Product Cost: £${sale.total_product_cost}`);
+    console.log(`🏪 Platform Fees: £${sale.platform_fees} (${sale.platform_fee_percentage}%)`);
+    console.log(`🚚 Shipping Cost: £${shippingCost} ${sale.platform === "Amazon FBA" ? "(FBA: Set to 0)" : ""}`);
+    console.log(`📢 Advertising: £${advertisingCost} (${sale.promoted_listing_percentage}%)`);
+    console.log(`💱 VAT: £${vatCost} (${sale.vat_status})`);
+    console.log("\nPROFITABILITY:");
+    console.log(`💶 Total Costs: £${totalCosts}`);
+    console.log(`📈 Profit: £${profit}`);
+    console.log(`📊 Margin: ${profitMargin.toFixed(2)}%`);
     console.log("-----------");
 
     return {
@@ -97,8 +110,12 @@ export const getSalesWithProducts = async (): Promise<SaleWithProduct[]> => {
       total_product_cost: sale.total_product_cost || 0,
       platform_fees: sale.platform_fees || 0,
       shipping_cost: shippingCost,
-      advertising_cost: sale.advertising_cost || 0,
-      gross_profit: profit
+      advertising_cost: advertisingCost,
+      gross_profit: profit,
+      vat_status: sale.vat_status,
+      vat_cost: vatCost,
+      profit_margin: profitMargin,
+      total_costs: totalCosts
     };
   });
 };
