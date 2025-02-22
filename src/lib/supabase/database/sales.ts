@@ -1,17 +1,8 @@
+
 import { supabase } from '@/integrations/supabase/client';
 import type { SaleWithProduct } from '@/types/sales';
 import { format } from 'date-fns';
 import Papa from 'papaparse';
-
-const debugTypes = (data: unknown, label: string) => {
-  console.log(`Type Debug [${label}]:`, {
-    rawType: typeof data,
-    isArray: Array.isArray(data),
-    hasPromise: data instanceof Promise,
-    keys: data && typeof data === 'object' ? Object.keys(data) : [],
-    prototype: data && typeof data === 'object' ? Object.getPrototypeOf(data) : null
-  });
-};
 
 interface SalesCSVRow {
   'Sale Date': string;
@@ -23,7 +14,28 @@ interface SalesCSVRow {
   'Total Price': string;
 }
 
-interface BaseSaleData {
+// Simple, flat interfaces without type operations
+interface SaleProfitabilityUpdate {
+  sale_date?: string;
+  platform?: string;
+  sku?: string;
+  quantity?: number;
+  total_price?: number;
+  promoted?: boolean;
+  verified?: boolean;
+}
+
+interface UpdateSaleData {
+  sale_date?: string;
+  platform?: string;
+  sku?: string;
+  quantity?: number;
+  total_price?: number;
+  gross_profit?: number;
+  promoted?: boolean;
+}
+
+interface NewSaleData {
   sale_date: string;
   platform: string;
   sku: string;
@@ -31,12 +43,6 @@ interface BaseSaleData {
   total_price: number;
   promoted: boolean;
 }
-
-type SaleProfitabilityUpdate = Partial<BaseSaleData> & {
-  verified?: boolean;
-};
-
-type NewSaleData = BaseSaleData;
 
 const parsePrice = (value: string | number | null | undefined): number => {
   if (value === null || value === undefined || value === '') return 0;
@@ -139,7 +145,6 @@ export const updateSale = async (id: number, data: UpdateSaleData): Promise<bool
 };
 
 export const updateSaleProfitability = async (id: number, data: SaleProfitabilityUpdate): Promise<boolean> => {
-  debugTypes(data, 'updateSaleProfitability input');
   console.log('Updating sale profitability:', { id, data });
   
   const { error } = await supabase
@@ -164,20 +169,15 @@ export const updateSaleProfitability = async (id: number, data: SaleProfitabilit
 };
 
 export const processSalesCSV = async (file: File): Promise<{ success: boolean; message?: string }> => {
-  debugTypes(file, 'CSV file input');
-  
   return new Promise((resolve) => {
     Papa.parse<SalesCSVRow>(file, {
       header: true,
       skipEmptyLines: true,
       complete: async (results) => {
         try {
-          debugTypes(results.data, 'Parsed CSV data');
           console.log('Parsing sales CSV file:', results.data);
           
           for (const row of results.data) {
-            debugTypes(row, 'Individual CSV row');
-            
             if (!row.SKU || !row['Sale Date']) {
               console.error('Row missing required fields:', row);
               continue;
@@ -189,8 +189,6 @@ export const processSalesCSV = async (file: File): Promise<{ success: boolean; m
               .eq('sku', row.SKU)
               .maybeSingle();
 
-            debugTypes(existingProduct, 'Existing product data');
-
             if (!existingProduct) {
               console.log('Product does not exist, creating:', row.SKU);
               const [{ data: defaultPickingFee }, { data: defaultShippingService }] = await Promise.all([
@@ -198,26 +196,19 @@ export const processSalesCSV = async (file: File): Promise<{ success: boolean; m
                 supabase.from('shipping_services').select('id').limit(1).single()
               ]);
 
-              debugTypes(defaultPickingFee, 'Default picking fee');
-              debugTypes(defaultShippingService, 'Default shipping service');
-
               if (!defaultPickingFee || !defaultShippingService) {
                 throw new Error('Default picking fee or shipping service not found');
               }
 
-              const newProduct = {
-                sku: row.SKU,
-                listing_title: row['Listing Title'] || row.SKU,
-                default_picking_fee_id: defaultPickingFee.id,
-                default_shipping_service_id: defaultShippingService.id,
-                stock_quantity: 0
-              };
-
-              debugTypes(newProduct, 'New product data');
-
               const { error: productError } = await supabase
                 .from('products')
-                .insert(newProduct);
+                .insert({
+                  sku: row.SKU,
+                  listing_title: row['Listing Title'] || row.SKU,
+                  default_picking_fee_id: defaultPickingFee.id,
+                  default_shipping_service_id: defaultShippingService.id,
+                  stock_quantity: 0
+                });
 
               if (productError) {
                 console.error('Error creating product:', productError);
@@ -244,7 +235,6 @@ export const processSalesCSV = async (file: File): Promise<{ success: boolean; m
               promoted: row['Promoted Listing']?.toLowerCase() === 'yes',
             };
 
-            debugTypes(saleData, 'Sale data before insert');
             console.log('Inserting sale:', saleData);
 
             const { error } = await supabase
