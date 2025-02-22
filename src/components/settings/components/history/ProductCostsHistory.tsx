@@ -17,6 +17,7 @@ interface ProductCostHistory {
   product_cost: number;
   packaging_cost: number | null;
   making_up_cost: number | null;
+  promoted_listing_percentage: number | null;
   effective_from: string;
   effective_to: string | null;
   notes: string | null;
@@ -31,6 +32,7 @@ export const ProductCostsHistory = () => {
     product_cost: "",
     packaging_cost: "",
     making_up_cost: "",
+    promoted_listing_percentage: "",
     effective_from: new Date(),
     notes: "",
   });
@@ -64,6 +66,7 @@ export const ProductCostsHistory = () => {
         product_cost: "",
         packaging_cost: "",
         making_up_cost: "",
+        promoted_listing_percentage: "",
         effective_from: new Date(),
         notes: "",
       });
@@ -78,6 +81,7 @@ export const ProductCostsHistory = () => {
       product_cost: parseFloat(newRate.product_cost),
       packaging_cost: newRate.packaging_cost ? parseFloat(newRate.packaging_cost) : null,
       making_up_cost: newRate.making_up_cost ? parseFloat(newRate.making_up_cost) : null,
+      promoted_listing_percentage: newRate.promoted_listing_percentage ? parseFloat(newRate.promoted_listing_percentage) : null,
       effective_from: format(newRate.effective_from, 'yyyy-MM-dd'),
       notes: newRate.notes || null,
     });
@@ -102,6 +106,12 @@ export const ProductCostsHistory = () => {
       key: "making_up_cost" as const,
       align: "right" as const,
       format: (value: number | null) => value ? `£${value.toFixed(2)}` : '-'
+    },
+    {
+      header: "Promoted Listing %",
+      key: "promoted_listing_percentage" as const,
+      align: "right" as const,
+      format: (value: number | null) => value ? `${value}%` : '-'
     },
     { 
       header: "Effective From", 
@@ -158,6 +168,14 @@ export const ProductCostsHistory = () => {
               value={newRate.making_up_cost}
               onChange={(value) => setNewRate({ ...newRate, making_up_cost: value })}
               placeholder="Making up cost (optional)"
+              type="number"
+              step="0.01"
+            />
+            <FormField
+              label="Promoted Listing %"
+              value={newRate.promoted_listing_percentage}
+              onChange={(value) => setNewRate({ ...newRate, promoted_listing_percentage: value })}
+              placeholder="Promoted listing percentage (optional)"
               type="number"
               step="0.01"
             />

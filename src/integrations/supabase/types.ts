@@ -274,6 +274,7 @@ export type Database = {
           notes: string | null
           packaging_cost: number | null
           product_cost: number
+          promoted_listing_percentage: number | null
           sku: string
         }
         Insert: {
@@ -286,6 +287,7 @@ export type Database = {
           notes?: string | null
           packaging_cost?: number | null
           product_cost: number
+          promoted_listing_percentage?: number | null
           sku: string
         }
         Update: {
@@ -298,6 +300,7 @@ export type Database = {
           notes?: string | null
           packaging_cost?: number | null
           product_cost?: number
+          promoted_listing_percentage?: number | null
           sku?: string
         }
         Relationships: []
@@ -724,6 +727,16 @@ export type Database = {
         }
         Relationships: []
       }
+      current_product_costs: {
+        Row: {
+          making_up_cost: number | null
+          packaging_cost: number | null
+          product_cost: number | null
+          promoted_listing_percentage: number | null
+          sku: string | null
+        }
+        Relationships: []
+      }
       current_shipping_rates: {
         Row: {
           effective_from: string | null
@@ -914,6 +927,13 @@ export type Database = {
           packaging_cost: number
           making_up_cost: number
         }[]
+      }
+      get_promoted_listing_percentage_at_date: {
+        Args: {
+          p_sku: string
+          p_date: string
+        }
+        Returns: number
       }
       get_shipping_rate_at_date: {
         Args: {
