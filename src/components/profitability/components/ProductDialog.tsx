@@ -31,21 +31,32 @@ export const ProductDialog = ({ isOpen, onOpenChange, currentProduct }: ProductD
       formData.forEach((value, key) => {
         if (value !== '' && value !== null) {
           if (key === 'advertising_cost') {
-            updates[key as keyof Product] = parseFloat(value as string);
+            // For advertising_cost, we need to update the product_cost_history
+            const parsedValue = parseFloat(value as string);
+            updates.promoted_listing_percentage = parsedValue;
+            updatedFieldNames.push('promoted_listing_percentage');
           } else {
             updates[key as keyof Product] = value;
+            updatedFieldNames.push(key);
           }
-          updatedFieldNames.push(key);
         }
       });
     } else {
       // Handle individual field update
       const { field, value } = eventOrField;
-      updates[field as keyof Product] = value;
-      updatedFieldNames.push(field);
+      if (field === 'advertising_cost') {
+        // Convert advertising_cost to promoted_listing_percentage for historical tracking
+        updates.promoted_listing_percentage = value;
+        updatedFieldNames.push('promoted_listing_percentage');
+      } else {
+        updates[field as keyof Product] = value;
+        updatedFieldNames.push(field);
+      }
     }
 
     try {
+      // The handle_product_cost_updates trigger will automatically create a new history record
+      // when promoted_listing_percentage is updated
       await updateProductDetails(currentProduct.sku, updates);
       await queryClient.invalidateQueries({ queryKey: ['products'] });
       
