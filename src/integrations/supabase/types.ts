@@ -718,6 +718,20 @@ export type Database = {
           fee_name: string | null
           id: number | null
         }
+        Insert: {
+          effective_from?: string | null
+          effective_to?: string | null
+          fee_amount?: number | null
+          fee_name?: string | null
+          id?: number | null
+        }
+        Update: {
+          effective_from?: string | null
+          effective_to?: string | null
+          fee_amount?: number | null
+          fee_name?: string | null
+          id?: number | null
+        }
         Relationships: []
       }
       current_platform_fees: {
@@ -727,6 +741,20 @@ export type Database = {
           flat_fee: number | null
           percentage_fee: number | null
           platform_name: string | null
+        }
+        Insert: {
+          effective_from?: string | null
+          effective_to?: string | null
+          flat_fee?: number | null
+          percentage_fee?: number | null
+          platform_name?: string | null
+        }
+        Update: {
+          effective_from?: string | null
+          effective_to?: string | null
+          flat_fee?: number | null
+          percentage_fee?: number | null
+          platform_name?: string | null
         }
         Relationships: []
       }
@@ -739,6 +767,22 @@ export type Database = {
           promoted_listing_percentage: number | null
           sku: string | null
         }
+        Insert: {
+          additional_costs?: number | null
+          making_up_cost?: number | null
+          packaging_cost?: number | null
+          product_cost?: number | null
+          promoted_listing_percentage?: number | null
+          sku?: string | null
+        }
+        Update: {
+          additional_costs?: number | null
+          making_up_cost?: number | null
+          packaging_cost?: number | null
+          product_cost?: number | null
+          promoted_listing_percentage?: number | null
+          sku?: string | null
+        }
         Relationships: []
       }
       current_shipping_rates: {
@@ -749,6 +793,22 @@ export type Database = {
           service_id: number | null
           weight_from: number | null
           weight_to: number | null
+        }
+        Insert: {
+          effective_from?: string | null
+          effective_to?: string | null
+          price?: number | null
+          service_id?: number | null
+          weight_from?: number | null
+          weight_to?: number | null
+        }
+        Update: {
+          effective_from?: string | null
+          effective_to?: string | null
+          price?: number | null
+          service_id?: number | null
+          weight_from?: number | null
+          weight_to?: number | null
         }
         Relationships: [
           {
