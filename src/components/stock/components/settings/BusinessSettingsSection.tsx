@@ -19,23 +19,24 @@ export const BusinessSettingsSection = ({
   return (
     <>
       <div>
-        <Label htmlFor="advertising-cost">Advertising Cost (%)</Label>
+        <Label htmlFor="advertising_cost">Promotion Rate (%)</Label>
         <Input
-          id="advertising-cost"
+          id="advertising_cost"
+          name="advertising_cost"
           type="number"
           step="0.01"
           min="0"
           max="100"
-          value={advertisingCost ?? 0}
+          defaultValue={advertisingCost?.toString() ?? "0"}
           onChange={onAdvertisingCostChange}
           className="mt-1"
         />
       </div>
 
       <div>
-        <Label htmlFor="vat-status">VAT Status</Label>
+        <Label htmlFor="vat_status">VAT Status</Label>
         <Select onValueChange={onVatStatusChange} defaultValue={vatStatus}>
-          <SelectTrigger id="vat-status">
+          <SelectTrigger id="vat_status">
             <SelectValue placeholder="Select VAT status" />
           </SelectTrigger>
           <SelectContent>

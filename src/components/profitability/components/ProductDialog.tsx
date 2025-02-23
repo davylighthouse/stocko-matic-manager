@@ -17,42 +17,33 @@ export const ProductDialog = ({ isOpen, onOpenChange, currentProduct }: ProductD
   const { toast } = useToast();
   const queryClient = useQueryClient();
 
-  const handleProductUpdate = async (event: React.FormEvent<HTMLFormElement> | { field: string, value: any }) => {
+  const handleProductUpdate = async (formEvent: React.FormEvent<HTMLFormElement>) => {
+    formEvent.preventDefault();
     if (!currentProduct) return;
 
-    let updates: Partial<Product> = {};
-    let updatedFieldNames: string[] = [];
+    const formData = new FormData(formEvent.currentTarget);
+    const updates: Partial<Product> = {};
+    const updatedFieldNames: string[] = [];
 
-    // Handle both form submissions and individual field updates
-    if ('currentTarget' in event) {
-      // This is a form submission
-      event.preventDefault();
-      const formData = new FormData(event.currentTarget);
-      formData.forEach((value, key) => {
-        if (value !== '' && value !== null) {
+    formData.forEach((value, key) => {
+      if (value !== '' && value !== null) {
+        if (key === 'advertising_cost') {
+          updates[key] = parseFloat(value as string);
+        } else {
           (updates as any)[key] = value;
-          updatedFieldNames.push(key);
         }
-      });
-    } else {
-      // This is an individual field update
-      updates[event.field] = event.value;
-      updatedFieldNames.push(event.field);
-    }
+        updatedFieldNames.push(key);
+      }
+    });
 
     try {
       await updateProductDetails(currentProduct.sku, updates);
       await queryClient.invalidateQueries({ queryKey: ['products'] });
-      
-      if (!('currentTarget' in event)) {
-        // Only show toast and close dialog for form submissions
-        toast({
-          title: "Success",
-          description: "Product details updated successfully",
-        });
-        onOpenChange(false);
-      }
-      
+      onOpenChange(false);
+      toast({
+        title: "Success",
+        description: "Product details updated successfully",
+      });
       setUpdatedFields([]);
     } catch (error) {
       toast({
