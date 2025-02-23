@@ -7,6 +7,7 @@ import { Search } from "lucide-react";
 import { supabase } from "@/integrations/supabase/client";
 import { ProfitabilityTable } from "@/components/profitability/ProfitabilityTable";
 import type { ProfitabilityData } from "@/components/profitability/types";
+import type { SaleProfitabilityData } from "@/types/sales";
 
 const Profitability = () => {
   const [search, setSearch] = useState("");
@@ -26,7 +27,7 @@ const Profitability = () => {
       }
 
       // Process data and calculate derived fields
-      const processedData = salesData?.map(sale => {
+      const processedData = (salesData as SaleProfitabilityData[] || []).map(sale => {
         // Calculate VAT if applicable
         const vatCost = sale.vat_status === 'standard' ? (sale.total_price || 0) / 6 : 0;
 
@@ -51,10 +52,10 @@ const Profitability = () => {
           promoted: sale.promoted || false,
           quantity: sale.quantity || 0,
           total_price: sale.total_price || 0,
-          product_cost: sale.base_product_cost || 0,
-          packaging_cost: sale.packaging_cost || 0,
-          making_up_cost: sale.making_up_cost || 0,
-          additional_costs: sale.additional_costs || 0,
+          product_cost: sale.total_product_cost || 0, // Using total_product_cost instead of individual costs
+          packaging_cost: 0, // These are now included in total_product_cost from the view
+          making_up_cost: 0,
+          additional_costs: 0,
           total_product_cost: sale.total_product_cost || 0,
           platform_fees: sale.platform_fees || 0,
           shipping_cost: sale.shipping_cost || 0,
@@ -72,9 +73,9 @@ const Profitability = () => {
           platform_flat_fee: sale.platform_flat_fee || null,
           verified: false,
           promoted_listing_percentage: 0,
-          picking_fee: 0, // Set default value since it's no longer in the view
+          picking_fee: 0
         } satisfies ProfitabilityData;
-      }) || [];
+      });
 
       return processedData;
     },
