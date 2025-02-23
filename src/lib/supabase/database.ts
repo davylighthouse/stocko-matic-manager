@@ -172,13 +172,20 @@ export const updateProductDetails = async (sku: string, data: {
   product_cost?: number;
   warehouse_location?: string;
   supplier?: string;
+  promoted_listing_percentage?: number;
 }) => {
+  console.log('Updating product details:', { sku, data }); // Add logging to debug
+
   const { error } = await supabase
     .from('products')
     .update(data)
     .eq('sku', sku);
 
-  if (error) throw error;
+  if (error) {
+    console.error('Error updating product:', error);
+    throw error;
+  }
+  
   return true;
 };
 
