@@ -862,7 +862,6 @@ export type Database = {
       }
       sales_profitability: {
         Row: {
-          advertising_cost: number | null
           fba_fee_amount: number | null
           listing_title: string | null
           platform: string | null
@@ -870,6 +869,7 @@ export type Database = {
           platform_fees: number | null
           platform_flat_fee: number | null
           promoted: boolean | null
+          promoted_listing_percentage: number | null
           quantity: number | null
           sale_date: string | null
           sale_id: number | null
