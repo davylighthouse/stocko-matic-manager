@@ -10,6 +10,7 @@ interface BaseSaleFields {
   quantity: number;
   total_price: number | null;
   promoted: boolean | null;
+  advertising_cost?: number | null;
 }
 
 // Simple update interface for basic sale updates
@@ -23,6 +24,7 @@ interface ProfitabilityUpdate extends Partial<BaseSaleFields> {
 }
 
 export const deleteSale = async (id: number): Promise<boolean> => {
+  console.log('Deleting sale:', id);
   const { error } = await supabase
     .from('sales')
     .delete()
@@ -33,6 +35,7 @@ export const deleteSale = async (id: number): Promise<boolean> => {
 };
 
 export const deleteMultipleSales = async (ids: number[]): Promise<boolean> => {
+  console.log('Deleting multiple sales:', ids);
   const { error } = await supabase
     .from('sales')
     .delete()
@@ -45,10 +48,12 @@ export const deleteMultipleSales = async (ids: number[]): Promise<boolean> => {
 export const updateSale = async (id: number, data: SaleUpdate): Promise<boolean> => {
   console.log('Received data for update:', data);
   
+  // Handle numeric fields
   const numericData = {
     ...data,
     total_price: data.total_price !== undefined ? parsePrice(data.total_price) : undefined,
-    gross_profit: data.gross_profit !== undefined ? parsePrice(data.gross_profit) : undefined
+    gross_profit: data.gross_profit !== undefined ? parsePrice(data.gross_profit) : undefined,
+    advertising_cost: data.advertising_cost !== undefined ? parsePrice(data.advertising_cost) : undefined
   };
 
   console.log('Processed data for update:', numericData);
@@ -58,16 +63,27 @@ export const updateSale = async (id: number, data: SaleUpdate): Promise<boolean>
     .update(numericData)
     .eq('id', id);
 
-  if (error) throw error;
+  if (error) {
+    console.error('Error updating sale:', error);
+    throw error;
+  }
+
   return true;
 };
 
 export const updateSaleProfitability = async (id: number, data: ProfitabilityUpdate): Promise<boolean> => {
   console.log('Updating sale profitability:', { id, data });
+
+  // Handle numeric fields
+  const numericData = {
+    ...data,
+    total_price: data.total_price !== undefined ? parsePrice(data.total_price) : undefined,
+    advertising_cost: data.advertising_cost !== undefined ? parsePrice(data.advertising_cost) : undefined
+  };
   
   const { error } = await supabase
     .from('sales')
-    .update(data)
+    .update(numericData)
     .eq('id', id);
 
   if (error) {
