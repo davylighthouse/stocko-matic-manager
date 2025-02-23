@@ -1,8 +1,26 @@
 
 import { supabase } from '@/integrations/supabase/client';
-import type { SaleWithProduct } from '@/types/sales';
-import type { ProfitabilityData } from '@/components/profitability/types';
 import { parsePrice } from './types';
+
+// Define base sale types that exactly match our database schema
+interface BaseSaleFields {
+  sale_date: string;
+  platform: string;
+  sku: string | null;
+  quantity: number;
+  total_price: number | null;
+  promoted: boolean | null;
+}
+
+// Simple update interface for basic sale updates
+interface SaleUpdate extends Partial<BaseSaleFields> {
+  gross_profit?: number | null;
+}
+
+// Simple interface for profitability updates
+interface ProfitabilityUpdate extends Partial<BaseSaleFields> {
+  verified?: boolean;
+}
 
 export const deleteSale = async (id: number): Promise<boolean> => {
   const { error } = await supabase
@@ -24,71 +42,33 @@ export const deleteMultipleSales = async (ids: number[]): Promise<boolean> => {
   return true;
 };
 
-// Define a more specific type for the update data
-interface SaleUpdateData {
-  sale_date?: string;
-  platform?: string;
-  sku?: string;
-  quantity?: number;
-  total_price?: number | string;
-  gross_profit?: number | string;
-  promoted?: boolean;
-}
-
-export const updateSale = async (id: number, data: SaleUpdateData): Promise<boolean> => {
+export const updateSale = async (id: number, data: SaleUpdate): Promise<boolean> => {
   console.log('Received data for update:', data);
   
   const numericData = {
     ...data,
-    total_price: parsePrice(data.total_price),
-    gross_profit: parsePrice(data.gross_profit)
+    total_price: data.total_price !== undefined ? parsePrice(data.total_price) : undefined,
+    gross_profit: data.gross_profit !== undefined ? parsePrice(data.gross_profit) : undefined
   };
 
   console.log('Processed data for update:', numericData);
 
   const { error } = await supabase
     .from('sales')
-    .update({
-      sale_date: numericData.sale_date,
-      platform: numericData.platform,
-      sku: numericData.sku,
-      quantity: numericData.quantity,
-      total_price: numericData.total_price,
-      gross_profit: numericData.gross_profit,
-      promoted: numericData.promoted
-    })
+    .update(numericData)
     .eq('id', id);
 
   if (error) throw error;
   return true;
 };
 
-// Define specific fields for profitability update
-interface ProfitabilityUpdateData {
-  sale_date?: string;
-  platform?: string;
-  sku?: string;
-  quantity?: number;
-  total_price?: number;
-  promoted?: boolean;
-  verified?: boolean;
-}
-
-export const updateSaleProfitability = async (id: number, data: ProfitabilityUpdateData): Promise<boolean> => {
+export const updateSaleProfitability = async (id: number, data: ProfitabilityUpdate): Promise<boolean> => {
   console.log('Updating sale profitability:', { id, data });
   
   const { error } = await supabase
     .from('sales')
-    .update({
-      sale_date: data.sale_date,
-      platform: data.platform,
-      sku: data.sku,
-      quantity: data.quantity,
-      total_price: data.total_price,
-      promoted: data.promoted,
-      verified: data.verified
-    })
-    .eq('sale_id', id);
+    .update(data)
+    .eq('id', id);
 
   if (error) {
     console.error('Error updating sale:', error);
