@@ -499,34 +499,55 @@ export const getSalesTotals = async (): Promise<SalesTotals> => {
       sale_date,
       total_product_cost,
       shipping_cost,
-      advertising_cost,
-      vat_status
-    `)
-    .throwOnError();
+      vat_status,
+      promoted,
+      promoted_listing_percentage
+    `);
 
   if (error) {
     console.error('Error fetching sales totals:', error);
     throw error;
   }
 
-  // Calculate totals from the sales_profitability view
-  const totals = (data || []).reduce((acc, sale) => {
-    // Calculate VAT if applicable
-    const vatCost = (sale.vat_status === 'standard' && sale.total_price) ? sale.total_price / 6 : 0;
+  // Define the type for our query result
+  type SaleTotalRow = {
+    total_price: number | null;
+    quantity: number | null;
+    platform_fees: number | null;
+    sku: string;
+    sale_date: string;
+    total_product_cost: number | null;
+    shipping_cost: number | null;
+    vat_status: string | null;
+    promoted: boolean | null;
+    promoted_listing_percentage: number | null;
+  };
 
-    // Calculate total costs including VAT
+  const totals = (data as SaleTotalRow[] || []).reduce((acc, sale) => {
+    let vatCost = 0;
+    if (sale.vat_status === 'standard') {
+      vatCost = (sale.total_price || 0) / 6;
+    }
+
+    // Calculate advertising cost based on promotion status
+    let advertisingCost = 0;
+    if (sale.promoted) {
+      advertisingCost = (sale.total_price || 0) * (sale.promoted_listing_percentage || 0) / 100;
+    }
+
     const totalCosts = (sale.total_product_cost || 0) +
                       (sale.platform_fees || 0) +
                       (sale.shipping_cost || 0) +
+                      advertisingCost +
                       vatCost;
 
     // Calculate profit
     const profit = (sale.total_price || 0) - totalCosts;
 
     return {
-      total_sales: (acc.total_sales || 0) + (sale.total_price || 0),
-      total_quantity: (acc.total_quantity || 0) + (sale.quantity || 0),
-      total_profit: (acc.total_profit || 0) + profit,
+      total_sales: acc.total_sales + (sale.total_price || 0),
+      total_quantity: acc.total_quantity + (sale.quantity || 0),
+      total_profit: acc.total_profit + profit,
     };
   }, {
     total_sales: 0,
@@ -534,31 +555,19 @@ export const getSalesTotals = async (): Promise<SalesTotals> => {
     total_profit: 0,
   });
 
-  // Get unique products count
-  const { count: uniqueProducts } = await supabase
-    .from('sales_profitability')
-    .select('sku', { count: 'exact', head: true });
+  // Get unique SKUs count
+  const uniqueSkus = new Set((data as SaleTotalRow[])?.map(sale => sale.sku)).size;
 
-  // Get date range
-  const { data: dateRange } = await supabase
-    .from('sales_profitability')
-    .select('sale_date')
-    .order('sale_date', { ascending: true })
-    .limit(1)
-    .single();
-
-  const { data: latestDate } = await supabase
-    .from('sales_profitability')
-    .select('sale_date')
-    .order('sale_date', { ascending: false })
-    .limit(1)
-    .single();
+  // Sort data for date range
+  const sortedData = [...((data as SaleTotalRow[]) || [])].sort((a, b) => 
+    new Date(a.sale_date).getTime() - new Date(b.sale_date).getTime()
+  );
 
   return {
     ...totals,
-    unique_products: uniqueProducts || 0,
-    earliest_sale: dateRange?.sale_date || '',
-    latest_sale: latestDate?.sale_date || '',
+    unique_products: uniqueSkus,
+    earliest_sale: sortedData[0]?.sale_date || '',
+    latest_sale: sortedData[sortedData.length - 1]?.sale_date || '',
   };
 };
 
