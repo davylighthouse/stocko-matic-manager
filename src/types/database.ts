@@ -26,6 +26,7 @@ export interface Product {
   low_stock_threshold?: number;
   amazon_fba_tier_id?: number | null;
   promoted_listing_percentage?: number;
+  advertising_cost?: number;
   latest_stock_check_quantities?: Array<{
     last_check_quantity: number;
     check_date: string;
@@ -61,3 +62,4 @@ export interface Sale {
   total_price: number;
   gross_profit: number;
 }
+

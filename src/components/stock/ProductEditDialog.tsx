@@ -29,11 +29,15 @@ export const ProductEditDialog = ({
     </FieldCheckIndicator>
   );
 
-  const onSettingChange = (field: string) => {
+  const onSettingChange = (field: string, value: any) => {
     onSubmit({
       preventDefault: () => {},
       stopPropagation: () => {},
-      currentTarget: null,
+      currentTarget: {
+        elements: {
+          [field]: { value }
+        }
+      },
       target: null,
     } as any);
   };
@@ -88,6 +92,7 @@ export const ProductEditDialog = ({
                 defaultShippingServiceId={product.default_shipping_service_id}
                 amazonFbaTierId={product.amazon_fba_tier_id}
                 vatStatus={product.vat_status}
+                advertisingCost={product.advertising_cost}
                 onSettingChange={onSettingChange}
               />
             </TabsContent>
@@ -117,3 +122,4 @@ export const ProductEditDialog = ({
     </Dialog>
   );
 };
+

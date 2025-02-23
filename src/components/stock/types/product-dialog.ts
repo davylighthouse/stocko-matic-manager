@@ -28,3 +28,4 @@ export interface TabContentProps {
   renderFieldWithCheck: (fieldName: string, children: React.ReactNode) => React.ReactElement;
   onStockUpdate?: (sku: string, quantity: number) => void;
 }
+
