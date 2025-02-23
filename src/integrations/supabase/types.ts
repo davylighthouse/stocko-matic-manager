@@ -266,6 +266,7 @@ export type Database = {
       product_cost_history: {
         Row: {
           additional_costs: number | null
+          advertising_cost: number | null
           created_at: string | null
           created_by: string | null
           effective_from: string
@@ -280,6 +281,7 @@ export type Database = {
         }
         Insert: {
           additional_costs?: number | null
+          advertising_cost?: number | null
           created_at?: string | null
           created_by?: string | null
           effective_from: string
@@ -294,6 +296,7 @@ export type Database = {
         }
         Update: {
           additional_costs?: number | null
+          advertising_cost?: number | null
           created_at?: string | null
           created_by?: string | null
           effective_from?: string
@@ -761,6 +764,7 @@ export type Database = {
       current_product_costs: {
         Row: {
           additional_costs: number | null
+          advertising_cost: number | null
           making_up_cost: number | null
           packaging_cost: number | null
           product_cost: number | null
@@ -769,6 +773,7 @@ export type Database = {
         }
         Insert: {
           additional_costs?: number | null
+          advertising_cost?: number | null
           making_up_cost?: number | null
           packaging_cost?: number | null
           product_cost?: number | null
@@ -777,6 +782,7 @@ export type Database = {
         }
         Update: {
           additional_costs?: number | null
+          advertising_cost?: number | null
           making_up_cost?: number | null
           packaging_cost?: number | null
           product_cost?: number | null

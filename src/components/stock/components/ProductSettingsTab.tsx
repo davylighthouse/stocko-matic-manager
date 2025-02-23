@@ -2,7 +2,7 @@
 import { useState } from 'react';
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select';
 import { Label } from '@/components/ui/label';
-import { Switch } from '@/components/ui/switch';
+import { Input } from '@/components/ui/input';
 import { supabase } from '@/integrations/supabase/client';
 import { useQuery } from '@tanstack/react-query';
 
@@ -12,6 +12,7 @@ interface ProductSettingsTabProps {
   defaultShippingServiceId?: number;
   amazonFbaTierId?: number | null;
   vatStatus?: string;
+  advertisingCost?: number;
   onSettingChange: (field: string, value: any) => void;
 }
 
@@ -21,6 +22,7 @@ export const ProductSettingsTab = ({
   defaultShippingServiceId,
   amazonFbaTierId,
   vatStatus,
+  advertisingCost,
   onSettingChange,
 }: ProductSettingsTabProps) => {
   const { data: pickingFees = [] } = useQuery({
@@ -73,6 +75,11 @@ export const ProductSettingsTab = ({
     onSettingChange('amazon_fba_tier_id', tierId);
   };
 
+  const handleAdvertisingCostChange = (event: React.ChangeEvent<HTMLInputElement>) => {
+    const value = parseFloat(event.target.value);
+    onSettingChange('advertising_cost', isNaN(value) ? 0 : value);
+  };
+
   return (
     <div className="grid gap-4">
       <div>
@@ -105,6 +112,20 @@ export const ProductSettingsTab = ({
             ))}
           </SelectContent>
         </Select>
+      </div>
+
+      <div>
+        <Label htmlFor="advertising-cost">Advertising Cost (%)</Label>
+        <Input
+          id="advertising-cost"
+          type="number"
+          step="0.01"
+          min="0"
+          max="100"
+          value={advertisingCost ?? 0}
+          onChange={handleAdvertisingCostChange}
+          className="mt-1"
+        />
       </div>
 
       <div>
