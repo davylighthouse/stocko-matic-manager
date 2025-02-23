@@ -21,7 +21,7 @@ export const ProductDialog = ({ isOpen, onOpenChange, currentProduct }: ProductD
   const handleProductUpdate = async (eventOrField: React.FormEvent<HTMLFormElement> | FieldUpdate) => {
     if (!currentProduct) return;
 
-    const updates: Partial<Product> = {};
+    const updates: Record<string, string | number | null> = {};
     const updatedFieldNames: string[] = [];
 
     if ('currentTarget' in eventOrField) {
@@ -31,13 +31,13 @@ export const ProductDialog = ({ isOpen, onOpenChange, currentProduct }: ProductD
       formData.forEach((value, key) => {
         if (value !== '' && value !== null) {
           if (key === 'advertising_cost') {
-            const parsedValue = parseFloat(value as string);
+            const parsedValue = parseFloat(value.toString());
             if (!isNaN(parsedValue)) {
               updates.promoted_listing_percentage = parsedValue;
               updatedFieldNames.push('promoted_listing_percentage');
             }
           } else {
-            updates[key as keyof Product] = value;
+            updates[key] = value.toString();
             updatedFieldNames.push(key);
           }
         }
@@ -49,7 +49,7 @@ export const ProductDialog = ({ isOpen, onOpenChange, currentProduct }: ProductD
         updates.promoted_listing_percentage = value;
         updatedFieldNames.push('promoted_listing_percentage');
       } else {
-        updates[field as keyof Product] = value;
+        updates[field] = value;
         updatedFieldNames.push(field);
       }
     }
@@ -57,7 +57,7 @@ export const ProductDialog = ({ isOpen, onOpenChange, currentProduct }: ProductD
     console.log('Updating product with:', updates); // Debug log
 
     try {
-      await updateProductDetails(currentProduct.sku, updates);
+      await updateProductDetails(currentProduct.sku, updates as Partial<Product>);
       await queryClient.invalidateQueries({ queryKey: ['products'] });
       
       if ('currentTarget' in eventOrField) {

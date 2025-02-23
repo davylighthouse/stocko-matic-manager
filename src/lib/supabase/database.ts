@@ -2,6 +2,7 @@ import { supabase } from '@/integrations/supabase/client';
 import type { SaleWithProduct, SalesTotals } from '@/types/sales';
 import type { ProfitabilityData } from '@/components/profitability/types';
 import { format } from 'date-fns';
+import { Product } from "@/types/database";
 
 export const processCSV = async (file: File): Promise<{ success: boolean; message: string }> => {
   try {
