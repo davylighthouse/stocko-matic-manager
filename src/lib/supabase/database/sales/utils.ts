@@ -34,13 +34,13 @@ export const calculateSaleMetrics = (sale: RawSaleData): SaleWithProduct => {
   // Calculate advertising cost based on platform and promotion status
   let advertisingCost = 0;
   if (sale.promoted) {
-    if (sale.platform === 'eBay') {
-      // For eBay, use the platform_fee_percentage directly
-      advertisingCost = (sale.total_price || 0) * (sale.platform_fee_percentage || 0) / 100;
-    } else {
-      // For other platforms, use the existing calculation
-      advertisingCost = (sale.total_price || 0) * (sale.platform_fee_percentage || 0) / 100;
-    }
+    // Use the platform_fee_percentage for the advertising cost calculation
+    advertisingCost = (sale.total_price || 0) * (sale.platform_fee_percentage || 0) / 100;
+    console.log('Calculating advertising cost:', {
+      total_price: sale.total_price,
+      platform_fee_percentage: sale.platform_fee_percentage,
+      result: advertisingCost
+    });
   }
 
   // Calculate total costs correctly
@@ -63,10 +63,12 @@ export const calculateSaleMetrics = (sale: RawSaleData): SaleWithProduct => {
   console.log(`📅 Sale Date: ${sale.sale_date}`);
   console.log(`🏷️ SKU: ${sale.sku}`);
   console.log(`💰 Total Price: £${sale.total_price}`);
+  console.log(`🎯 Promoted: ${sale.promoted}`);
+  console.log(`📢 Platform Fee %: ${sale.platform_fee_percentage}%`);
   console.log("\nCOST ANALYSIS:");
   console.log(`📦 Product Cost: £${sale.total_product_cost}`);
-  console.log(`🏪 Platform Fees: £${sale.platform_fees} (${sale.platform_fee_percentage}%)`);
-  console.log(`🚚 Shipping Cost: £${shippingCost} ${sale.platform === "Amazon FBA" ? "(FBA: Set to 0)" : ""}`);
+  console.log(`🏪 Platform Fees: £${sale.platform_fees}`);
+  console.log(`🚚 Shipping Cost: £${shippingCost}`);
   console.log(`📢 Advertising: £${advertisingCost}`);
   console.log(`💱 VAT: £${vatCost} (${sale.vat_status})`);
   console.log("\nPROFITABILITY:");

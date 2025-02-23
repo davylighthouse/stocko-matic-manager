@@ -52,14 +52,15 @@ export const ProductDialog = ({ isOpen, onOpenChange, currentProduct }: ProductD
       }
     }
 
-    console.log('Updating product with:', updates);
-
     try {
+      console.log('Updating product with:', updates);
       await updateProductDetails(currentProduct.sku, updates as Partial<Product>);
       
+      // Invalidate all relevant queries
       await Promise.all([
         queryClient.invalidateQueries({ queryKey: ['products'] }),
-        queryClient.invalidateQueries({ queryKey: ['profitability'] })
+        queryClient.invalidateQueries({ queryKey: ['profitability'] }),
+        queryClient.invalidateQueries({ queryKey: ['sales'] })
       ]);
       
       if ('currentTarget' in eventOrField) {
@@ -86,10 +87,13 @@ export const ProductDialog = ({ isOpen, onOpenChange, currentProduct }: ProductD
     // This function is required by the ProductEditDialog but won't be used in this context
   };
 
+  // Map the promoted_listing_percentage to advertising_cost for the dialog
   const productWithAdvertisingCost = currentProduct ? {
     ...currentProduct,
-    advertising_cost: currentProduct.promoted_listing_percentage ?? 0
+    advertising_cost: currentProduct.promoted_listing_percentage || 0
   } : null;
+
+  console.log('Product with advertising cost:', productWithAdvertisingCost); // Debug log
 
   return (
     <ProductEditDialog
