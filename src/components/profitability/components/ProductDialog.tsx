@@ -58,7 +58,12 @@ export const ProductDialog = ({ isOpen, onOpenChange, currentProduct }: ProductD
 
     try {
       await updateProductDetails(currentProduct.sku, updates as Partial<Product>);
-      await queryClient.invalidateQueries({ queryKey: ['products'] });
+      
+      // Invalidate both products and profitability queries to ensure fresh data
+      await Promise.all([
+        queryClient.invalidateQueries({ queryKey: ['products'] }),
+        queryClient.invalidateQueries({ queryKey: ['profitability'] })
+      ]);
       
       if ('currentTarget' in eventOrField) {
         onOpenChange(false);
@@ -70,7 +75,7 @@ export const ProductDialog = ({ isOpen, onOpenChange, currentProduct }: ProductD
       
       setUpdatedFields([]);
     } catch (error) {
-      console.error('Update error:', error); // Debug log
+      console.error('Update error:', error);
       toast({
         title: "Error",
         description: error instanceof Error ? error.message : "Failed to update product details",
@@ -86,7 +91,10 @@ export const ProductDialog = ({ isOpen, onOpenChange, currentProduct }: ProductD
 
   return (
     <ProductEditDialog
-      product={currentProduct ?? null}
+      product={{
+        ...currentProduct,
+        advertising_cost: currentProduct?.promoted_listing_percentage ?? 0
+      } as Product ?? null}
       open={isOpen}
       onOpenChange={onOpenChange}
       onSubmit={handleProductUpdate}

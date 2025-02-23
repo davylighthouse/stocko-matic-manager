@@ -1,4 +1,3 @@
-
 import { TableCell } from "@/components/ui/table";
 import { format } from "date-fns";
 import { Button } from "@/components/ui/button";
@@ -29,6 +28,8 @@ export const ViewRow = ({ sale, columnWidths, onEdit }: ViewRowProps) => {
   const currentProduct = products.find(p => p.sku === sale.sku);
 
   const historicalIndicator = "text-xs text-muted-foreground ml-1 italic";
+
+  console.log('Current product:', currentProduct);
 
   return (
     <>
@@ -146,4 +147,3 @@ export const ViewRow = ({ sale, columnWidths, onEdit }: ViewRowProps) => {
     </>
   );
 };
-
