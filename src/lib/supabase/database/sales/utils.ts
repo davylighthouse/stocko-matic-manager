@@ -31,9 +31,17 @@ export const calculateSaleMetrics = (sale: RawSaleData): SaleWithProduct => {
     shippingCost = 0;
   }
 
-  // Calculate advertising cost based on platform fee percentage
-  const advertisingCost = sale.promoted ? 
-    (sale.total_price || 0) * (sale.platform_fee_percentage || 0) / 100 : 0;
+  // Calculate advertising cost based on platform and promotion status
+  let advertisingCost = 0;
+  if (sale.promoted) {
+    if (sale.platform === 'eBay') {
+      // For eBay, use the platform_fee_percentage directly
+      advertisingCost = (sale.total_price || 0) * (sale.platform_fee_percentage || 0) / 100;
+    } else {
+      // For other platforms, use the existing calculation
+      advertisingCost = (sale.total_price || 0) * (sale.platform_fee_percentage || 0) / 100;
+    }
+  }
 
   // Calculate total costs correctly
   const totalCosts =
@@ -47,7 +55,7 @@ export const calculateSaleMetrics = (sale: RawSaleData): SaleWithProduct => {
   const profit = (sale.total_price || 0) - totalCosts;
   const profitMargin = sale.total_price ? (profit / sale.total_price) * 100 : 0;
 
-  // ✅ DETAILED LOGGING: Historical vs Current Data Validation
+  // Debug logging
   console.log("\n-----------");
   console.log(`📊 SALE ANALYSIS: #${sale.sale_id}`);
   console.log("-----------");

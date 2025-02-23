@@ -25,7 +25,6 @@ export const ProductDialog = ({ isOpen, onOpenChange, currentProduct }: ProductD
     const updatedFieldNames: string[] = [];
 
     if ('currentTarget' in eventOrField) {
-      // Handle form submission
       eventOrField.preventDefault();
       const formData = new FormData(eventOrField.currentTarget);
       formData.forEach((value, key) => {
@@ -43,7 +42,6 @@ export const ProductDialog = ({ isOpen, onOpenChange, currentProduct }: ProductD
         }
       });
     } else {
-      // Handle individual field update
       const { field, value } = eventOrField;
       if (field === 'advertising_cost' && typeof value === 'number') {
         updates.promoted_listing_percentage = value;
@@ -54,12 +52,11 @@ export const ProductDialog = ({ isOpen, onOpenChange, currentProduct }: ProductD
       }
     }
 
-    console.log('Updating product with:', updates); // Debug log
+    console.log('Updating product with:', updates);
 
     try {
       await updateProductDetails(currentProduct.sku, updates as Partial<Product>);
       
-      // Invalidate both products and profitability queries to ensure fresh data
       await Promise.all([
         queryClient.invalidateQueries({ queryKey: ['products'] }),
         queryClient.invalidateQueries({ queryKey: ['profitability'] })
@@ -89,12 +86,14 @@ export const ProductDialog = ({ isOpen, onOpenChange, currentProduct }: ProductD
     // This function is required by the ProductEditDialog but won't be used in this context
   };
 
+  const productWithAdvertisingCost = currentProduct ? {
+    ...currentProduct,
+    advertising_cost: currentProduct.promoted_listing_percentage ?? 0
+  } : null;
+
   return (
     <ProductEditDialog
-      product={{
-        ...currentProduct,
-        advertising_cost: currentProduct?.promoted_listing_percentage ?? 0
-      } as Product ?? null}
+      product={productWithAdvertisingCost}
       open={isOpen}
       onOpenChange={onOpenChange}
       onSubmit={handleProductUpdate}
