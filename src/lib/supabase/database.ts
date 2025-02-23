@@ -167,18 +167,18 @@ export const getStockLevels = async () => {
   return data;
 };
 
-export const updateProductDetails = async (sku: string, data: {
-  listing_title?: string;
-  product_cost?: number;
-  warehouse_location?: string;
-  supplier?: string;
-  promoted_listing_percentage?: number;
-}) => {
-  console.log('Updating product details:', { sku, data }); // Add logging to debug
+export const updateProductDetails = async (sku: string, data: Partial<Product>) => {
+  console.log('Updating product details:', { sku, data }); // Debug log
 
   const { error } = await supabase
     .from('products')
-    .update(data)
+    .update({
+      ...data,
+      // Ensure promoted_listing_percentage is explicitly set if present
+      ...(data.promoted_listing_percentage !== undefined && {
+        promoted_listing_percentage: data.promoted_listing_percentage
+      })
+    })
     .eq('sku', sku);
 
   if (error) {

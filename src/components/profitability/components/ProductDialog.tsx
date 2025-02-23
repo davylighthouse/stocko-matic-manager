@@ -21,7 +21,7 @@ export const ProductDialog = ({ isOpen, onOpenChange, currentProduct }: ProductD
   const handleProductUpdate = async (eventOrField: React.FormEvent<HTMLFormElement> | FieldUpdate) => {
     if (!currentProduct) return;
 
-    const updates = {} as Record<keyof Product, any>;
+    const updates: Partial<Product> = {};
     const updatedFieldNames: string[] = [];
 
     if ('currentTarget' in eventOrField) {
@@ -31,10 +31,11 @@ export const ProductDialog = ({ isOpen, onOpenChange, currentProduct }: ProductD
       formData.forEach((value, key) => {
         if (value !== '' && value !== null) {
           if (key === 'advertising_cost') {
-            // For advertising_cost, we need to update the product_cost_history
             const parsedValue = parseFloat(value as string);
-            updates.promoted_listing_percentage = parsedValue;
-            updatedFieldNames.push('promoted_listing_percentage');
+            if (!isNaN(parsedValue)) {
+              updates.promoted_listing_percentage = parsedValue;
+              updatedFieldNames.push('promoted_listing_percentage');
+            }
           } else {
             updates[key as keyof Product] = value;
             updatedFieldNames.push(key);
@@ -44,8 +45,7 @@ export const ProductDialog = ({ isOpen, onOpenChange, currentProduct }: ProductD
     } else {
       // Handle individual field update
       const { field, value } = eventOrField;
-      if (field === 'advertising_cost') {
-        // Convert advertising_cost to promoted_listing_percentage for historical tracking
+      if (field === 'advertising_cost' && typeof value === 'number') {
         updates.promoted_listing_percentage = value;
         updatedFieldNames.push('promoted_listing_percentage');
       } else {
@@ -54,9 +54,9 @@ export const ProductDialog = ({ isOpen, onOpenChange, currentProduct }: ProductD
       }
     }
 
+    console.log('Updating product with:', updates); // Debug log
+
     try {
-      // The handle_product_cost_updates trigger will automatically create a new history record
-      // when promoted_listing_percentage is updated
       await updateProductDetails(currentProduct.sku, updates);
       await queryClient.invalidateQueries({ queryKey: ['products'] });
       
@@ -70,6 +70,7 @@ export const ProductDialog = ({ isOpen, onOpenChange, currentProduct }: ProductD
       
       setUpdatedFields([]);
     } catch (error) {
+      console.error('Update error:', error); // Debug log
       toast({
         title: "Error",
         description: error instanceof Error ? error.message : "Failed to update product details",
