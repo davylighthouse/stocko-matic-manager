@@ -1,4 +1,3 @@
-
 export const formatCurrency = (value: number | null | undefined) => {
   if (value === null || value === undefined) return '£0.00';
   return `£${value.toFixed(2)}`;
@@ -112,9 +111,9 @@ Total Platform Fees = ${formatCurrency(sale.platform_fees)}`;
         return 'No advertising costs for this sale';
       }
       return `Sale Price: ${formatCurrency(sale.total_price)}
-Promoted Listing Rate: ${formatPercentage(sale.promoted_listing_percentage)}
+Promotion Rate: ${formatPercentage(sale.promoted_listing_percentage)}
 ----------------------------------
-Advertising Cost = ${formatCurrency(sale.advertising_cost)}`;
+${formatCurrency(sale.total_price)} × ${formatPercentage(sale.promoted_listing_percentage)} = ${formatCurrency(sale.advertising_cost)}`;
 
     default:
       return '';

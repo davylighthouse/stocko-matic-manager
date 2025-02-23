@@ -16,6 +16,7 @@ interface RawSaleData {
   advertising_cost: number;
   vat_status: string;
   platform_fee_percentage: number;
+  promoted_listing_percentage: number; // Historical rate from product_cost_history
 }
 
 export const calculateSaleMetrics = (sale: RawSaleData): SaleWithProduct => {
@@ -31,14 +32,14 @@ export const calculateSaleMetrics = (sale: RawSaleData): SaleWithProduct => {
     shippingCost = 0;
   }
 
-  // Calculate advertising cost based on platform and promotion status
+  // Calculate advertising cost based on promotion status and historical rate
   let advertisingCost = 0;
   if (sale.promoted) {
-    // Use the platform_fee_percentage for the advertising cost calculation
-    advertisingCost = (sale.total_price || 0) * (sale.platform_fee_percentage || 0) / 100;
+    // Use the historical promoted_listing_percentage for calculation
+    advertisingCost = (sale.total_price || 0) * (sale.promoted_listing_percentage || 0) / 100;
     console.log('Calculating advertising cost:', {
       total_price: sale.total_price,
-      platform_fee_percentage: sale.platform_fee_percentage,
+      promoted_listing_percentage: sale.promoted_listing_percentage,
       result: advertisingCost
     });
   }
@@ -64,7 +65,7 @@ export const calculateSaleMetrics = (sale: RawSaleData): SaleWithProduct => {
   console.log(`🏷️ SKU: ${sale.sku}`);
   console.log(`💰 Total Price: £${sale.total_price}`);
   console.log(`🎯 Promoted: ${sale.promoted}`);
-  console.log(`📢 Platform Fee %: ${sale.platform_fee_percentage}%`);
+  console.log(`📢 Promoted Listing %: ${sale.promoted_listing_percentage}%`);
   console.log("\nCOST ANALYSIS:");
   console.log(`📦 Product Cost: £${sale.total_product_cost}`);
   console.log(`🏪 Platform Fees: £${sale.platform_fees}`);
