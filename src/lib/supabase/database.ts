@@ -439,10 +439,9 @@ export const getSalesWithProducts = async () => {
       total_product_cost,
       platform_fees,
       shipping_cost,
-      advertising_cost,
-      vat_status
-    `)
-    .throwOnError();
+      vat_status,
+      promoted_listing_percentage
+    `);
 
   if (error) {
     console.error('Error fetching sales with products:', error);
@@ -451,26 +450,42 @@ export const getSalesWithProducts = async () => {
 
   if (!salesData) return [];
 
-  return salesData.map(sale => ({
-    id: sale.sale_id,
-    sale_date: sale.sale_date,
-    platform: sale.platform,
-    sku: sale.sku,
-    listing_title: sale.listing_title,
-    promoted: sale.promoted || false,
-    quantity: sale.quantity || 0,
-    total_price: sale.total_price || 0,
-    total_product_cost: sale.total_product_cost || 0,
-    platform_fees: sale.platform_fees || 0,
-    shipping_cost: sale.shipping_cost || 0,
-    advertising_cost: sale.advertising_cost || 0,
-    gross_profit: (sale.total_price || 0) - (
-      (sale.total_product_cost || 0) +
-      (sale.platform_fees || 0) +
-      (sale.shipping_cost || 0) +
-      (sale.advertising_cost || 0)
-    )
-  })) as SaleWithProduct[];
+  return salesData.map(sale => {
+    let vatCost = 0;
+    if (sale.vat_status === 'standard') {
+      vatCost = (sale.total_price || 0) / 6;
+    }
+
+    // Calculate advertising cost
+    let advertisingCost = 0;
+    if (sale.promoted) {
+      advertisingCost = (sale.total_price || 0) * (sale.promoted_listing_percentage || 0) / 100;
+    }
+
+    const totalCosts = (sale.total_product_cost || 0) +
+                      (sale.platform_fees || 0) +
+                      (sale.shipping_cost || 0) +
+                      advertisingCost +
+                      vatCost;
+
+    const profit = (sale.total_price || 0) - totalCosts;
+
+    return {
+      id: sale.sale_id,
+      sale_date: sale.sale_date,
+      platform: sale.platform,
+      sku: sale.sku,
+      listing_title: sale.listing_title,
+      promoted: sale.promoted || false,
+      quantity: sale.quantity || 0,
+      total_price: sale.total_price || 0,
+      total_product_cost: sale.total_product_cost || 0,
+      platform_fees: sale.platform_fees || 0,
+      shipping_cost: sale.shipping_cost || 0,
+      advertising_cost: advertisingCost,
+      gross_profit: profit
+    };
+  });
 };
 
 export const getSalesTotals = async (): Promise<SalesTotals> => {
@@ -503,7 +518,6 @@ export const getSalesTotals = async (): Promise<SalesTotals> => {
     const totalCosts = (sale.total_product_cost || 0) +
                       (sale.platform_fees || 0) +
                       (sale.shipping_cost || 0) +
-                      (sale.advertising_cost || 0) +
                       vatCost;
 
     // Calculate profit

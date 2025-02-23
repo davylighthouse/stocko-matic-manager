@@ -31,11 +31,16 @@ const Profitability = () => {
         // Calculate VAT if applicable
         const vatCost = sale.vat_status === 'standard' ? (sale.total_price || 0) / 6 : 0;
 
+        // Calculate advertising cost for promoted listings
+        const advertisingCost = sale.promoted ? 
+          (sale.total_price || 0) * (sale.promoted_listing_percentage || 0) / 100 : 
+          0;
+
         // Calculate total costs
         const totalCosts = (sale.total_product_cost || 0) +
                          (sale.platform_fees || 0) +
                          (sale.shipping_cost || 0) +
-                         (sale.advertising_cost || 0) +
+                         advertisingCost +
                          vatCost;
 
         // Calculate profit and margin
@@ -52,14 +57,14 @@ const Profitability = () => {
           promoted: sale.promoted || false,
           quantity: sale.quantity || 0,
           total_price: sale.total_price || 0,
-          product_cost: sale.total_product_cost || 0, // Using total_product_cost instead of individual costs
-          packaging_cost: 0, // These are now included in total_product_cost from the view
+          product_cost: sale.total_product_cost || 0,
+          packaging_cost: 0,
           making_up_cost: 0,
           additional_costs: 0,
           total_product_cost: sale.total_product_cost || 0,
           platform_fees: sale.platform_fees || 0,
           shipping_cost: sale.shipping_cost || 0,
-          advertising_cost: sale.advertising_cost || 0,
+          advertising_cost: advertisingCost,
           vat_cost: vatCost,
           vat_status: sale.vat_status || 'exempt',
           profit,
@@ -72,7 +77,7 @@ const Profitability = () => {
           fba_fee_amount: sale.fba_fee_amount || null,
           platform_flat_fee: sale.platform_flat_fee || null,
           verified: false,
-          promoted_listing_percentage: 0,
+          promoted_listing_percentage: sale.promoted_listing_percentage || 0,
           picking_fee: 0
         } satisfies ProfitabilityData;
       });
