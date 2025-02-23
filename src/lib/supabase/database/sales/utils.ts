@@ -13,10 +13,9 @@ interface RawSaleData {
   total_product_cost: number;
   platform_fees: number;
   shipping_cost: number;
-  advertising_cost: number;
   vat_status: string;
   platform_fee_percentage: number;
-  promoted_listing_percentage: number; // Historical rate from product_cost_history
+  promoted_listing_percentage: number;
 }
 
 export const calculateSaleMetrics = (sale: RawSaleData): SaleWithProduct => {
@@ -98,3 +97,4 @@ export const calculateSaleMetrics = (sale: RawSaleData): SaleWithProduct => {
     total_costs: totalCosts
   };
 };
+

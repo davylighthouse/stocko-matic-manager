@@ -1,7 +1,6 @@
 
 import { supabase } from '@/integrations/supabase/client';
 import type { SaleWithProduct, SalesTotals } from '@/types/sales';
-import type { ProfitabilityData } from '@/components/profitability/types';
 import { calculateSaleMetrics } from './utils';
 
 export const getSalesWithProducts = async (): Promise<SaleWithProduct[]> => {
@@ -21,9 +20,9 @@ export const getSalesWithProducts = async (): Promise<SaleWithProduct[]> => {
       total_product_cost,
       platform_fees,
       shipping_cost,
-      advertising_cost,
       vat_status,
-      platform_fee_percentage
+      platform_fee_percentage,
+      promoted_listing_percentage
     `);
 
   if (error) {
@@ -49,7 +48,6 @@ export const getSalesTotals = async (): Promise<SalesTotals> => {
       sale_date,
       total_product_cost,
       shipping_cost,
-      advertising_cost,
       vat_status
     `)
     .throwOnError();
@@ -68,7 +66,6 @@ export const getSalesTotals = async (): Promise<SalesTotals> => {
     const totalCosts = (sale.platform_fees || 0) +
                       (sale.shipping_cost || 0) +
                       (sale.total_product_cost || 0) +
-                      (sale.advertising_cost || 0) +
                       vatCost;
 
     const profit = (sale.total_price || 0) - totalCosts;
@@ -97,3 +94,4 @@ export const getSalesTotals = async (): Promise<SalesTotals> => {
     latest_sale: sortedData[sortedData.length - 1]?.sale_date,
   };
 };
+
