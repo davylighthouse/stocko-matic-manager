@@ -24,7 +24,18 @@ export const deleteMultipleSales = async (ids: number[]): Promise<boolean> => {
   return true;
 };
 
-export const updateSale = async (id: number, data: Partial<SaleWithProduct>): Promise<boolean> => {
+// Define a more specific type for the update data
+interface SaleUpdateData {
+  sale_date?: string;
+  platform?: string;
+  sku?: string;
+  quantity?: number;
+  total_price?: number | string;
+  gross_profit?: number | string;
+  promoted?: boolean;
+}
+
+export const updateSale = async (id: number, data: SaleUpdateData): Promise<boolean> => {
   console.log('Received data for update:', data);
   
   const numericData = {
