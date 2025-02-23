@@ -1,5 +1,6 @@
+
 import { supabase } from '@/integrations/supabase/client';
-import type { SaleWithProduct, SalesTotals } from '@/types/sales';
+import type { SaleWithProduct, SalesTotals, SaleProfitabilityData } from '@/types/sales';
 import type { ProfitabilityData } from '@/components/profitability/types';
 import { format } from 'date-fns';
 import Papa from 'papaparse';
@@ -123,7 +124,7 @@ export const getSalesWithProducts = async (): Promise<SaleWithProduct[]> => {
   });
 };
 
-export const getSalesTotals = async () => {
+export const getSalesTotals = async (): Promise<SalesTotals> => {
   const { data, error } = await supabase
     .from('sales_profitability')
     .select(`
@@ -180,10 +181,10 @@ export const getSalesTotals = async () => {
     unique_products: uniqueSkus,
     earliest_sale: sortedData[0]?.sale_date,
     latest_sale: sortedData[sortedData.length - 1]?.sale_date,
-  } as SalesTotals;
+  };
 };
 
-export const deleteSale = async (id: number) => {
+export const deleteSale = async (id: number): Promise<boolean> => {
   const { error } = await supabase
     .from('sales')
     .delete()
@@ -193,7 +194,7 @@ export const deleteSale = async (id: number) => {
   return true;
 };
 
-export const deleteMultipleSales = async (ids: number[]) => {
+export const deleteMultipleSales = async (ids: number[]): Promise<boolean> => {
   const { error } = await supabase
     .from('sales')
     .delete()
@@ -203,7 +204,7 @@ export const deleteMultipleSales = async (ids: number[]) => {
   return true;
 };
 
-export const updateSale = async (id: number, data: Partial<SaleWithProduct>) => {
+export const updateSale = async (id: number, data: Partial<SaleWithProduct>): Promise<boolean> => {
   console.log('Received data for update:', data);
   
   const numericData = {
@@ -231,7 +232,7 @@ export const updateSale = async (id: number, data: Partial<SaleWithProduct>) => 
   return true;
 };
 
-export const updateSaleProfitability = async (id: number, data: Partial<ProfitabilityData>) => {
+export const updateSaleProfitability = async (id: number, data: Partial<ProfitabilityData>): Promise<boolean> => {
   console.log('Updating sale profitability:', { id, data });
   
   const { error } = await supabase
@@ -354,7 +355,7 @@ export const processSalesCSV = async (file: File): Promise<{ success: boolean; m
   });
 };
 
-export const downloadSalesTemplate = async () => {
+export const downloadSalesTemplate = async (): Promise<void> => {
   const csvContent = [
     ['Sale Date', 'Platform', 'Listing Title', 'SKU', 'Promoted Listing', 'Quantity', 'Total Price'].join(','),
     ['04/01/2024', 'Amazon', 'Example Product', 'ABC123', 'Yes', '1', '19.99'].join(',')
