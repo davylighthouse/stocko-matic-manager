@@ -21,7 +21,7 @@ export const ProductDialog = ({ isOpen, onOpenChange, currentProduct }: ProductD
   const handleProductUpdate = async (eventOrField: React.FormEvent<HTMLFormElement> | FieldUpdate) => {
     if (!currentProduct) return;
 
-    const updates: Partial<Product> = {};
+    const updates = {} as Record<keyof Product, any>;
     const updatedFieldNames: string[] = [];
 
     if ('currentTarget' in eventOrField) {
@@ -31,9 +31,9 @@ export const ProductDialog = ({ isOpen, onOpenChange, currentProduct }: ProductD
       formData.forEach((value, key) => {
         if (value !== '' && value !== null) {
           if (key === 'advertising_cost') {
-            updates[key] = parseFloat(value as string);
+            updates[key as keyof Product] = parseFloat(value as string);
           } else {
-            (updates as any)[key] = value;
+            updates[key as keyof Product] = value;
           }
           updatedFieldNames.push(key);
         }
