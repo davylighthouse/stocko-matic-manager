@@ -17,29 +17,42 @@ export const ProductDialog = ({ isOpen, onOpenChange, currentProduct }: ProductD
   const { toast } = useToast();
   const queryClient = useQueryClient();
 
-  const handleProductUpdate = async (event: React.FormEvent<HTMLFormElement>) => {
-    event.preventDefault();
+  const handleProductUpdate = async (event: React.FormEvent<HTMLFormElement> | { field: string, value: any }) => {
     if (!currentProduct) return;
 
-    const formData = new FormData(event.currentTarget);
-    const updates: Partial<Product> = {};
-    const updatedFieldNames: string[] = [];
+    let updates: Partial<Product> = {};
+    let updatedFieldNames: string[] = [];
 
-    formData.forEach((value, key) => {
-      if (value !== '' && value !== null) {
-        (updates as any)[key] = value;
-        updatedFieldNames.push(key);
-      }
-    });
+    // Handle both form submissions and individual field updates
+    if ('currentTarget' in event) {
+      // This is a form submission
+      event.preventDefault();
+      const formData = new FormData(event.currentTarget);
+      formData.forEach((value, key) => {
+        if (value !== '' && value !== null) {
+          (updates as any)[key] = value;
+          updatedFieldNames.push(key);
+        }
+      });
+    } else {
+      // This is an individual field update
+      updates[event.field] = event.value;
+      updatedFieldNames.push(event.field);
+    }
 
     try {
       await updateProductDetails(currentProduct.sku, updates);
       await queryClient.invalidateQueries({ queryKey: ['products'] });
-      onOpenChange(false);
-      toast({
-        title: "Success",
-        description: "Product details updated successfully",
-      });
+      
+      if (!('currentTarget' in event)) {
+        // Only show toast and close dialog for form submissions
+        toast({
+          title: "Success",
+          description: "Product details updated successfully",
+        });
+        onOpenChange(false);
+      }
+      
       setUpdatedFields([]);
     } catch (error) {
       toast({

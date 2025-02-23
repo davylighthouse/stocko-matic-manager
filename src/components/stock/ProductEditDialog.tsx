@@ -30,16 +30,7 @@ export const ProductEditDialog = ({
   );
 
   const onSettingChange = (field: string, value: any) => {
-    onSubmit({
-      preventDefault: () => {},
-      stopPropagation: () => {},
-      currentTarget: {
-        elements: {
-          [field]: { value }
-        }
-      },
-      target: null,
-    } as any);
+    onSubmit({ field, value });
   };
 
   if (!product) return null;
@@ -122,4 +113,3 @@ export const ProductEditDialog = ({
     </Dialog>
   );
 };
-
