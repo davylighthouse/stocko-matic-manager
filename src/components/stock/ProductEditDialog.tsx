@@ -7,7 +7,7 @@ import {
   DialogTitle,
 } from "@/components/ui/dialog";
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
-import { ProductEditDialogProps } from "./types/product-dialog";
+import { ProductEditDialogProps, FieldUpdate } from "./types/product-dialog";
 import { FieldCheckIndicator } from "./components/FieldCheckIndicator";
 import { ProductDetailsTab } from "./components/ProductDetailsTab";
 import { ProductInformationTab } from "./components/ProductInformationTab";
@@ -30,7 +30,12 @@ export const ProductEditDialog = ({
   );
 
   const onSettingChange = (field: string, value: any) => {
-    onSubmit({ field, value });
+    const fieldUpdate: FieldUpdate = { field, value };
+    onSubmit(fieldUpdate);
+  };
+
+  const handleFormSubmit = (e: React.FormEvent<HTMLFormElement>) => {
+    onSubmit(e);
   };
 
   if (!product) return null;
@@ -41,7 +46,7 @@ export const ProductEditDialog = ({
         <DialogHeader>
           <DialogTitle>Edit Product Details</DialogTitle>
         </DialogHeader>
-        <form onSubmit={onSubmit} className="space-y-4">
+        <form onSubmit={handleFormSubmit} className="space-y-4">
           <Tabs defaultValue="details" className="w-full">
             <TabsList className="grid w-full grid-cols-5">
               <TabsTrigger value="details">Product Details</TabsTrigger>

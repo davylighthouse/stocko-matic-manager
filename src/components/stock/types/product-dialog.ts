@@ -1,12 +1,17 @@
 
 import { Product } from "@/types/database";
 
+export interface FieldUpdate {
+  field: string;
+  value: any;
+}
+
 export interface ProductEditDialogProps {
   product: Product | null;
   open: boolean;
   onOpenChange: (open: boolean) => void;
   onStockUpdate: (sku: string, quantity: number) => void;
-  onSubmit: (event: React.FormEvent<HTMLFormElement>) => void;
+  onSubmit: (event: React.FormEvent<HTMLFormElement> | FieldUpdate) => void;
   updatedFields?: string[];
 }
 
@@ -28,4 +33,3 @@ export interface TabContentProps {
   renderFieldWithCheck: (fieldName: string, children: React.ReactNode) => React.ReactElement;
   onStockUpdate?: (sku: string, quantity: number) => void;
 }
-
