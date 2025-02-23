@@ -63,7 +63,18 @@ export const updateSale = async (id: number, data: SaleUpdateData): Promise<bool
   return true;
 };
 
-export const updateSaleProfitability = async (id: number, data: Partial<ProfitabilityData>): Promise<boolean> => {
+// Define specific fields for profitability update
+interface ProfitabilityUpdateData {
+  sale_date?: string;
+  platform?: string;
+  sku?: string;
+  quantity?: number;
+  total_price?: number;
+  promoted?: boolean;
+  verified?: boolean;
+}
+
+export const updateSaleProfitability = async (id: number, data: ProfitabilityUpdateData): Promise<boolean> => {
   console.log('Updating sale profitability:', { id, data });
   
   const { error } = await supabase
