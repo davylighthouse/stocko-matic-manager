@@ -66,6 +66,18 @@ export const ProductDetailsTab = ({ product, renderFieldWithCheck, onStockUpdate
           </Select>
         )}
       </div>
+      <div>
+        <Label htmlFor="promoted_listing_percentage">Promoted Listing %</Label>
+        {renderFieldWithCheck("promoted_listing_percentage",
+          <Input
+            id="promoted_listing_percentage"
+            name="promoted_listing_percentage"
+            type="number"
+            step="0.01"
+            defaultValue={product.promoted_listing_percentage ?? 0}
+          />
+        )}
+      </div>
     </div>
   );
 };

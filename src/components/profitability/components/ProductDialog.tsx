@@ -29,7 +29,7 @@ export const ProductDialog = ({ isOpen, onOpenChange, currentProduct }: ProductD
       const formData = new FormData(eventOrField.currentTarget);
       formData.forEach((value, key) => {
         if (value !== '' && value !== null) {
-          if (key === 'advertising_cost') {
+          if (key === 'promoted_listing_percentage') {
             const parsedValue = parseFloat(value.toString());
             if (!isNaN(parsedValue)) {
               updates.promoted_listing_percentage = parsedValue;
@@ -43,7 +43,7 @@ export const ProductDialog = ({ isOpen, onOpenChange, currentProduct }: ProductD
       });
     } else {
       const { field, value } = eventOrField;
-      if (field === 'advertising_cost' && typeof value === 'number') {
+      if (field === 'promoted_listing_percentage' && typeof value === 'number') {
         updates.promoted_listing_percentage = value;
         updatedFieldNames.push('promoted_listing_percentage');
       } else {
@@ -87,17 +87,15 @@ export const ProductDialog = ({ isOpen, onOpenChange, currentProduct }: ProductD
     // This function is required by the ProductEditDialog but won't be used in this context
   };
 
-  // Map the promoted_listing_percentage to advertising_cost for the dialog
-  const productWithAdvertisingCost = currentProduct ? {
+  // Map the promoted_listing_percentage
+  const productWithListingPercentage = currentProduct ? {
     ...currentProduct,
-    advertising_cost: currentProduct.promoted_listing_percentage || 0
+    promoted_listing_percentage: currentProduct.promoted_listing_percentage || 0
   } : null;
-
-  console.log('Product with advertising cost:', productWithAdvertisingCost); // Debug log
 
   return (
     <ProductEditDialog
-      product={productWithAdvertisingCost}
+      product={productWithListingPercentage}
       open={isOpen}
       onOpenChange={onOpenChange}
       onSubmit={handleProductUpdate}
