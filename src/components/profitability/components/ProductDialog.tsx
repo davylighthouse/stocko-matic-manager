@@ -29,28 +29,30 @@ export const ProductDialog = ({ isOpen, onOpenChange, currentProduct }: ProductD
       const formData = new FormData(eventOrField.currentTarget);
       
       formData.forEach((value, key) => {
+        const fieldName = key as keyof Product;
         if (value !== '' && value !== null) {
-          if (key === 'promoted_listing_percentage') {
+          if (fieldName === 'promoted_listing_percentage') {
             const parsedValue = parseFloat(value.toString());
             if (!isNaN(parsedValue)) {
               updates.promoted_listing_percentage = parsedValue;
               updatedFieldNames.push('promoted_listing_percentage');
             }
-          } else if (typeof currentProduct[key as keyof Product] === 'number') {
+          } else if (typeof currentProduct[fieldName] === 'number') {
             const parsedValue = parseFloat(value.toString());
             if (!isNaN(parsedValue)) {
-              updates[key as keyof Product] = parsedValue as any;
-              updatedFieldNames.push(key);
+              updates[fieldName] = parsedValue;
+              updatedFieldNames.push(fieldName);
             }
           } else {
-            updates[key as keyof Product] = value.toString() as any;
-            updatedFieldNames.push(key);
+            updates[fieldName] = value.toString();
+            updatedFieldNames.push(fieldName);
           }
         }
       });
     } else {
       const { field, value } = eventOrField;
-      updates[field as keyof Product] = value as any;
+      const fieldName = field as keyof Product;
+      updates[fieldName] = value;
       updatedFieldNames.push(field);
     }
 
