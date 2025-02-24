@@ -32,14 +32,9 @@ export const ProductDialog = ({ isOpen, onOpenChange, currentProduct }: ProductD
         if (value !== '' && value !== null) {
           const fieldKey = key as keyof Product;
           
-          // Handle promoted_listing_percentage separately
-          if (fieldKey === 'promoted_listing_percentage') {
-            const parsedValue = parseFloat(value.toString());
-            if (!isNaN(parsedValue)) {
-              updates.promoted_listing_percentage = parsedValue;
-              updatedFieldNames.push(fieldKey);
-            }
-          } else if (
+          // Handle number fields
+          if (
+            fieldKey === 'promoted_listing_percentage' ||
             fieldKey === 'stock_quantity' || 
             fieldKey === 'product_cost' || 
             fieldKey === 'packaging_cost' || 
@@ -49,11 +44,11 @@ export const ProductDialog = ({ isOpen, onOpenChange, currentProduct }: ProductD
           ) {
             const parsedValue = parseFloat(value.toString());
             if (!isNaN(parsedValue)) {
-              updates[fieldKey] = parsedValue as any;
+              updates[fieldKey] = parsedValue;
               updatedFieldNames.push(fieldKey);
             }
           } else {
-            updates[fieldKey] = value.toString() as any;
+            updates[fieldKey] = value.toString();
             updatedFieldNames.push(fieldKey);
           }
         }
@@ -61,11 +56,12 @@ export const ProductDialog = ({ isOpen, onOpenChange, currentProduct }: ProductD
     } else {
       // Handle direct field updates
       const { field, value } = eventOrField;
+      const fieldKey = field as keyof Product;
+      
       if (field === 'promoted_listing_percentage') {
-        const parsedValue = typeof value === 'string' ? parseFloat(value) : value;
-        updates.promoted_listing_percentage = parsedValue as number;
+        updates[fieldKey] = typeof value === 'string' ? parseFloat(value) : value;
       } else {
-        updates[field as keyof Product] = value as any;
+        updates[fieldKey] = value;
       }
       updatedFieldNames.push(field);
     }
