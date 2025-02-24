@@ -13,10 +13,6 @@ interface ProductDialogProps {
   currentProduct: Product | undefined;
 }
 
-type UpdatesType = {
-  [K in keyof Product]?: Product[K];
-};
-
 export const ProductDialog = ({ isOpen, onOpenChange, currentProduct }: ProductDialogProps) => {
   const [updatedFields, setUpdatedFields] = useState<string[]>([]);
   const { toast } = useToast();
@@ -25,7 +21,7 @@ export const ProductDialog = ({ isOpen, onOpenChange, currentProduct }: ProductD
   const handleProductUpdate = async (eventOrField: React.FormEvent<HTMLFormElement> | FieldUpdate) => {
     if (!currentProduct) return;
 
-    const updates: UpdatesType = {};
+    const updates: Record<string, string | number | null | boolean> = {};
     const updatedFieldNames: string[] = [];
 
     if ('currentTarget' in eventOrField) {
@@ -34,45 +30,42 @@ export const ProductDialog = ({ isOpen, onOpenChange, currentProduct }: ProductD
       
       formData.forEach((value, key) => {
         if (value !== '' && value !== null) {
-          const fieldKey = key as keyof Product;
-          
           // Handle number fields
           if (
-            fieldKey === 'promoted_listing_percentage' ||
-            fieldKey === 'stock_quantity' || 
-            fieldKey === 'product_cost' || 
-            fieldKey === 'packaging_cost' || 
-            fieldKey === 'making_up_cost' || 
-            fieldKey === 'additional_costs' || 
-            fieldKey === 'low_stock_threshold'
+            key === 'promoted_listing_percentage' ||
+            key === 'stock_quantity' || 
+            key === 'product_cost' || 
+            key === 'packaging_cost' || 
+            key === 'making_up_cost' || 
+            key === 'additional_costs' || 
+            key === 'low_stock_threshold'
           ) {
             const parsedValue = parseFloat(value.toString());
             if (!isNaN(parsedValue)) {
-              updates[fieldKey] = parsedValue;
-              updatedFieldNames.push(fieldKey);
+              updates[key] = parsedValue;
+              updatedFieldNames.push(key);
             }
           } else {
-            updates[fieldKey] = value.toString();
-            updatedFieldNames.push(fieldKey);
+            updates[key] = value.toString();
+            updatedFieldNames.push(key);
           }
         }
       });
     } else {
       // Handle direct field updates
       const { field, value } = eventOrField;
-      const fieldKey = field as keyof Product;
       
       if (field === 'promoted_listing_percentage') {
-        updates[fieldKey] = typeof value === 'string' ? parseFloat(value) : value;
+        updates[field] = typeof value === 'string' ? parseFloat(value) : value;
       } else {
-        updates[fieldKey] = value;
+        updates[field] = value;
       }
       updatedFieldNames.push(field);
     }
 
     try {
       console.log('Updating product with:', updates);
-      await updateProductDetails(currentProduct.sku, updates);
+      await updateProductDetails(currentProduct.sku, updates as Partial<Product>);
       
       // Invalidate all relevant queries to refresh the data
       await Promise.all([
