@@ -31,16 +31,11 @@ const Profitability = () => {
         // Calculate VAT if applicable
         const vatCost = sale.vat_status === 'standard' ? (sale.total_price || 0) / 6 : 0;
 
-        // Calculate advertising cost for promoted listings
-        const advertisingCost = sale.promoted ? 
-          (sale.total_price || 0) * (sale.promoted_listing_percentage || 0) / 100 : 
-          0;
-
         // Calculate total costs
         const totalCosts = (sale.total_product_cost || 0) +
                          (sale.platform_fees || 0) +
                          (sale.shipping_cost || 0) +
-                         advertisingCost +
+                         (sale.advertising_cost || 0) +
                          vatCost;
 
         // Calculate profit and margin
@@ -64,7 +59,7 @@ const Profitability = () => {
           total_product_cost: sale.total_product_cost || 0,
           platform_fees: sale.platform_fees || 0,
           shipping_cost: sale.shipping_cost || 0,
-          advertising_cost: advertisingCost,
+          advertising_cost: sale.advertising_cost || 0,
           vat_cost: vatCost,
           vat_status: sale.vat_status || 'exempt',
           profit,

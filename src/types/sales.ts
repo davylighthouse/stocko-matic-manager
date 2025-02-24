@@ -5,6 +5,7 @@ export interface SaleWithProduct {
   platform: string;
   sku: string;
   listing_title: string;
+  promoted: boolean;
   quantity: number;
   total_price: number;
   total_product_cost: number;
@@ -12,7 +13,6 @@ export interface SaleWithProduct {
   shipping_cost: number;
   advertising_cost: number;
   gross_profit: number;
-  promoted: boolean;
   vat_status?: string;
   vat_cost?: number;
   profit_margin?: number;
@@ -45,5 +45,5 @@ export interface SaleProfitabilityData {
   fba_fee_amount: number | null;
   platform_flat_fee: number | null;
   promoted_listing_percentage: number;
+  advertising_cost: number;
 }
-
