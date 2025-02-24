@@ -21,12 +21,13 @@ export const ProductDialog = ({ isOpen, onOpenChange, currentProduct }: ProductD
   const handleProductUpdate = async (eventOrField: React.FormEvent<HTMLFormElement> | FieldUpdate) => {
     if (!currentProduct) return;
 
-    const updates: Record<string, string | number | null> = {};
+    const updates: Partial<Product> = {};
     const updatedFieldNames: string[] = [];
 
     if ('currentTarget' in eventOrField) {
       eventOrField.preventDefault();
       const formData = new FormData(eventOrField.currentTarget);
+      
       formData.forEach((value, key) => {
         if (value !== '' && value !== null) {
           if (key === 'promoted_listing_percentage') {
@@ -35,28 +36,28 @@ export const ProductDialog = ({ isOpen, onOpenChange, currentProduct }: ProductD
               updates.promoted_listing_percentage = parsedValue;
               updatedFieldNames.push('promoted_listing_percentage');
             }
+          } else if (typeof currentProduct[key as keyof Product] === 'number') {
+            const parsedValue = parseFloat(value.toString());
+            if (!isNaN(parsedValue)) {
+              updates[key as keyof Product] = parsedValue as any;
+              updatedFieldNames.push(key);
+            }
           } else {
-            updates[key] = value.toString();
+            updates[key as keyof Product] = value.toString() as any;
             updatedFieldNames.push(key);
           }
         }
       });
     } else {
       const { field, value } = eventOrField;
-      if (field === 'promoted_listing_percentage' && typeof value === 'number') {
-        updates.promoted_listing_percentage = value;
-        updatedFieldNames.push('promoted_listing_percentage');
-      } else {
-        updates[field] = value;
-        updatedFieldNames.push(field);
-      }
+      updates[field as keyof Product] = value as any;
+      updatedFieldNames.push(field);
     }
 
     try {
       console.log('Updating product with:', updates);
-      await updateProductDetails(currentProduct.sku, updates as Partial<Product>);
+      await updateProductDetails(currentProduct.sku, updates);
       
-      // Invalidate all relevant queries
       await Promise.all([
         queryClient.invalidateQueries({ queryKey: ['products'] }),
         queryClient.invalidateQueries({ queryKey: ['profitability'] }),
@@ -87,15 +88,9 @@ export const ProductDialog = ({ isOpen, onOpenChange, currentProduct }: ProductD
     // This function is required by the ProductEditDialog but won't be used in this context
   };
 
-  // Map the promoted_listing_percentage
-  const productWithListingPercentage = currentProduct ? {
-    ...currentProduct,
-    promoted_listing_percentage: currentProduct.promoted_listing_percentage || 0
-  } : null;
-
   return (
     <ProductEditDialog
-      product={productWithListingPercentage}
+      product={currentProduct}
       open={isOpen}
       onOpenChange={onOpenChange}
       onSubmit={handleProductUpdate}
