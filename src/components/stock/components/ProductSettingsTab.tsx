@@ -20,7 +20,6 @@ export const ProductSettingsTab = ({
   defaultShippingServiceId,
   amazonFbaTierId,
   vatStatus,
-  advertisingCost,
   onSettingChange,
 }: ProductSettingsTabProps) => {
   const { pickingFees, shippingServices, amazonFbaTiers } = useProductSettingsData();
@@ -50,15 +49,6 @@ export const ProductSettingsTab = ({
     onSettingChange('amazon_fba_tier_id', tierId);
   };
 
-  const handleAdvertisingCostChange = (event: React.ChangeEvent<HTMLInputElement>) => {
-    const value = parseFloat(event.target.value);
-    if (!isNaN(value)) {
-      const formData = new FormData();
-      formData.append('advertising_cost', String(value));
-      onSettingChange('advertising_cost', value);
-    }
-  };
-
   return (
     <div className="grid gap-4">
       <ShippingSettingsSection
@@ -72,9 +62,7 @@ export const ProductSettingsTab = ({
 
       <BusinessSettingsSection
         vatStatus={vatStatus}
-        advertisingCost={advertisingCost}
         onVatStatusChange={handleVatStatusChange}
-        onAdvertisingCostChange={handleAdvertisingCostChange}
       />
 
       <AmazonSettingsSection

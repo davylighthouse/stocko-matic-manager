@@ -13,6 +13,10 @@ interface ProductDialogProps {
   currentProduct: Product | undefined;
 }
 
+type UpdatesType = {
+  [K in keyof Product]?: Product[K];
+};
+
 export const ProductDialog = ({ isOpen, onOpenChange, currentProduct }: ProductDialogProps) => {
   const [updatedFields, setUpdatedFields] = useState<string[]>([]);
   const { toast } = useToast();
@@ -21,7 +25,7 @@ export const ProductDialog = ({ isOpen, onOpenChange, currentProduct }: ProductD
   const handleProductUpdate = async (eventOrField: React.FormEvent<HTMLFormElement> | FieldUpdate) => {
     if (!currentProduct) return;
 
-    const updates: Partial<Product> = {};
+    const updates: UpdatesType = {};
     const updatedFieldNames: string[] = [];
 
     if ('currentTarget' in eventOrField) {
