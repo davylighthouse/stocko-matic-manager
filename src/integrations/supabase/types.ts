@@ -862,6 +862,7 @@ export type Database = {
       }
       sales_profitability: {
         Row: {
+          advertising_cost: number | null
           fba_fee_amount: number | null
           listing_title: string | null
           platform: string | null
