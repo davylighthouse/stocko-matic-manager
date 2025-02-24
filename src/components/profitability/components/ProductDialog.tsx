@@ -32,10 +32,11 @@ export const ProductDialog = ({ isOpen, onOpenChange, currentProduct }: ProductD
         if (value !== '' && value !== null) {
           const fieldKey = key as keyof Product;
           
+          // Handle promoted_listing_percentage separately
           if (fieldKey === 'promoted_listing_percentage') {
             const parsedValue = parseFloat(value.toString());
             if (!isNaN(parsedValue)) {
-              (updates as any)[fieldKey] = parsedValue;
+              updates.promoted_listing_percentage = parsedValue;
               updatedFieldNames.push(fieldKey);
             }
           } else if (
@@ -48,19 +49,24 @@ export const ProductDialog = ({ isOpen, onOpenChange, currentProduct }: ProductD
           ) {
             const parsedValue = parseFloat(value.toString());
             if (!isNaN(parsedValue)) {
-              (updates as any)[fieldKey] = parsedValue;
+              updates[fieldKey] = parsedValue as any;
               updatedFieldNames.push(fieldKey);
             }
           } else {
-            (updates as any)[fieldKey] = value.toString();
+            updates[fieldKey] = value.toString() as any;
             updatedFieldNames.push(fieldKey);
           }
         }
       });
     } else {
+      // Handle direct field updates
       const { field, value } = eventOrField;
-      const fieldKey = field as keyof Product;
-      (updates as any)[fieldKey] = value;
+      if (field === 'promoted_listing_percentage') {
+        const parsedValue = typeof value === 'string' ? parseFloat(value) : value;
+        updates.promoted_listing_percentage = parsedValue as number;
+      } else {
+        updates[field as keyof Product] = value as any;
+      }
       updatedFieldNames.push(field);
     }
 
@@ -68,6 +74,7 @@ export const ProductDialog = ({ isOpen, onOpenChange, currentProduct }: ProductD
       console.log('Updating product with:', updates);
       await updateProductDetails(currentProduct.sku, updates);
       
+      // Invalidate all relevant queries to refresh the data
       await Promise.all([
         queryClient.invalidateQueries({ queryKey: ['products'] }),
         queryClient.invalidateQueries({ queryKey: ['profitability'] }),
